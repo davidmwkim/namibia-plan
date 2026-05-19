@@ -1,34 +1,52 @@
-/* v22 — Per-step road / rain / why blocks */
-.step-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 6px 0 8px;
+/* v22 — Per-step conditions disclosure (collapsed by default, muted colors) */
+.step-conditions {
+  margin: 6px 0;
 }
-.step-detail {
-  font-size: 12px;
-  line-height: 1.45;
-  padding: 6px 10px;
+.step-conditions-summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
   border-radius: 6px;
-  border-left: 3px solid #d1d5db;
-  background: #f9fafb;
+  font-size: 11px;
+  color: #4b5563;
+  user-select: none;
+}
+.step-conditions-summary::-webkit-details-marker { display: none; }
+.step-conditions-summary:hover { background: #f3f4f6; }
+
+.step-road-pill {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+.step-conditions-toggle {
+  font-style: italic;
+  color: #6b7280;
+}
+.step-conditions[open] .step-conditions-toggle::after { content: ''; }
+
+.step-conditions-body {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-left: 2px solid #e5e7eb;
+  background: #fafafa;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
   color: #374151;
 }
+.step-conditions-body > div + div { margin-top: 4px; }
+.step-conditions-body strong { color: #1f2937; font-weight: 600; }
 
-.step-road-paved   { border-left-color: #1f2937; background: #f3f4f6; }
-.step-road-gravel  { border-left-color: #92400e; background: #fef3c7; }
-.step-road-unpaved { border-left-color: #92400e; background: #fef3c7; }
-.step-road-sand    { border-left-color: #b45309; background: #ffedd5; }
-.step-road-urban   { border-left-color: #1f2937; background: #f3f4f6; }
-.step-road-mixed   { border-left-color: #6b7280; background: #f9fafb; }
-
-.step-rain-paved   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
-.step-rain-gravel  { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
-.step-rain-unpaved { border-left-color: #b91c1c; background: #fee2e2; color: #7f1d1d; }
-.step-rain-sand    { border-left-color: #b91c1c; background: #fee2e2; color: #7f1d1d; }
-.step-rain-urban   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
-.step-rain-mixed   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
-
-.step-why-yes   { border-left-color: #16a34a; background: #ecfdf5; color: #065f46; }
-.step-why-maybe { border-left-color: #f59e0b; background: #fffbeb; color: #92400e; }
-.step-why-no    { border-left-color: #dc2626; background: #fef2f2; color: #991b1b; }
+@media print {
+  .step-conditions { break-inside: avoid; }
+  .step-conditions-body { background: white; border: 1px solid #ddd; }
+}

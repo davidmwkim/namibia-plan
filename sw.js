@@ -2,7 +2,7 @@
 // handler purges every cache whose name doesn't match, forcing browsers to
 // re-fetch the new files. Users currently on an older cache get the v10
 // "New version available" toast prompting reload.
-const APP_VERSION = '2026.05.29';  // YYYY.MM.DD — easier than counting patch numbers
+const APP_VERSION = '2026.05.30.2';  // bump fractional when same-day CSS-only tweak
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [

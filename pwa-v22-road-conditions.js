@@ -74,34 +74,34 @@
     return `David drives — route complexity, fatigue management, or unfamiliar intersections make this a David leg.${reasonTail}`;
   }
 
-  function blockHtml(label, body, cls) {
-    const safe = String(body).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<div class="step-detail ${cls}"><strong>${label}:</strong> ${safe}</div>`;
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function enhanceStepLi(liEl, step, leg, legIdx, stepIdx, route, day) {
-    // Idempotency: check only v22's *own* classes. v23 also uses .step-detail
-    // for the weather block, and an async-ordering race used to make us bail
-    // out before adding any road info on subsequent re-renders.
     if (!liEl || liEl.querySelector('.step-road')) return;
     const road = classifyRoad(step.instruction, day);
     const part = window.NamibiaV19 ? window.NamibiaV19.partitionForStep(route, day, legIdx, stepIdx) : null;
     const status = part?.status || 'no';
     const segReason = part?.reason || '';
 
-    // Find a good insertion anchor: between the existing chip + reason block
-    // and the step-media images, OR before .step-media if present.
+    // Single collapsed disclosure with three terse rows. Default is closed so
+    // most steps look clean — open it on the steps you actually care about.
+    const detailsEl = document.createElement('details');
+    detailsEl.className = 'step-conditions';
+    detailsEl.innerHTML = `
+      <summary class="step-conditions-summary">
+        <span class="step-road-pill">${esc(road.code)}</span>
+        <span class="step-conditions-toggle">conditions ▾</span>
+      </summary>
+      <div class="step-conditions-body">
+        <div class="step-road"><strong>Road:</strong> ${esc(road.detail)}</div>
+        <div class="step-rain"><strong>Rain:</strong> ${esc(RAIN_IMPACT[road.type] || RAIN_IMPACT.mixed)}</div>
+        <div class="step-why"><strong>Heather rating:</strong> ${esc(heatherWhy(status, road, segReason))}</div>
+      </div>`;
     const anchor = liEl.querySelector('.step-media') || null;
-    const blocks = document.createDocumentFragment();
-    const w = document.createElement('div');
-    w.className = 'step-details';
-    w.innerHTML =
-      blockHtml(`Road (${road.code})`, road.detail, 'step-road step-road-' + road.type) +
-      blockHtml('Rain impact', RAIN_IMPACT[road.type] || RAIN_IMPACT.mixed, 'step-rain step-rain-' + road.type) +
-      blockHtml('Why this Heather rating', heatherWhy(status, road, segReason), 'step-why step-why-' + status);
-    blocks.appendChild(w);
-    if (anchor) liEl.insertBefore(blocks, anchor);
-    else liEl.appendChild(blocks);
+    if (anchor) liEl.insertBefore(detailsEl, anchor);
+    else liEl.appendChild(detailsEl);
   }
 
   function applyToDirectionsTab() {

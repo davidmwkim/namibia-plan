@@ -6,9 +6,11 @@
   border-left: 4px solid transparent;
   border-radius: 4px;
 }
-.directions ol > li.step-heather-yes   { border-left-color: #16a34a; background: rgba(22,163,74,0.04); }
-.directions ol > li.step-heather-maybe { border-left-color: #f59e0b; background: rgba(245,158,11,0.05); }
-.directions ol > li.step-heather-no    { border-left-color: #dc2626; background: rgba(220,38,38,0.04); }
+/* Subtle left-edge tint only — no background fill. Color is reserved for the
+   chip + the route polyline, not per-step row backgrounds. */
+.directions ol > li.step-heather-yes   { border-left-color: #16a34a; }
+.directions ol > li.step-heather-maybe { border-left-color: #f59e0b; }
+.directions ol > li.step-heather-no    { border-left-color: #dc2626; }
 .step-dir {
   display: inline-block;
   margin-right: 4px;

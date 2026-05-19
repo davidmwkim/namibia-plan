@@ -498,17 +498,16 @@
         const hs = part?.status || 'no';
         liEl.classList.add('step-heather-' + hs);
 
-        // Heather chip + (on first step of a new segment) the segment's reason.
+        // Heather chip only — the segment reason lives in the chip's tooltip
+        // and in the v22 conditions accordion. We no longer render a separate
+        // colored reason block (was too visually noisy).
         const emoji = HEATHER_EMOJI[hs] || '⚪';
         const label = part?.label || (hs === 'yes' ? 'Heather OK' : hs === 'maybe' ? 'Heather maybe' : 'David drives');
         const reason = part?.reason || '';
         const partKey = part ? `${part.fromIdx}-${part.toIdx}-${part.status}` : 'none';
-        const showReason = reason && partKey !== prevPartKey;
         prevPartKey = partKey;
         const chip = `<span class="step-heather-chip step-heather-chip-${hs}" title="${esc(reason)}">${emoji} ${esc(label)}</span>`;
-        const reasonBlock = showReason
-          ? `<div class="step-heather-reason step-heather-reason-${hs}">${esc(reason)}</div>`
-          : '';
+        const reasonBlock = '';
 
         const dirEmoji = directionEmojiFor(step);
         const dirSpan = `<span class="step-dir" title="Direction of travel">${dirEmoji}</span> `;

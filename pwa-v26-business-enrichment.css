@@ -1,5 +1,8 @@
 /* v26 — Business enrichment card */
 .biz-card {
+  /* Parent .stop is a 2-column grid (icon + content). Without this the card
+     gets auto-placed into the narrow icon column. Span both columns. */
+  grid-column: 1 / -1;
   margin-top: 10px;
   display: grid;
   grid-template-columns: 1fr;
@@ -8,19 +11,25 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #fafafa;
+  min-width: 0;           /* allow children to shrink below intrinsic width */
+  overflow: hidden;       /* clip any unforeseen overflow on narrow phones */
 }
+.biz-card * { min-width: 0; }
 .biz-photo {
   width: 100%;
-  max-height: 220px;
+  max-height: 200px;
   object-fit: cover;
   border-radius: 8px;
   background: #f3f4f6;
+  display: block;
 }
 .biz-summary {
   font-size: 13px;
   color: #374151;
   font-style: italic;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .biz-rating {
   display: inline-block;
@@ -35,12 +44,15 @@
 .biz-addr {
   font-size: 12px;
   color: #4b5563;
+  overflow-wrap: anywhere;       /* long Namibian addresses don't break the row */
+  word-break: break-word;
 }
 .biz-phone {
   font-size: 13px;
   color: #1f2937;
   text-decoration: none;
   font-weight: 600;
+  white-space: nowrap;
 }
 .biz-phone:hover { text-decoration: underline; }
 .biz-hours {
@@ -58,7 +70,7 @@
 }
 .biz-link {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 6px;
   background: #fff;
   border: 1px solid #d1d5db;
@@ -66,11 +78,25 @@
   font-weight: 600;
   color: #1f2937;
   text-decoration: none;
+  white-space: nowrap;        /* keep each chip on one line */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .biz-link:hover { background: #f3f4f6; }
 .biz-link.biz-menu { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
 .biz-link.biz-menu-fallback { background: #eff6ff; border-color: #93c5fd; color: #1e3a8a; }
 
+/* Mobile (default): photo on top, single column. Tighter padding. */
+@media (max-width: 480px) {
+  .biz-card { padding: 8px; gap: 6px; border-radius: 8px; }
+  .biz-photo { max-height: 140px; }
+  .biz-summary { font-size: 12.5px; }
+  .biz-link { font-size: 11px; padding: 3px 8px; }
+  .biz-noteworthy, .biz-closing { font-size: 11px; }
+}
+
+/* Wider screens: photo on the left, meta on the right. */
 @media (min-width: 600px) {
   .biz-card { grid-template-columns: 220px 1fr; }
   .biz-photo { max-height: 160px; }
