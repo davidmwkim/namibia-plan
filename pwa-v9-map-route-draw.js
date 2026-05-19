@@ -101,6 +101,7 @@
       return;
     }
 
+    clearRouteOverlay();
     fetchAndCacheSelectedRoute(d, request);
   }
 
