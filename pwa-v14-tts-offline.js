@@ -21,7 +21,8 @@
     sunset_risk_tight:   'Caution: arrival is close to sunset. Maintain current pace and do not stop for long.',
     pressure_lower:      'Tyre pressure action coming up. Lower pressure before the next section.',
     pressure_raise:      'Tyre pressure action coming up. Raise pressure for the upcoming road.',
-    fuel_stop:           'Fuel stop coming up. Top up before the next remote section.'
+    fuel_stop:           'Fuel stop coming up. Top up before the next remote section.',
+    demo_starting:       'Demo playback starting. Cards will scroll automatically as the simulated GPS moves along the route.'
   };
 
   function loadIndex() {
@@ -47,6 +48,32 @@
   function mute()   { setMuted(true);  cancelAll(); }
   function unmute() { setMuted(false); }
   function toggle() { isMuted() ? unmute() : mute(); }
+
+  // Chrome Android (and iOS Safari) require the FIRST speechSynthesis.speak()
+  // and Audio.play() to be triggered synchronously inside a user-gesture
+  // handler. Async speaks fired later from setInterval / GPS updates are
+  // silently blocked. Call this from any user gesture (button click) before
+  // the demo / GPS-driven TTS path takes over.
+  let unlocked = false;
+  function unlockOnGesture() {
+    if (unlocked) return;
+    try {
+      if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0;
+        u.rate = 10;
+        window.speechSynthesis.speak(u);
+      }
+      // Silent <audio> play too, in case we later try cached MP3s.
+      try {
+        const a = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAA');
+        a.volume = 0;
+        const p = a.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch (_) {}
+      unlocked = true;
+    } catch (_) {}
+  }
 
   // Edge TTS cache: `tts-cache/manifest.json` maps ttsKey → file, populated
   // by `scripts/generate-tts.py`. Loaded once and re-used for the session.
@@ -288,8 +315,13 @@
     replayLast,
     preGenerate,
     setThrottle, getThrottle,
+    unlockOnGesture,
     _canned: CANNED,
     _loadIndex: loadIndex,
     _synthOne: synthOne
   };
+
+  // Defensive: auto-unlock on the first click anywhere in the document so
+  // any user interaction unlocks the audio stack, not just the demo button.
+  document.addEventListener('click', unlockOnGesture, { once: true, capture: true });
 })();

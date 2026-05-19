@@ -83,7 +83,7 @@ window.NAMIBIA_TRIP_DATA = {
             "phone": "+264 61 232 457",
             "website": "https://joesbeerhouse.com",
             "hours": [
-              "Mon-Sun: 12:00-21:00"
+              "Mon–Sun: 11:00–23:00"
             ],
             "menuUrl": "https://joesbeerhouse.com/lekker-menu/",
             "avgPriceUSD": 20,
@@ -163,8 +163,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -22.5609,
           "lng": 17.0658,
           "notes": "Use any staffed station before leaving Windhoek; coordinate is a prompt, not a required exact station.",
-          "pressure": "MANDATORY CHANGE: set gravel/corrugated-road pressure before the C26/C14/C19 desert route.",
-          "fuel": "Fill to 100%. Estimated tank at departure after fill: 80 L / 100%."
+          "pressure": "MANDATORY LOWER for gravel ahead. From 32 psi / 2.2 bar (tar) to 26 psi / 1.8 bar (gravel) before the C24 Spreetshoogte descent and onward to Sossusvlei.",
+          "fuel": "Fill to 100%. Estimated tank at departure after fill: 80 L / 100%.",
+          "pressureAction": "down"
         },
         {
           "time": "11:30 AM",
@@ -176,7 +177,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -23.8927,
           "lng": 15.9941,
           "notes": "Fuel, bathroom, coffee, apple pie.",
-          "pressure": "MANDATORY CHECK: verify gravel pressure and inspect tyres after rough/corrugated roads.",
+          "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Solitaire Service Station is the ONLY tyre/fuel stop between Sossusvlei and Swakopmund — top up fuel for the long C14 run.",
           "fuel": "Estimated arrival if filled in Windhoek: ~46–50 L / 58–63%. Last prudent fill before Sesriem area: fill to 100%.",
           "details": {
             "summary": "Legendary desert pit-stop at the Solitaire crossroads — Moose McGregor's famous German-recipe apple pie has been feeding Namib travellers for decades. Also the only fuel for many miles.",
@@ -185,7 +186,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Mon-Sun: 06:00-16:00 (bakery)"
             ],
             "noteworthyDish": "Apple pie, fresh meat pies"
-          }
+          },
+          "pressureAction": "check"
         },
         {
           "time": "3:30 PM",
@@ -239,7 +241,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.4877,
           "lng": 15.7972,
           "notes": "Optional fuel/pressure service near gate; use if anything feels off.",
-          "pressure": "CHECK if stopping: confirm gravel pressure before park road."
+          "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
+          "pressureAction": "check"
         },
         {
           "time": "6:50 AM",
@@ -250,7 +253,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.4815,
           "lng": 15.8016,
-          "notes": "Arrive before 7:00 AM opening noted; confirm locally."
+          "notes": "Sesriem OUTER gate opens 06:45 in May (not 06:00). Inner gate opens ~1 hour before sunrise (~05:45) but only accessible to in-park lodges. Confirm with NWR/lodge."
         },
         {
           "time": "7:45 AM",
@@ -262,7 +265,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.7215,
           "lng": 15.353,
           "notes": "Decision point before final deep-sand section to Sossusvlei/Deadvlei parking.",
-          "pressure": "MANDATORY DECREASE if self-driving sand: switch from gravel to Namibia2Go sand pressure. If no compressor/gauge/experience, use shuttle and do not deflate."
+          "pressure": "MANDATORY LOWER to sand pressure: from ~26 psi / 1.8 bar (gravel) to ~17–22 psi / 1.2–1.5 bar for the 5 km deep-sand track to Deadvlei. Use the vehicle compressor at the 2x4 carpark. Max speed 30–50 km/h on sand.",
+          "pressureAction": "down"
         },
         {
           "time": "8:00 AM",
@@ -296,7 +300,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.7215,
           "lng": 15.353,
           "notes": "Reinflate before leaving the sand section and resuming faster gravel/park-road driving.",
-          "pressure": "MANDATORY RAISE back to tar/highway pressure after Sossusvlei sand. Re-inflate to ~32 psi / 2.2 bar for the paved Sesriem road and beyond.",
+          "pressure": "MANDATORY RAISE back to ~26 psi / 1.8 bar before the 60 km paved Sesriem road. Driving on tar at sand pressures (1.2 bar) builds dangerous heat in sidewalls.",
           "pressureAction": "up"
         },
         {
@@ -361,7 +365,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.5732,
           "lng": 15.8118,
-          "notes": "Sunrise balloon flight, breakfast, return transfer.",
+          "notes": "Meeting point is Farm Geluk, 20 km south of Sesriem on the C27 (GPS -24.6734, 15.8072). Meet ~1 hour before sunrise — in late May this is ~06:15. Exact time confirmed by operator the day before. Approximate cost N$9,920 / ~US$550 per person.",
           "details": {
             "summary": "Premium hot-air balloon operator over the Namib, launching at sunrise from 20 km south of Sesriem for a ~1-hour flight over dunes, followed by a champagne breakfast.",
             "phone": "+264 63 683 188",
@@ -383,7 +387,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.4877,
           "lng": 15.7972,
           "notes": "Optional check/reset if Day 3 pressure was not resolved.",
-          "pressure": "CHECK pressure before short logistics drive. Stay on gravel pressure (~26 psi / 1.8 bar) — desert routes only today.",
+          "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
           "pressureAction": "check"
         },
         {
@@ -470,7 +474,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -23.8927,
           "lng": 15.9941,
           "notes": "Critical refuel before the long C14 coast crossing.",
-          "pressure": "MANDATORY CHECK: maintain gravel/corrugated-road pressure for C14.",
+          "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Solitaire Service Station is the ONLY tyre/fuel stop between Sossusvlei and Swakopmund — top up fuel for the long C14 run.",
           "fuel": "Estimated arrival since May 24 fill, including Sossusvlei/balloon/local driving: ~18–26 L / 23–33%. Fill to 100%.",
           "details": {
             "summary": "Legendary desert pit-stop at the Solitaire crossroads — Moose McGregor's famous German-recipe apple pie has been feeding Namib travellers for decades. Also the only fuel for many miles.",
@@ -479,7 +483,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Mon-Sun: 06:00-16:00 (bakery)"
             ],
             "noteworthyDish": "Apple pie, fresh meat pies"
-          }
+          },
+          "pressureAction": "check"
         },
         {
           "time": "1:00 PM est.",
@@ -491,7 +496,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -22.9575,
           "lng": 14.5053,
           "notes": "Use a convenient staffed station in Walvis Bay/Swakopmund; coordinate is a prompt.",
-          "pressure": "MANDATORY RAISE back to tar pressure after C14 gravel. Set ~32 psi / 2.2 bar before B2 tar to Swakopmund.",
+          "pressure": "MANDATORY RAISE to 32 psi / 2.2 bar (tar) after the C14 gravel run. B2 to Swakopmund is paved high-traffic highway; low-pressure tar driving risks blowout. Multiple Engen/Shell stations have air.",
           "fuel": "Optional top-up. Estimated after Solitaire → coast: ~48–52 L / 60–65%; enough to continue, but top up if gauge differs.",
           "pressureAction": "up"
         },
@@ -534,12 +539,13 @@ window.NAMIBIA_TRIP_DATA = {
             "phone": "+264 64 402 356",
             "website": "https://www.the-tug.com",
             "hours": [
-              "Mon-Sat: 17:00-22:00",
-              "Sunday: 12:00-22:00"
+              "Mon–Sat: 17:00–22:00 (dinner only)",
+              "Sunday: 12:00–22:00 (lunch + dinner)"
             ],
             "menuUrl": "https://www.the-tug.com/menu/MENU.pdf",
             "avgPriceUSD": 25,
-            "noteworthyDish": "Namibian lobster, kingklip"
+            "noteworthyDish": "Namibian lobster, kingklip — note: Mon–Sat dinner only",
+            "closingDays": "Lunch served Sunday only — for Saturday lunch use Jetty 1905"
           }
         },
         {
@@ -703,8 +709,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -21.9961,
           "lng": 15.5891,
           "notes": "Mandatory service point before Spitzkoppe access roads.",
-          "pressure": "MANDATORY DECREASE/RESET: switch from highway/tar to Namibia2Go gravel/local-track pressure before Spitzkoppe access roads.",
-          "fuel": "Estimated arrival if last full fill was Solitaire May 27: ~13–20 L / 16–25%. Fill to 100%."
+          "pressure": "LOWER to 26 psi / 1.8 bar for the D1918 gravel to Spitzkoppe. Closest fuel + air to Spitzkoppe (no services at the lodge). Re-inflate on return.",
+          "fuel": "Estimated arrival if last full fill was Solitaire May 27: ~13–20 L / 16–25%. Fill to 100%.",
+          "pressureAction": "down"
         },
         {
           "time": "4:30 PM",
@@ -742,12 +749,13 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -21.8398,
           "lng": 15.1616,
           "notes": "Ask lodge about local-track pressure and permitted roads.",
-          "pressure": "CHECK with lodge staff; likely keep gravel/local-track pressure.",
+          "pressure": "CHECK gravel pressure before lodge-access tracks. Some tracks are rocky/sandy — drop further (1.6 bar) only if directed by the lodge.",
           "details": {
             "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
             "phone": "+264 81 143 5048",
             "website": "https://www.spitzkoppenlodge.com"
-          }
+          },
+          "pressureAction": "check"
         },
         {
           "time": "8:00 AM",
@@ -823,7 +831,7 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -21.4172,
           "lng": 15.9548,
           "notes": "Use a staffed station in/near Omaruru if practical; coordinate is planning prompt.",
-          "pressure": "RAISE to tar pressure (~32 psi / 2.2 bar). Spitzkoppe gravel access road ends here; B1 north to Otjiwarongo / Tsumeb is paved.",
+          "pressure": "RAISE to 32 psi / 2.2 bar (tar). B1 north through Otjiwarongo and Tsumeb is paved highway. Last staffed reset before the long north run.",
           "fuel": "Optional. Estimated arrival from Usakos fill after Spitzkoppe/local driving: ~47–55 L / 59–69%.",
           "pressureAction": "up"
         },
@@ -837,8 +845,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -20.4628,
           "lng": 16.6493,
           "notes": "Major refuel/check point on northern route.",
-          "pressure": "MANDATORY CHECK: verify highway/tar pressure and inspect tyres.",
-          "fuel": "Estimated arrival if no Omaruru fuel: ~31–40 L / 39–50%. Fill to 100%."
+          "pressure": "CONFIRM tar pressure 32 psi / 2.2 bar. Shell Otjiwarongo is the best-equipped staffed stop on the B1 — top up fuel + verify spare wheel pressure before continuing.",
+          "fuel": "Estimated arrival if no Omaruru fuel: ~31–40 L / 39–50%. Fill to 100%.",
+          "pressureAction": "up"
         },
         {
           "time": "12:00 PM",
@@ -851,8 +860,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 16.6534,
           "notes": "Lunch option only if timing/routing works; pack backup lunch.",
           "details": {
-            "summary": "Otjiwarongo's favorite stop between Windhoek and Etosha — country-style Italian with a wood-fired pizza oven, freshly baked bread and a shady garden.",
-            "phone": "+264 81 159 0000",
+            "summary": "Otjiwarongo's favourite roadside stop between Windhoek and Etosha — a country hotel with a wood-fired pizza oven and freshly baked breads in a shady garden setting. Serves breakfast, lunch and dinner.",
+            "phone": "+264 67 304 504",
             "website": "https://casaforno.com",
             "hours": [
               "Mon-Sun: 07:00-late"
@@ -882,7 +891,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Check in. Exact GPS converted from itinerary.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -908,7 +917,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Wake up; coffee/light snack.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -946,7 +955,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Dinner after return.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -972,7 +981,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Wake up; coffee/light snack.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -1010,7 +1019,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Dinner after return.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -1036,7 +1045,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Check out/load car.",
+          "notes": "Etosha gates open 07:18–07:23 and close 18:25–18:27 during late May / early June 2026 (per official NWR 2025 schedule, which changes weekly with sunrise/sunset). All gates use the same schedule. King Nehale Gate is 1 km from the lodge.",
           "details": {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
@@ -1075,8 +1084,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -20.4628,
           "lng": 16.6493,
           "notes": "Major refuel/check point before final southbound section.",
-          "pressure": "MANDATORY CHECK: verify highway pressure.",
-          "fuel": "Estimated arrival if filled Omuthiya May 31 and did only lodge transfer/guided days: ~24–33 L / 30–41%. Fill to 100%."
+          "pressure": "CONFIRM tar pressure 32 psi / 2.2 bar. Shell Otjiwarongo is the best-equipped staffed stop on the B1 — top up fuel + verify spare wheel pressure before continuing.",
+          "fuel": "Estimated arrival if filled Omuthiya May 31 and did only lodge transfer/guided days: ~24–33 L / 30–41%. Fill to 100%.",
+          "pressureAction": "up"
         },
         {
           "time": "12:30 PM",
@@ -1089,8 +1099,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 16.6534,
           "notes": "Lunch option; otherwise packed lunch.",
           "details": {
-            "summary": "Otjiwarongo's favorite stop between Windhoek and Etosha — country-style Italian with a wood-fired pizza oven, freshly baked bread and a shady garden.",
-            "phone": "+264 81 159 0000",
+            "summary": "Otjiwarongo's favourite roadside stop between Windhoek and Etosha — a country hotel with a wood-fired pizza oven and freshly baked breads in a shady garden setting. Serves breakfast, lunch and dinner.",
+            "phone": "+264 67 304 504",
             "website": "https://casaforno.com",
             "hours": [
               "Mon-Sun: 07:00-late"

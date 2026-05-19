@@ -1,0 +1,252 @@
+{
+  "fuel_stop": {
+    "file": "8c06201bc0cb1385b6e191d4.mp3",
+    "text": "Fuel stop coming up. Top up before the next remote section.",
+    "voice": "en-US-AvaNeural"
+  },
+  "pressure_lower": {
+    "file": "511ebba2f4fc8ab0f5db33c2.mp3",
+    "text": "Tyre pressure action coming up. Lower pressure before the next section.",
+    "voice": "en-US-AvaNeural"
+  },
+  "pressure_raise": {
+    "file": "8ddc0b2161a3d4fbb5e074f8.mp3",
+    "text": "Tyre pressure action coming up. Raise pressure for the upcoming road.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Afternoon Guided Game Drive": {
+    "file": "e9e7bb9d907a16cac55c4415.mp3",
+    "text": "Arriving at Afternoon Guided Game Drive.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Casa Forno / Otjiwarongo lunch option": {
+    "file": "0aae06f0fac44a5a2f6ef259.mp3",
+    "text": "Arriving at Casa Forno / Otjiwarongo lunch option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Casa Forno, Otjiwarongo": {
+    "file": "df4b68a9cfe881781f82c78c.mp3",
+    "text": "Arriving at Casa Forno, Otjiwarongo.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Deadvlei / Sossusvlei 4x4 parking area": {
+    "file": "ec556c1c965aacbbda019c2e.mp3",
+    "text": "Arriving at Deadvlei / Sossusvlei 4x4 parking area.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Dune 45": {
+    "file": "ee6dabd5736b011b76829806.mp3",
+    "text": "Arriving at Dune 45.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Etosha King Nehale": {
+    "file": "b4170bccd8144500280a1965.mp3",
+    "text": "Arriving at Etosha King Nehale.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Etosha King Nehale dinner": {
+    "file": "c02144f6cdebe5eb8126ab00.mp3",
+    "text": "Arriving at Etosha King Nehale dinner.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Final Windhoek / airport-road fuel stop": {
+    "file": "daf8152d5a0603fe187e2d85.mp3",
+    "text": "Arriving at Final Windhoek / airport-road fuel stop.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Fritz Manor": {
+    "file": "17476f81962a1a390ff97df2.mp3",
+    "text": "Arriving at Fritz Manor.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Hosea Kutako International Airport (WDH)": {
+    "file": "7f20da2bd1cf11248424f24b.mp3",
+    "text": "Arriving at Hosea Kutako International Airport (WDH).",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Jetty 1905": {
+    "file": "b1727783610a7de8a1a897ca.mp3",
+    "text": "Arriving at Jetty 1905.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Joe's Beerhouse": {
+    "file": "6aadc7cb999abb06a977e33d.mp3",
+    "text": "Arriving at Joe's Beerhouse.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Mola Mola Walvis Bay Waterfront Office": {
+    "file": "400d8c7f1cfd6f6fe5d1ae36.mp3",
+    "text": "Arriving at Mola Mola Walvis Bay Waterfront Office.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Morning Guided Game Drive": {
+    "file": "47f9b77aa03e273859115e84.mp3",
+    "text": "Arriving at Morning Guided Game Drive.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Namib Desert Lodge / Dune Star logistics": {
+    "file": "241bf0e19940cf848d3e9589.mp3",
+    "text": "Arriving at Namib Desert Lodge / Dune Star logistics.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Namib Dune Star Camp": {
+    "file": "8bf716fed1e20a17ffbfcff1.mp3",
+    "text": "Arriving at Namib Dune Star Camp.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Namib Sky Balloon Safaris": {
+    "file": "4760266fa26433255c89dcaa.mp3",
+    "text": "Arriving at Namib Sky Balloon Safaris.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Namibia Craft Centre": {
+    "file": "22ae19d1a45b58969a2fd2db.mp3",
+    "text": "Arriving at Namibia Craft Centre.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Omaruru staffed tyre-pressure reset point": {
+    "file": "bd4d89b5fec08cd94e41c79f.mp3",
+    "text": "Arriving at Omaruru staffed tyre-pressure reset point.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Omuthiya / Oshivelo corridor final fuel option": {
+    "file": "f63ac28cd5e33d9c4d4f4bf2.mp3",
+    "text": "Arriving at Omuthiya / Oshivelo corridor final fuel option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Omuthiya / Oshivelo corridor fuel option": {
+    "file": "9e394e47f0af90e3cc73c159.mp3",
+    "text": "Arriving at Omuthiya / Oshivelo corridor fuel option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Otjiwarongo fuel / tyre-pressure stop": {
+    "file": "8f5e09b9a5aa1a4e14a4f5ba.mp3",
+    "text": "Arriving at Otjiwarongo fuel / tyre-pressure stop.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:SUPERSPAR Grove / The Grove Mall": {
+    "file": "5b75cbbc158d8e9b4b056b24.mp3",
+    "text": "Arriving at SUPERSPAR Grove / The Grove Mall.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Seal kayaking meeting point \u2014 Angling Club / Dolphins Coffee Shop": {
+    "file": "b8e51901d2b8511eb9777b65.mp3",
+    "text": "Arriving at Seal kayaking meeting point \u2014 Angling Club / Dolphins Coffee Shop.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sesriem / Sossus Oasis services": {
+    "file": "cbcc88b2e0d1a6e8f7000db6.mp3",
+    "text": "Arriving at Sesriem / Sossus Oasis services.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sesriem / Sossusvlei Gate": {
+    "file": "affea590efeedc8be83fa69d.mp3",
+    "text": "Arriving at Sesriem / Sossusvlei Gate.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sesriem Canyon": {
+    "file": "b78e7230dd78fd0f4f66d724.mp3",
+    "text": "Arriving at Sesriem Canyon.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Solitaire Fuel Station / McGregor's Bakery": {
+    "file": "37da3b81d49b09e7283e354d.mp3",
+    "text": "Arriving at Solitaire Fuel Station / McGregor's Bakery.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sossusvlei 2WD / shuttle parking sand entry": {
+    "file": "e623fb2af23d2a8ae6770df7.mp3",
+    "text": "Arriving at Sossusvlei 2WD / shuttle parking sand entry.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sossusvlei 2WD / shuttle parking sand exit": {
+    "file": "3ede059fa75c2cefee763fa4.mp3",
+    "text": "Arriving at Sossusvlei 2WD / shuttle parking sand exit.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Spitzkoppe Natural Arch / photo area": {
+    "file": "545dc809ef29299408c6fa3e.mp3",
+    "text": "Arriving at Spitzkoppe Natural Arch / photo area.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Spitzkoppe scenic / reserve access": {
+    "file": "ef5018d282b24021cdbb0385.mp3",
+    "text": "Arriving at Spitzkoppe scenic / reserve access.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Spitzkoppen Lodge": {
+    "file": "6f35f7308dd8ecd3c4770de7.mp3",
+    "text": "Arriving at Spitzkoppen Lodge.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Spitzkoppen Lodge dinner": {
+    "file": "8edd4729f8b24bec9d04ee49.mp3",
+    "text": "Arriving at Spitzkoppen Lodge dinner.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Stellenbosch Wine Bar": {
+    "file": "5ec6003fe047b324cbd236eb.mp3",
+    "text": "Arriving at Stellenbosch Wine Bar.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:The Desert Grace": {
+    "file": "299ad561eca3fbde49bc232e.mp3",
+    "text": "Arriving at The Desert Grace.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:The Desert Grace luggage pickup": {
+    "file": "bd16f85ff07f2d5abc37df55.mp3",
+    "text": "Arriving at The Desert Grace luggage pickup.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:The Tug Restaurant": {
+    "file": "62ad7c0072c190cf9fb63732.mp3",
+    "text": "Arriving at The Tug Restaurant.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:The Weinberg Windhoek": {
+    "file": "778cdd717c5708460485fc26.mp3",
+    "text": "Arriving at The Weinberg Windhoek.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Tsumeb fuel option": {
+    "file": "5dc588728b051c78def5ee48.mp3",
+    "text": "Arriving at Tsumeb fuel option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Usakos staffed fuel + tyre-pressure stop": {
+    "file": "d4cd498da1d44d47d3a9ab5d.mp3",
+    "text": "Arriving at Usakos staffed fuel + tyre-pressure stop.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Walvis Bay Waterfront lunch / fuel option": {
+    "file": "ce08d5651e68a983b5fa803f.mp3",
+    "text": "Arriving at Walvis Bay Waterfront lunch / fuel option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Walvis Bay fuel / tyre check option": {
+    "file": "569e4154d2e0a633717d3ade.mp3",
+    "text": "Arriving at Walvis Bay fuel / tyre check option.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Walvis Bay staffed fuel / tyre-pressure area": {
+    "file": "07fd510b2fc946ce0a303133.mp3",
+    "text": "Arriving at Walvis Bay staffed fuel / tyre-pressure area.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Windhoek staffed fuel + tyre-pressure station": {
+    "file": "2ceb72cc864d68a9ed0a8a25.mp3",
+    "text": "Arriving at Windhoek staffed fuel + tyre-pressure station.",
+    "voice": "en-US-AvaNeural"
+  },
+  "sunset_risk_tight": {
+    "file": "b9ebc0227fb9fc6361a30889.mp3",
+    "text": "Caution: arrival is close to sunset. Maintain current pace and do not stop for long.",
+    "voice": "en-US-AvaNeural"
+  },
+  "sunset_risk_warning": {
+    "file": "0965197b2b94d9ff569769d4.mp3",
+    "text": "Warning: you are at risk of arriving after sunset. Driving after dark is not permitted in Namibia. Consider stopping at the next safe town.",
+    "voice": "en-US-AvaNeural"
+  }
+}

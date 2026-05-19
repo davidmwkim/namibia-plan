@@ -186,6 +186,17 @@
     start.textContent = '▶ Demo';
     start.title = 'Replay this day at high speed with simulated GPS + clock';
     start.onclick = () => {
+      // Synchronous unlock + immediate audible speak INSIDE the user-gesture
+      // handler. Without this, the first speak from setInterval is silently
+      // blocked by Chrome Android / iOS Safari.
+      try {
+        if (window.NamibiaTTS) {
+          window.NamibiaTTS.unlockOnGesture();
+          // Fire one real announcement immediately so the user hears
+          // confirmation that audio works.
+          window.NamibiaTTS.speak('demo_starting');
+        }
+      } catch (_) {}
       const durSec = Number(document.getElementById('demoDuration')?.value || defaults.durationMs / 1000);
       const noiseHr = Number(document.getElementById('demoNoise')?.value || defaults.noiseHours);
       startDemo({ durationMs: Math.max(5, durSec) * 1000, noiseHours: Math.max(0, noiseHr) });

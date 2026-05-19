@@ -43,14 +43,17 @@
   }
 
   async function fetchDayWeather(date, lat, lng) {
-    // Open-Meteo's forecast endpoint only covers a rolling window (~16 days
-    // out). Dates beyond that return 400. Skip silently so the request loop
-    // doesn't blow up on the tail end of a multi-day trip.
+    // Open-Meteo's forecast endpoint only serves a window of [today,
+    // today+~16 days]. Dates outside that return 400. Skip them with a
+    // recognisable error message so loadAllWeather can classify the skip
+    // as expected rather than logging a noisy "fetch failed".
     const dayMs = Date.parse(date + 'T00:00:00Z');
-    const horizonMs = Date.now() + 16 * 86400000;
-    if (!isFinite(dayMs) || dayMs > horizonMs) {
-      throw new Error('beyond forecast horizon');
-    }
+    if (!isFinite(dayMs)) throw new Error('SKIP: invalid date');
+    const todayUtc = new Date();
+    todayUtc.setUTCHours(0, 0, 0, 0);
+    const daysAhead = Math.floor((dayMs - todayUtc.getTime()) / 86400000);
+    if (daysAhead < 0) throw new Error('SKIP: date in the past');
+    if (daysAhead > 16) throw new Error('SKIP: beyond forecast horizon');
     const params = new URLSearchParams({
       latitude: String(lat),
       longitude: String(lng),
@@ -90,8 +93,13 @@
         saveCached(d.date, c.lat, c.lng, fc);
         done++;
       } catch (e) {
-        errors++;
-        if (typeof log === 'function') log(`Weather fetch failed for ${d.date}: ${e.message || e}`);
+        const msg = String(e?.message || e);
+        if (msg.startsWith('SKIP:')) {
+          // Expected — date is past or beyond forecast horizon. Don't log.
+        } else {
+          errors++;
+          if (typeof log === 'function') log(`Weather fetch failed for ${d.date}: ${msg}`);
+        }
       }
     }
     if (typeof log === 'function') log(`Weather: ${done - hit} fetched, ${hit} cached, ${errors} errors.`);
