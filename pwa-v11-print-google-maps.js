@@ -39,7 +39,7 @@
     return labels[Math.min(index, labels.length - 1)];
   }
 
-  function staticMapUrl(d, size = '1200x700') {
+  function staticMapUrl(d, size = '640x640') {
     const apiKey = state.apiKey || localStorage.getItem('namibia_google_api_key') || '';
     if (!apiKey) return '';
     const mandatory = routeStops(d);
