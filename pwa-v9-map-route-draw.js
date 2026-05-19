@@ -1,67 +1,76 @@
-// Namibia PWA v9 patch: draw cached/Google Directions route geometry on the live Google map.
+// Namibia PWA v9 patch: render selected day routes on the embedded Google Map using DirectionsRenderer.
 (function () {
-  let routePolyline = null;
+  let activeRouteToken = 0;
 
-  function clearRoutePolyline() {
-    if (routePolyline) {
-      routePolyline.setMap(null);
-      routePolyline = null;
-    }
+  function selectedDayRouteRequest() {
+    const d = day();
+    if (!d || !d.selfDrive) return null;
+    const stops = routeStops(d);
+    if (stops.length < 2) return null;
+    return {
+      origin: { lat: Number(stops[0].lat), lng: Number(stops[0].lng) },
+      destination: { lat: Number(stops[stops.length - 1].lat), lng: Number(stops[stops.length - 1].lng) },
+      waypoints: stops.slice(1, -1).map(s => ({
+        location: { lat: Number(s.lat), lng: Number(s.lng) },
+        stopover: true
+      })),
+      travelMode: google.maps.TravelMode.DRIVING,
+      optimizeWaypoints: false,
+      provideRouteAlternatives: false,
+      region: 'NA'
+    };
   }
 
-  function drawSelectedRouteOnMap() {
-    if (!state.map || !window.google || !google.maps) return;
-    clearRoutePolyline();
+  async function renderSelectedRouteOnGoogleMap() {
+    if (!state.map || !window.google || !google.maps || !state.directionsService || !state.directionsRenderer) return;
 
-    const d = day();
-    const cached = state.renderedRoutes?.[d.date];
-    const path = cached?.overviewPath;
+    const request = selectedDayRouteRequest();
+    if (!request) {
+      state.directionsRenderer.set('directions', null);
+      return;
+    }
 
-    if (!path || path.length < 2) return;
-
-    const googlePath = path.map(p => ({ lat: Number(p.lat), lng: Number(p.lng) }));
-    routePolyline = new google.maps.Polyline({
-      path: googlePath,
-      map: state.map,
-      geodesic: false,
-      strokeColor: '#5a1738',
-      strokeOpacity: 0.95,
-      strokeWeight: 5,
-      zIndex: 10
-    });
-
-    const bounds = new google.maps.LatLngBounds();
-    googlePath.forEach(p => bounds.extend(p));
-    d.stops.forEach(s => bounds.extend({ lat: Number(s.lat), lng: Number(s.lng) }));
-    if (state.gps) bounds.extend(state.gps);
-    state.map.fitBounds(bounds, 50);
+    const token = ++activeRouteToken;
+    try {
+      const result = await state.directionsService.route(request);
+      if (token !== activeRouteToken) return;
+      state.directionsRenderer.setOptions({
+        suppressMarkers: true,
+        preserveViewport: false,
+        polylineOptions: {
+          strokeColor: '#5a1738',
+          strokeOpacity: 0.95,
+          strokeWeight: 5,
+          zIndex: 10
+        }
+      });
+      state.directionsRenderer.setDirections(result);
+    } catch (err) {
+      if (token !== activeRouteToken) return;
+      console.warn('Failed to render selected Google route on map', err);
+      state.directionsRenderer.set('directions', null);
+    }
   }
 
   const baseRenderMapMarkers = renderMapMarkers;
   renderMapMarkers = function patchedRenderMapMarkers() {
     baseRenderMapMarkers();
-    drawSelectedRouteOnMap();
+    renderSelectedRouteOnGoogleMap();
   };
 
   const baseRenderDayRoute = renderDayRoute;
   renderDayRoute = async function patchedRenderDayRoute(d) {
     const result = await baseRenderDayRoute(d);
-    if (d && d.date === day().date) drawSelectedRouteOnMap();
+    if (d && d.date === day().date) renderSelectedRouteOnGoogleMap();
     return result;
   };
 
   const baseRenderAllDays = renderAllDays;
   renderAllDays = async function patchedRenderAllDays() {
     const result = await baseRenderAllDays();
-    drawSelectedRouteOnMap();
+    renderSelectedRouteOnGoogleMap();
     return result;
   };
 
-  const baseExportSelectedKml = exportSelectedKml;
-  exportSelectedKml = function patchedExportSelectedKml() {
-    drawSelectedRouteOnMap();
-    return baseExportSelectedKml();
-  };
-
-  window.namibiaDrawSelectedRouteOnMap = drawSelectedRouteOnMap;
+  window.namibiaRenderSelectedRouteOnGoogleMap = renderSelectedRouteOnGoogleMap;
 })();
