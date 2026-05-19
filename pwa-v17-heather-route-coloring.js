@@ -25,8 +25,45 @@
     na:    { emoji: '⚪', color: '#9ca3af', label: 'Not self-drive' }
   };
 
-  function heatherStatusForDay(d) {
+  // Compute distance-weighted distribution of yes/maybe/no along the day's
+  // route polyline. Falls back to {0,0,0,0} when no cached route exists yet.
+  function heatherDistribution(d) {
+    if (!d || d.selfDrive === false) return { yes: 0, maybe: 0, no: 0, total: 0 };
+    const route = (typeof state !== 'undefined' && state.renderedRoutes) ? state.renderedRoutes[d.date] : null;
+    const path = route?.overviewPath;
+    const parts = window.NamibiaV19?.partitionPath?.(path || [], d) || [];
+    const DC = window.NamibiaDrivingCore;
+    if (!path || path.length < 2 || !DC) return { yes: 0, maybe: 0, no: 0, total: 0 };
+    let yesM = 0, maybeM = 0, noM = 0;
+    for (const part of parts) {
+      let segM = 0;
+      const lo = Math.max(0, part.fromIdx);
+      const hi = Math.min(path.length - 1, part.toIdx);
+      for (let i = lo + 1; i <= hi; i++) {
+        segM += DC.distMeters(path[i - 1], path[i]);
+      }
+      if (part.status === 'yes') yesM += segM;
+      else if (part.status === 'maybe') maybeM += segM;
+      else noM += segM;
+    }
+    return { yes: yesM, maybe: maybeM, no: noM, total: yesM + maybeM + noM };
+  }
+
+  // Dominant status using distance share. Threshold: 60% of distance for a
+  // dominant rating. Falls back to legacy "any segment exists" logic when
+  // no route is cached (so the dropdown still shows something useful before
+  // the first render-all pass).
+  function dominantStatus(d) {
     if (!d || d.selfDrive === false) return 'na';
+    const dist = heatherDistribution(d);
+    if (dist.total > 0) {
+      const y = dist.yes / dist.total;
+      const m = dist.maybe / dist.total;
+      if (y >= 0.6) return 'yes';
+      if (y + m >= 0.6 && y < 0.6) return 'maybe';
+      return 'no';
+    }
+    // No cached route yet — fall back to segment presence.
     const segs = d.heatherDriveSegments || [];
     if (!segs.length) return 'no';
     if (segs.some(s => s.status === 'can_drive')) return 'yes';
@@ -34,11 +71,39 @@
     return 'no';
   }
 
-  function metaFor(d) { return STATUS_META[heatherStatusForDay(d)]; }
+  // Keep the legacy name as an alias so other patches that reference it
+  // (e.g. v22's heatherWhy + chip lookups) keep working.
+  function heatherStatusForDay(d) { return dominantStatus(d); }
+  function metaFor(d) { return STATUS_META[dominantStatus(d)]; }
+
+  // Gradient + percentage chip for the Overview tab. Renders a small inline
+  // bar whose three coloured segments are sized by the day's distance share.
+  function heatherChipHtmlWithGradient(d) {
+    const dist = heatherDistribution(d);
+    const status = dominantStatus(d);
+    const meta = STATUS_META[status];
+    if (dist.total === 0) return heatherChipHtml(d); // legacy fallback
+    const yPct = Math.round((dist.yes / dist.total) * 100);
+    const mPct = Math.round((dist.maybe / dist.total) * 100);
+    const nPct = Math.max(0, 100 - yPct - mPct);
+    return `<span class="heather-leg-chip heather-${status} heather-chip-gradient" title="Distance-weighted: ${yPct}% green, ${mPct}% amber, ${nPct}% red">
+      <span class="heather-bar" aria-hidden="true">
+        <span class="heather-bar-yes" style="width:${yPct}%"></span>
+        <span class="heather-bar-maybe" style="width:${mPct}%"></span>
+        <span class="heather-bar-no" style="width:${nPct}%"></span>
+      </span>
+      <span class="heather-bar-text">
+        <strong>${meta.emoji}</strong>
+        <span class="heather-bar-num heather-bar-num-yes">${yPct}% 🟢</span>
+        <span class="heather-bar-num heather-bar-num-maybe">${mPct}% 🟡</span>
+        <span class="heather-bar-num heather-bar-num-no">${nPct}% 🔴</span>
+      </span>
+    </span>`;
+  }
 
   function heatherChipHtml(d) {
     const m = metaFor(d);
-    return `<span class="heather-leg-chip heather-${heatherStatusForDay(d)}">
+    return `<span class="heather-leg-chip heather-${dominantStatus(d)}">
       <span class="heather-leg-dot" style="background:${m.color}"></span>
       ${m.emoji} ${m.label}
     </span>`;
@@ -65,15 +130,19 @@
     });
   }
 
-  // ---- 2. Overview tab — add chip after the day title ----
+  // ---- 2. Overview tab — add gradient chip after the day title ----
   function injectOverviewChip() {
     const tc = document.getElementById('tabContent');
     if (!tc) return;
     const title = tc.querySelector('.panel-title h2');
-    if (!title || title.querySelector('.heather-leg-chip')) return;
+    if (!title) return;
     const d = window.day && window.day();
     if (!d) return;
-    title.insertAdjacentHTML('beforeend', ' ' + heatherChipHtml(d));
+    const html = heatherChipHtmlWithGradient(d);
+    const existing = title.querySelector('.heather-leg-chip');
+    // Always replace so distribution updates as new routes are cached.
+    if (existing) existing.outerHTML = html;
+    else title.insertAdjacentHTML('beforeend', ' ' + html);
   }
 
   // ---- 3. Driving Dashboard sticky header — add a chip next to the GPS chip ----

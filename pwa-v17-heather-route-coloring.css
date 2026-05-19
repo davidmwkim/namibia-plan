@@ -44,3 +44,53 @@
   }
   .print-heather-banner { page-break-inside: avoid; }
 }
+
+/* Gradient-bar variant of the chip used on the Overview tab. Shows the
+   distance-weighted breakdown of yes/maybe/no on the day's route. */
+.heather-chip-gradient {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px 10px;
+  min-width: 180px;
+  border-radius: 10px;
+}
+.heather-chip-gradient .heather-bar {
+  display: flex;
+  height: 8px;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f3f4f6;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.heather-chip-gradient .heather-bar > span {
+  display: block;
+  height: 100%;
+  transition: width 200ms ease;
+}
+.heather-chip-gradient .heather-bar-yes   { background: #16a34a; }
+.heather-chip-gradient .heather-bar-maybe { background: #f59e0b; }
+.heather-chip-gradient .heather-bar-no    { background: #dc2626; }
+
+.heather-chip-gradient .heather-bar-text {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  flex-wrap: wrap;
+}
+.heather-chip-gradient .heather-bar-text strong { font-size: 14px; line-height: 1; }
+.heather-chip-gradient .heather-bar-num { white-space: nowrap; }
+.heather-chip-gradient .heather-bar-num-yes   { color: #047857; }
+.heather-chip-gradient .heather-bar-num-maybe { color: #b45309; }
+.heather-chip-gradient .heather-bar-num-no    { color: #b91c1c; }
+
+/* On mobile, keep it compact. */
+@media (max-width: 480px) {
+  .heather-chip-gradient { min-width: 0; padding: 5px 8px; }
+  .heather-chip-gradient .heather-bar-text { font-size: 10.5px; gap: 6px; }
+}
