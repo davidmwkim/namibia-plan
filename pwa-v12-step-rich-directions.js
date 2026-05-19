@@ -294,10 +294,33 @@
           : pathSlice(overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
         const newStepMapUrl = stepStaticMapUrl(slice, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng }, d);
         const newStreetViewUrl = stepStreetViewUrl(svAnchor.lat, svAnchor.lng, step.heading);
-        // Don't clobber existing URLs (data: fixtures, prior caches) with an
-        // empty string when there's no API key to build a fresh URL.
         if (newStepMapUrl || !step.stepMapUrl) step.stepMapUrl = newStepMapUrl;
         if (newStreetViewUrl || !step.streetViewUrl) step.streetViewUrl = newStreetViewUrl;
+
+        // For LONG stretches (e.g. 85 km on B1), one Street View at the
+        // step's start gets stale fast. Pre-generate a few intermediate
+        // Street View points along the step's own polyline so the active
+        // card can cycle through them based on the GPS position. Each URL
+        // is also SW-cached on first fetch, so they work offline too.
+        step.intermediates = [];
+        if (decoded.length >= 2) {
+          let totalM = 0;
+          for (let k = 1; k < decoded.length; k++) totalM += DC.distMeters(decoded[k - 1], decoded[k]);
+          // 1 intermediate per ~30 km, max 5, only if the step itself > 25 km.
+          if (totalM > 25000) {
+            const n = Math.min(5, Math.floor(totalM / 30000));
+            for (let k = 1; k <= n; k++) {
+              const targetM = (totalM * k) / (n + 1);
+              const pt = distAlong(decoded, 0, targetM);
+              if (!pt) continue;
+              const aheadPt = distAlong(decoded, 0, Math.min(totalM, targetM + 80));
+              const heading = (pt && aheadPt) ? DC.bearingForStreetView(pt, aheadPt) : step.heading;
+              const url = stepStreetViewUrl(pt.lat, pt.lng, heading);
+              if (!url) continue;     // skip entries with no URL (no API key at decoration time)
+              step.intermediates.push({ lat: pt.lat, lng: pt.lng, distFromStartM: targetM, heading, url });
+            }
+          }
+        }
         step.ttsText = ttsTextFor(step);
         step.ttsKey = `step-${d.date}-${leg.__legIdx ?? ''}-${i}`;
       });
@@ -306,7 +329,7 @@
     route.legs.forEach((leg, li) => { leg.__legIdx = li; });
     route.cards = buildCards(d, route.legs);
     route.sunTimes = computeSunTimes(d);
-    route.schemaVersion = 7;
+    route.schemaVersion = 8;
     return route;
   }
 
@@ -328,7 +351,7 @@
   function decorateAllCached() {
     for (const d of (window.NAMIBIA_TRIP_DATA?.days || [])) {
       const r = state.renderedRoutes[d.date];
-      if (r && r.legs && r.schemaVersion !== 7) decorateRoute(d, r);
+      if (r && r.legs && r.schemaVersion !== 8) decorateRoute(d, r);
     }
   }
   decorateAllCached();
@@ -399,7 +422,7 @@
       const route = state.renderedRoutes[d.date];
       if (!route) return;
       // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 7) decorateRoute(d, route);
+      if (route.legs && route.schemaVersion !== 8) decorateRoute(d, route);
 
       if (state.activeTab === 'overview') extendOverviewTab(d, route);
       else if (state.activeTab === 'directions') extendDirectionsTab(d, route);

@@ -235,17 +235,26 @@
     const cards = route?.cards || [];
     const active = state.driving.activeCardIndex;
     const displayCards = injectSunsetRiskCard(cards, route, active);
+    // Resolve the active step (for intermediate Street View lookup).
+    const activeStep = (state.driving && route?.legs)
+      ? route.legs[state.driving.legIdx]?.steps?.[state.driving.stepIdx]
+      : null;
+    const intermediate = closestIntermediateSv(activeStep);
     const liveSv = dynamicStreetViewUrl();
     const html = displayCards.map((c, i) => {
       const isActive = i === active;
       const isPast = active >= 0 && i < active;
       const distLine = state.gps && typeof c.lat === 'number'
-        ? `<span class="card-dist">${formatM(DC.distMeters(state.gps, c))}</span>`
+        ? `<span class="card-dist">${formatM(cardDistMeters(c, i, active))}</span>`
         : '';
-      // Use live GPS-anchored Street View on the active card (so long
-      // stretches keep updating as you progress). Past + future cards keep
-      // their cached snapshots.
-      const svUrl = (isActive && liveSv) ? liveSv : c.streetViewUrl;
+      // Street View selection priority on the ACTIVE card:
+      //   1. Pre-cached intermediate closest to current GPS (works offline)
+      //   2. Live GPS-anchored Street View (online, fresh)
+      //   3. The cached step-start snapshot (fallback)
+      // Past + future cards always show their step-start snapshot.
+      const svUrl = isActive
+        ? (intermediate?.url || liveSv || c.streetViewUrl)
+        : c.streetViewUrl;
       const youAreHere = isActive && state.gps
         ? `<span class="card-here">📍 You are here</span>`
         : '';
@@ -302,10 +311,45 @@
       turn: '🧭', fuel: '⛽', pressure: '🛞', arrival: '🏁', sunset_risk: '🌅'
     })[kind] || '•';
   }
+  // Dual-unit distance formatter. Metric first because the trip is in
+  // Namibia (signs are in km), imperial in parentheses for US-readability.
   function formatM(m) {
     if (!isFinite(m)) return '';
-    if (m >= 1000) return (m / 1000).toFixed(1) + ' km';
-    return Math.round(m) + ' m';
+    if (m >= 1000) {
+      const km = m / 1000;
+      const mi = m / 1609.344;
+      return `${km.toFixed(1)} km / ${mi.toFixed(1)} mi`;
+    }
+    const ft = Math.round(m * 3.28084);
+    return `${Math.round(m)} m / ${ft} ft`;
+  }
+
+  // Distance to display on a card. For the ACTIVE turn card, this should be
+  // distance to the *next* turn (where the current stretch ends) — that
+  // value decreases monotonically as you drive, vs. the previous
+  // implementation which used GPS→step-start distance that goes up after
+  // you pass the step. For all other cards, the card's own coordinate is
+  // the meaningful target (next turn, fuel stop, lodge arrival, etc.).
+  function cardDistMeters(c, i, activeIdx) {
+    if (!state.gps || typeof c.lat !== 'number') return Infinity;
+    if (i === activeIdx && (c.kind === 'turn' || c.kind === 'arrival')
+        && typeof state.driving?.distToNextTurnM === 'number'
+        && isFinite(state.driving.distToNextTurnM)) {
+      return state.driving.distToNextTurnM;
+    }
+    return DC.distMeters(state.gps, c);
+  }
+
+  // Pick the Street View whose anchor is closest to the current GPS — only
+  // among the pre-cached `step.intermediates`. If none, returns null.
+  function closestIntermediateSv(step) {
+    if (!state.gps || !step?.intermediates?.length) return null;
+    let best = null, bestD = Infinity;
+    for (const it of step.intermediates) {
+      const d = DC.distMeters(it, state.gps);
+      if (d < bestD) { bestD = d; best = it; }
+    }
+    return best;
   }
 
   // Heavy DOM rebuilds (sticky/cards innerHTML replacement) flicker visibly
@@ -389,20 +433,22 @@
     if (chip.className !== cls) chip.className = cls;
     if (chip.innerHTML !== inner) chip.innerHTML = inner;
   }
-  // Update the km/m distance text on each rendered card without rebuilding
-  // the cards list. Smooth motion, no flicker.
+  // Update the km/mi distance text on each rendered card without rebuilding
+  // the cards list. Smooth motion, no flicker. Uses cardDistMeters so the
+  // active turn-card counts down to the NEXT TURN (not the step's start,
+  // which has already been passed).
   function updateCardDistances(route) {
     if (!state.gps) return;
     const host = document.querySelector('.drive-cards');
     if (!host) return;
     const cardEls = host.querySelectorAll('.drive-card');
     const cards = (route && route.cards) || [];
+    const active = state.driving?.activeCardIndex ?? -1;
     cardEls.forEach(el => {
       const idx = Number(el.dataset.cardIndex);
       const c = cards[idx];
       if (!c || typeof c.lat !== 'number') return;
-      const distM = DC.distMeters(state.gps, c);
-      const txt = formatM(distM);
+      const txt = formatM(cardDistMeters(c, idx, active));
       const slot = el.querySelector('.card-dist');
       if (slot && slot.textContent !== txt) slot.textContent = txt;
     });
