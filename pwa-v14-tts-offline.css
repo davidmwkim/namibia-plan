@@ -1,0 +1,9 @@
+/* v14 — TTS controls (live alongside the driving-dashboard sticky header) */
+#ttsMute[aria-pressed="true"] {
+  background: #fde6e6;
+  color: #8b1a1a;
+  border-color: #b22222;
+}
+#ttsReplay {
+  font-family: monospace;
+}

@@ -1,0 +1,93 @@
+{
+  "date": "2026-05-24",
+  "schemaVersion": 6,
+  "legs": [
+    {
+      "start": "Windhoek, Namibia",
+      "end": "Solitaire, Namibia",
+      "distance": "187 km",
+      "duration": "2 hours 45 mins",
+      "steps": [
+        {
+          "instruction": "Head west on Independence Ave",
+          "distance": "1 km",
+          "duration": "2 mins",
+          "lat": -22.5588,
+          "lng": 17.0832,
+          "endLat": -22.5602,
+          "endLng": 17.0731,
+          "heading": 270,
+          "stepMapUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "streetViewUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "ttsKey": "step-2026-05-24-0-0",
+          "ttsText": "In 1 kilometre, head west on Independence Ave"
+        },
+        {
+          "instruction": "Turn left onto B1 toward Rehoboth",
+          "distance": "85 km",
+          "duration": "1 hour 5 mins",
+          "lat": -22.5602,
+          "lng": 17.0731,
+          "endLat": -23.3197,
+          "endLng": 17.0834,
+          "heading": 180,
+          "stepMapUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "streetViewUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "ttsKey": "step-2026-05-24-0-1",
+          "ttsText": "In 85 kilometres, turn left onto B1 toward Rehoboth"
+        },
+        {
+          "instruction": "Continue onto C24 toward Solitaire",
+          "distance": "100 km",
+          "duration": "1 hour 25 mins",
+          "lat": -23.3197,
+          "lng": 17.0834,
+          "endLat": -23.8919,
+          "endLng": 16.0028,
+          "heading": 225,
+          "stepMapUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "streetViewUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "ttsKey": "step-2026-05-24-0-2",
+          "ttsText": "In 100 kilometres, continue onto C24 toward Solitaire"
+        },
+        {
+          "instruction": "Arrive at Solitaire",
+          "distance": "1 km",
+          "duration": "1 min",
+          "lat": -23.8919,
+          "lng": 16.0028,
+          "endLat": -23.8919,
+          "endLng": 16.0028,
+          "heading": 0,
+          "stepMapUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "streetViewUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "ttsKey": "step-2026-05-24-0-3",
+          "ttsText": "Arrive at Solitaire"
+        }
+      ]
+    }
+  ],
+  "overviewPath": [
+    {"lat": -22.5588, "lng": 17.0832},
+    {"lat": -22.5602, "lng": 17.0731},
+    {"lat": -23.3197, "lng": 17.0834},
+    {"lat": -23.8919, "lng": 16.0028}
+  ],
+  "street": [],
+  "googleMapsUrl": "https://www.google.com/maps/dir/?api=1",
+  "cards": [
+    {"kind": "turn", "legIdx": 0, "stepIdx": 0, "lat": -22.5588, "lng": 17.0832, "title": "Head west on Independence Ave", "body": "1 km · 2 mins", "ttsKey": "step-2026-05-24-0-0", "ttsText": "In 1 kilometre, head west on Independence Ave", "triggerRadiusM": 100},
+    {"kind": "turn", "legIdx": 0, "stepIdx": 1, "lat": -22.5602, "lng": 17.0731, "title": "Turn left onto B1 toward Rehoboth", "body": "85 km · 1 hour 5 mins", "ttsKey": "step-2026-05-24-0-1", "ttsText": "In 85 kilometres, turn left onto B1 toward Rehoboth", "triggerRadiusM": 100},
+    {"kind": "fuel", "legIdx": 0, "stepIdx": 2, "lat": -23.3197, "lng": 17.0834, "title": "Fuel stop coming up: Rehoboth", "body": "Top up before C24 — last reliable fuel before Solitaire.", "ttsKey": "fuel_stop", "ttsText": "Fuel stop coming up. Top up before leaving the main highway.", "triggerRadiusM": 500},
+    {"kind": "pressure", "legIdx": 0, "stepIdx": 2, "lat": -23.3197, "lng": 17.0834, "title": "Lower tyre pressure for gravel", "body": "Drop to 1.8 bar before the C24 corrugated section.", "ttsKey": "pressure_lower", "ttsText": "Lower tyre pressure for gravel.", "triggerRadiusM": 500},
+    {"kind": "turn", "legIdx": 0, "stepIdx": 2, "lat": -23.3197, "lng": 17.0834, "title": "Continue onto C24 toward Solitaire", "body": "100 km · 1 hour 25 mins", "ttsKey": "step-2026-05-24-0-2", "ttsText": "In 100 kilometres, continue onto C24 toward Solitaire", "triggerRadiusM": 100},
+    {"kind": "arrival", "legIdx": 0, "stepIdx": 3, "lat": -23.8919, "lng": 16.0028, "title": "Arrive at Solitaire", "body": "End of self-drive leg.", "ttsKey": "step-2026-05-24-0-3", "ttsText": "Arrive at Solitaire", "triggerRadiusM": 100}
+  ],
+  "sunTimes": {
+    "sunriseMs": 1748151720000,
+    "sunsetMs": 1748192640000,
+    "solarNoonMs": 1748172180000,
+    "sourceLat": -23.8919,
+    "sourceLng": 16.0028
+  }
+}

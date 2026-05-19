@@ -1,0 +1,25 @@
+{
+  "name": "namibia-plan-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-first PWA for a Namibia road trip — driving dashboard, per-turn maps, offline TTS, sunset-risk warnings.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:golden": "vitest run tests/golden",
+    "test:contract": "vitest run tests/contract",
+    "test:api": "vitest run tests/api",
+    "test:smoke": "vitest run tests/smoke",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "serve": "http-server -p 8080 -c-1 ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "http-server": "^14.1.1",
+    "jsdom": "^25.0.0",
+    "vitest": "^2.1.0"
+  }
+}
