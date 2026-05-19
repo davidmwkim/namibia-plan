@@ -1,14 +1,16 @@
-const CACHE = 'namibia-trip-v10';
+const CACHE = 'namibia-trip-v11';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './pwa-v8-segment-patch.css',
   './pwa-v10-update-offline.css',
+  './pwa-v11-print-google-maps.css',
   './app.js',
   './pwa-v8-segment-patch.js',
   './pwa-v9-map-route-draw.js',
   './pwa-v10-update-offline.js',
+  './pwa-v11-print-google-maps.js',
   './data.js',
   './manifest.webmanifest',
   './icons/icon.svg'
