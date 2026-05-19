@@ -61,26 +61,89 @@
     return overviewPath.slice(aIdx, bIdx + 1);
   }
 
-  function stepStaticMapUrl(slice, a, b) {
+  // Per-step Static Maps URL with:
+  //   * polyline colored by the Heather segment that contains the step's
+  //     midpoint (v19's partitionPath; falls back to red "David drives")
+  //   * green-S marker at the step start, red-F marker at the step finish
+  //
+  // The caller MUST pass the day object whose route this step belongs to —
+  // we look up that day's overviewPath + Heather partitions. Using day() here
+  // would silently return the currently-selected day, mis-coloring all days
+  // against Day 1's partitions during the renderAllDays prep loop.
+  function stepStaticMapUrl(slice, a, b, contextDay) {
     if (!state.apiKey) return '';
+    let color = '0xdc2626'; // default red ("David drives")
+    try {
+      const d = contextDay || day();
+      const overview = state.renderedRoutes?.[d?.date]?.overviewPath;
+      if (overview && window.NamibiaV19) {
+        const mid = slice[Math.floor(slice.length / 2)] || a;
+        const parts = window.NamibiaV19.partitionPath(overview, d);
+        const midIdx = window.NamibiaV19.nearestPathIdx(overview, mid).idx;
+        const containing = parts.find(p => midIdx >= p.fromIdx && midIdx <= p.toIdx);
+        const STATIC_HEX = { yes: '0x16a34a', maybe: '0xf59e0b', no: '0xdc2626' };
+        if (containing) color = STATIC_HEX[containing.status] || color;
+      }
+    } catch (_) {}
     const params = new URLSearchParams({
       size: '320x200', scale: '2', maptype: 'roadmap', key: state.apiKey
     });
-    params.append('path', `color:0x5a1738ff|weight:5|enc:${encodePolyline(sampledPath(slice))}`);
-    params.append('markers', `color:0x5a1738|label:A|${a.lat},${a.lng}`);
-    params.append('markers', `color:0x999999|label:B|${b.lat},${b.lng}`);
+    params.append('path', `color:${color}ff|weight:5|enc:${encodePolyline(sampledPath(slice))}`);
+    params.append('markers', `color:0x16a34a|label:S|${a.lat},${a.lng}`);
+    params.append('markers', `color:0xdc2626|label:F|${b.lat},${b.lng}`);
     return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
   }
 
   function stepStreetViewUrl(lat, lng, heading) {
     if (!state.apiKey) return '';
+    // Tight radius — the step's lat/lng is now a point taken from the step's
+    // own encoded polyline (Google's road-snapped geometry), so a small
+    // radius locks the panorama to the same road. 300m was pulling panos from
+    // parallel/cross streets at intersections.
     const p = new URLSearchParams({
       size: '320x180',
       location: `${lat},${lng}`,
       heading: String(Math.round(heading || 0)),
-      pitch: '0', fov: '90', source: 'outdoor', key: state.apiKey
+      pitch: '0', fov: '90', source: 'outdoor', radius: '60', key: state.apiKey
     });
     return 'https://maps.googleapis.com/maps/api/streetview?' + p.toString();
+  }
+
+  // Decode a Google encoded polyline (https://developers.google.com/maps/documentation/utilities/polylinealgorithm)
+  function decodePolyline(s) {
+    if (!s) return [];
+    const out = [];
+    let lat = 0, lng = 0, i = 0;
+    while (i < s.length) {
+      let result = 0, shift = 0, b;
+      do { b = s.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const dLat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      lat += dLat;
+      result = 0; shift = 0;
+      do { b = s.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const dLng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      lng += dLng;
+      out.push({ lat: lat / 1e5, lng: lng / 1e5 });
+    }
+    return out;
+  }
+  function distAlong(pts, a, b) {
+    // Helper: pick a point roughly `meters` into a decoded polyline.
+    if (!pts.length) return null;
+    if (pts.length === 1) return pts[0];
+    let acc = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const d = DC.distMeters(pts[i - 1], pts[i]);
+      if (acc + d >= b) {
+        const t = (b - acc) / d;
+        return {
+          lat: pts[i - 1].lat + (pts[i].lat - pts[i - 1].lat) * t,
+          lng: pts[i - 1].lng + (pts[i].lng - pts[i - 1].lng) * t
+        };
+      }
+      acc += d;
+    }
+    return pts[pts.length - 1];
   }
 
   // Pretty distance for TTS ("In 1.2 kilometres,"). Short strings → 200ch limit.
@@ -198,10 +261,43 @@
         const next = steps[i + 1] || { lat: step.endLat ?? step.lat, lng: step.endLng ?? step.lng };
         step.endLat = step.endLat ?? next.lat;
         step.endLng = step.endLng ?? next.lng;
-        step.heading = DC.bearingForStreetView(step, next);
-        const slice = pathSlice(overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
-        step.stepMapUrl = stepStaticMapUrl(slice, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
-        step.streetViewUrl = stepStreetViewUrl(step.lat, step.lng, step.heading);
+
+        // Decode the step's own polyline (Google's road-snapped geometry for
+        // just this step). The first point IS the start_location, already on
+        // the road. We use a point ~20m into the polyline as the Street View
+        // anchor so the panorama is unambiguously on this step's road (rather
+        // than a corner that could be a parallel-street pano), and we use the
+        // bearing from that point to a point ~80m further along the polyline
+        // as the heading-of-travel.
+        const decoded = step.polyline ? decodePolyline(step.polyline) : [];
+        let svAnchor = { lat: step.lat, lng: step.lng };
+        let headingTarget = { lat: next.lat, lng: next.lng };
+        if (decoded.length >= 2) {
+          const totalM = (function () {
+            let m = 0;
+            for (let k = 1; k < decoded.length; k++) m += DC.distMeters(decoded[k - 1], decoded[k]);
+            return m;
+          })();
+          // Snap the anchor 20m down the road (or 25% of the step, whichever is smaller).
+          const anchorAlongM = Math.min(20, totalM * 0.25);
+          svAnchor = distAlong(decoded, 0, anchorAlongM) || svAnchor;
+          // Pick a target ~80m further (or another 25% of the step).
+          const targetAlongM = Math.min(anchorAlongM + 80, totalM);
+          headingTarget = distAlong(decoded, 0, targetAlongM) || headingTarget;
+        }
+        step.heading = DC.bearingForStreetView(svAnchor, headingTarget);
+        step.svLat = svAnchor.lat;
+        step.svLng = svAnchor.lng;
+
+        const slice = decoded.length >= 2
+          ? decoded
+          : pathSlice(overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
+        const newStepMapUrl = stepStaticMapUrl(slice, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng }, d);
+        const newStreetViewUrl = stepStreetViewUrl(svAnchor.lat, svAnchor.lng, step.heading);
+        // Don't clobber existing URLs (data: fixtures, prior caches) with an
+        // empty string when there's no API key to build a fresh URL.
+        if (newStepMapUrl || !step.stepMapUrl) step.stepMapUrl = newStepMapUrl;
+        if (newStreetViewUrl || !step.streetViewUrl) step.streetViewUrl = newStreetViewUrl;
         step.ttsText = ttsTextFor(step);
         step.ttsKey = `step-${d.date}-${leg.__legIdx ?? ''}-${i}`;
       });
@@ -210,7 +306,7 @@
     route.legs.forEach((leg, li) => { leg.__legIdx = li; });
     route.cards = buildCards(d, route.legs);
     route.sunTimes = computeSunTimes(d);
-    route.schemaVersion = 6;
+    route.schemaVersion = 7;
     return route;
   }
 
@@ -232,7 +328,7 @@
   function decorateAllCached() {
     for (const d of (window.NAMIBIA_TRIP_DATA?.days || [])) {
       const r = state.renderedRoutes[d.date];
-      if (r && r.legs && r.schemaVersion !== 6) decorateRoute(d, r);
+      if (r && r.legs && r.schemaVersion !== 7) decorateRoute(d, r);
     }
   }
   decorateAllCached();
@@ -303,7 +399,7 @@
       const route = state.renderedRoutes[d.date];
       if (!route) return;
       // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 6) decorateRoute(d, route);
+      if (route.legs && route.schemaVersion !== 7) decorateRoute(d, route);
 
       if (state.activeTab === 'overview') extendOverviewTab(d, route);
       else if (state.activeTab === 'directions') extendDirectionsTab(d, route);
@@ -332,6 +428,46 @@
     else tc.insertAdjacentHTML('afterbegin', html);
   }
 
+  // Pick an emoji for the direction indicator on each step. Uses the step's
+  // own heading-of-travel and intent (turn vs. continue) where possible.
+  function directionEmojiFor(step, prevHeading) {
+    const instr = String(step.instruction || '').toLowerCase();
+    if (instr.includes('u-turn') || instr.includes('uturn')) return '↩️';
+    if (instr.includes('arrive') || instr.includes('destination')) return '🏁';
+    if (instr.includes('roundabout') || instr.includes('rotary')) return '🔄';
+    if (instr.includes('exit')) return '↗️';
+    if (instr.includes('merge')) return '🔀';
+    if (instr.match(/\bsharp left\b/)) return '↖️';
+    if (instr.match(/\bsharp right\b/)) return '↗️';
+    if (instr.match(/\bslight left\b/) || instr.match(/\bbear left\b/)) return '↖️';
+    if (instr.match(/\bslight right\b/) || instr.match(/\bbear right\b/)) return '↗️';
+    if (instr.match(/\bturn left\b|\bkeep left\b/)) return '⬅️';
+    if (instr.match(/\bturn right\b|\bkeep right\b/)) return '➡️';
+    // For "continue", "head", or no explicit direction word: use the heading.
+    if (typeof step.heading === 'number') {
+      const h = ((step.heading % 360) + 360) % 360;
+      if (h < 22.5 || h >= 337.5) return '⬆️';
+      if (h < 67.5)  return '↗️';
+      if (h < 112.5) return '➡️';
+      if (h < 157.5) return '↘️';
+      if (h < 202.5) return '⬇️';
+      if (h < 247.5) return '↙️';
+      if (h < 292.5) return '⬅️';
+      return '↖️';
+    }
+    return '•';
+  }
+
+  // Heather partition info for a single step (status + label + reason).
+  function stepHeatherPart(d, route, legIdx, stepIdx) {
+    if (window.NamibiaV19?.partitionForStep) {
+      return window.NamibiaV19.partitionForStep(route, d, legIdx, stepIdx);
+    }
+    return null;
+  }
+
+  const HEATHER_EMOJI = { yes: '🟢', maybe: '🟡', no: '🔴' };
+
   function extendDirectionsTab(d, route) {
     if (!route.legs) return;
     const tc = document.getElementById('tabContent');
@@ -341,17 +477,51 @@
       const ol = ols[li];
       if (!ol) return;
       const lis = ol.querySelectorAll('li');
+      // Track the last Heather partition we showed a "reason" for; only show
+      // the reason text on the FIRST step within each contiguous segment.
+      let prevPartKey = null;
       leg.steps.forEach((step, si) => {
         const liEl = lis[si];
         if (!liEl) return;
-        if (liEl.querySelector('.step-media')) return;
+        // Idempotent: skip only if the chip + media + dir are all present.
+        if (liEl.querySelector('.step-heather-chip')
+            && liEl.querySelector('.step-media')
+            && liEl.querySelector('.step-dir')) return;
+        // If a partial render exists (e.g. media but no chip), wipe it so we
+        // rebuild cleanly with the current v12+v19 outputs.
+        liEl.querySelectorAll('.step-media, .step-expand, .step-heather-chip, .step-heather-reason, .step-dir').forEach(n => n.remove());
+        // Strip any class from a prior render.
+        liEl.classList.remove('step-heather-yes', 'step-heather-maybe', 'step-heather-no');
         liEl.classList.add('step');
+
+        const part = stepHeatherPart(d, route, li, si);
+        const hs = part?.status || 'no';
+        liEl.classList.add('step-heather-' + hs);
+
+        // Heather chip + (on first step of a new segment) the segment's reason.
+        const emoji = HEATHER_EMOJI[hs] || '⚪';
+        const label = part?.label || (hs === 'yes' ? 'Heather OK' : hs === 'maybe' ? 'Heather maybe' : 'David drives');
+        const reason = part?.reason || '';
+        const partKey = part ? `${part.fromIdx}-${part.toIdx}-${part.status}` : 'none';
+        const showReason = reason && partKey !== prevPartKey;
+        prevPartKey = partKey;
+        const chip = `<span class="step-heather-chip step-heather-chip-${hs}" title="${esc(reason)}">${emoji} ${esc(label)}</span>`;
+        const reasonBlock = showReason
+          ? `<div class="step-heather-reason step-heather-reason-${hs}">${esc(reason)}</div>`
+          : '';
+
+        const dirEmoji = directionEmojiFor(step);
+        const dirSpan = `<span class="step-dir" title="Direction of travel">${dirEmoji}</span> `;
         const expand = `<button class="step-expand" data-leg="${li}" data-step="${si}" aria-label="Expand step on map">🗺️</button>`;
         const media = `<div class="step-media">
           ${step.stepMapUrl ? `<img class="step-map" loading="lazy" src="${esc(step.stepMapUrl)}" alt="Map of step ${si + 1}">` : ''}
           ${step.streetViewUrl ? `<img class="step-streetview" loading="lazy" src="${esc(step.streetViewUrl)}" alt="Street view at step ${si + 1}">` : ''}
         </div>`;
-        liEl.insertAdjacentHTML('beforeend', ' ' + expand + media);
+
+        // Insert: dir-emoji at start, then chip after the existing instruction text,
+        // then optional reason block, then expand + media at the end.
+        liEl.insertAdjacentHTML('afterbegin', dirSpan);
+        liEl.insertAdjacentHTML('beforeend', ' ' + chip + reasonBlock + ' ' + expand + media);
       });
     });
     tc.querySelectorAll('.step-expand').forEach(b => {

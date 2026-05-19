@@ -1,0 +1,33 @@
+/* v15 — Demo mode controls */
+.demo-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: 8px;
+}
+.demo-controls .demo-input {
+  font-size: 12px;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.demo-controls input[type="number"] {
+  width: 55px;
+  padding: 2px 4px;
+  font-size: 13px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.demo-controls #demoStart {
+  font-weight: 600;
+  padding: 4px 10px;
+}
+.demo-controls #demoStart:disabled {
+  background: #aaa;
+  cursor: progress;
+}
+.demo-controls #demoStop {
+  padding: 4px 8px;
+}

@@ -1,0 +1,41 @@
+/* v16 — Print extras */
+.print-sun-line {
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-left-width: 4px;
+  border-left-color: #2a5d2a;
+  border-radius: 4px;
+  margin: 6px 0 12px;
+  background: #f7faf2;
+}
+.print-sun-line.sun-tight {
+  border-left-color: #d98b42;
+  background: #fff8ec;
+}
+.print-sun-line.sun-risk {
+  border-left-color: #b22222;
+  background: #fdecec;
+  font-weight: 600;
+}
+
+.print-step-thumbs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 4px;
+}
+.print-step-thumbs img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  break-inside: avoid;
+  max-height: 140px;
+  object-fit: cover;
+}
+
+@media print {
+  .print-step-thumbs { page-break-inside: avoid; }
+  .print-sun-line { page-break-inside: avoid; }
+}

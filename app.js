@@ -33,7 +33,10 @@ function googleMapsUrl(d=day()){
 }
 function streetViewUrl(lat,lng,heading=0,size='600x320'){
   if(!state.apiKey) return '';
-  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'outdoor',key:state.apiKey});
+  // radius lets the Street View Static API snap to the nearest available
+  // panorama (defaults to 50m on the API; bump to 200m so remote-road turns
+  // still find a usable panorama instead of returning a "no imagery" tile).
+  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'outdoor',radius:'200',key:state.apiKey});
   return 'https://maps.googleapis.com/maps/api/streetview?'+p.toString();
 }
 function distMeters(a,b){
@@ -311,7 +314,19 @@ async function renderDayRoute(d){
     const r=res.routes[0];
     const legs=r.legs.map(leg=>({
       start:leg.start_address,end:leg.end_address,distance:leg.distance?.text||'',duration:leg.duration?.text||'',
-      steps:leg.steps.map(step=>({instruction:cleanHtml(step.instructions),distance:step.distance?.text||'',duration:step.duration?.text||'',lat:step.start_location.lat(),lng:step.start_location.lng()}))
+      steps:leg.steps.map(step=>({
+        instruction:cleanHtml(step.instructions),
+        distance:step.distance?.text||'',
+        duration:step.duration?.text||'',
+        lat:step.start_location.lat(),
+        lng:step.start_location.lng(),
+        endLat:step.end_location.lat(),
+        endLng:step.end_location.lng(),
+        // The step's own polyline (encoded) — this is the road geometry for
+        // just this step. Used by v12 to get an accurate heading and a tighter
+        // road-snapped Street View location.
+        polyline: step.polyline?.points || (typeof step.encoded_lat_lngs === 'string' ? step.encoded_lat_lngs : '')
+      }))
     }));
     const overviewPath=(r.overview_path||[]).map(p=>({lat:p.lat(),lng:p.lng()}));
     const street=[];

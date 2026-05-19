@@ -1,0 +1,46 @@
+/* v17 — Heather indicator chip */
+.heather-leg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.heather-leg-chip .heather-leg-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.heather-leg-chip.heather-yes   { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+.heather-leg-chip.heather-maybe { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+.heather-leg-chip.heather-no    { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+.heather-leg-chip.heather-na    { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+
+.print-heather-banner {
+  margin: 4px 0 12px;
+  font-size: 13px;
+}
+
+/* Day select option emojis already include the dot — keep dropdown legible */
+.day-select option {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+@media print {
+  .heather-leg-chip {
+    border: 1px solid #888;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-heather-banner { page-break-inside: avoid; }
+}

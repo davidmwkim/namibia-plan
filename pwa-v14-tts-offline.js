@@ -34,6 +34,11 @@
   function setMuted(v) { localStorage.setItem(MUTED_KEY, v ? '1' : '0'); }
 
   let currentAudio = null;
+  // Throttle: ignore speak() calls that arrive within `minIntervalMs` of the
+  // last accepted call. Demo mode sets this to ~4s so rapid threshold crossings
+  // don't produce audio spam.
+  let lastAcceptedSpeakTs = 0;
+  let minIntervalMs = 0;
   function cancelAll() {
     if (currentAudio) { try { currentAudio.pause(); currentAudio.src = ''; } catch (_) {} currentAudio = null; }
     if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (_) {} }
@@ -53,21 +58,74 @@
     } catch (_) { return null; }
   }
 
+  // Pick the best available en-* voice. Some platforms (notably some Linux
+  // builds of Chrome) start with an empty voice list until voiceschanged fires.
+  let cachedVoice = null;
+  function pickVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    if (cachedVoice && cachedVoice.lang) return cachedVoice;
+    const voices = window.speechSynthesis.getVoices() || [];
+    const en = voices.find(v => /^en[-_]US/i.test(v.lang))
+            || voices.find(v => /^en/i.test(v.lang))
+            || voices[0];
+    if (en) cachedVoice = en;
+    return en || null;
+  }
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.onvoiceschanged = () => { cachedVoice = null; pickVoice(); };
+      pickVoice();
+    } catch (_) {}
+  }
   function speakViaSynth(text) {
     if (!('speechSynthesis' in window)) return false;
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US';
       u.rate = 1.0;
+      u.volume = 1.0;
+      const v = pickVoice();
+      if (v) u.voice = v;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
       return true;
     } catch (_) { return false; }
   }
 
-  async function speak(ttsKey, fallbackText) {
+  async function speak(ttsKey, fallbackText, opts) {
     if (isMuted()) return false;
+    const force = opts && opts.force === true;
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (!force && minIntervalMs > 0 && (now - lastAcceptedSpeakTs) < minIntervalMs) {
+      return false;
+    }
+    lastAcceptedSpeakTs = now;
     localStorage.setItem(LAST_KEY, ttsKey);
+    // Visible indicator so the user sees what was spoken even if their audio
+    // output is muted or the synth voice fails. Dispatched as a CustomEvent so
+    // the Driving Dashboard can show a small "🔊 last: ..." line.
+    try {
+      let text = (loadIndex()[ttsKey] && loadIndex()[ttsKey].text) || CANNED[ttsKey] || fallbackText || '';
+      // For per-step keys (e.g. step-DATE-LEG-IDX) try to look up the card's
+      // ttsText from the current day's route so the visible indicator is
+      // human-readable.
+      if (!text && typeof state !== 'undefined' && typeof day === 'function') {
+        const d = day();
+        const route = state.renderedRoutes?.[d?.date];
+        for (const leg of (route?.legs || [])) {
+          for (const step of (leg.steps || [])) {
+            if (step.ttsKey === ttsKey && step.ttsText) { text = step.ttsText; break; }
+          }
+          if (text) break;
+        }
+        if (!text) {
+          const card = (route?.cards || []).find(c => c.ttsKey === ttsKey);
+          if (card) text = card.ttsText || card.title;
+        }
+      }
+      if (!text) text = ttsKey;
+      window.dispatchEvent(new CustomEvent('namibia-tts-spoke', { detail: { ttsKey, text } }));
+    } catch (_) {}
     const blob = await getCachedBlob(ttsKey);
     if (blob && blob.size > 0) {
       const url = URL.createObjectURL(blob);
@@ -93,11 +151,12 @@
   async function replayLast() {
     const k = localStorage.getItem(LAST_KEY);
     if (!k) return false;
-    // Force a re-play even if muted? No — preserve mute. But we still want a way
-    // to *test* TTS while muted: temporarily unmute, replay, then restore. We
-    // do NOT auto-restore — replay is explicit user action and should respect mute.
-    return speak(k);
+    // Replay is explicit user action; bypass throttle (but still respect mute).
+    return speak(k, undefined, { force: true });
   }
+
+  function setThrottle(ms) { minIntervalMs = Math.max(0, Number(ms) || 0); }
+  function getThrottle() { return minIntervalMs; }
 
   // ---- Pre-generation ----
   function collectAllTtsTextsFromState() {
@@ -197,6 +256,7 @@
     mute, unmute, toggle, isMuted,
     replayLast,
     preGenerate,
+    setThrottle, getThrottle,
     _canned: CANNED,
     _loadIndex: loadIndex,
     _synthOne: synthOne

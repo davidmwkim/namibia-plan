@@ -25,8 +25,21 @@
     activeCardIndex: -1,
     lastSunsetSeverity: 'safe',
     lastThresholdByCard: {},
-    prevDistByCard: {}
+    prevDistByCard: {},
+    lastSpokenText: ''
   };
+
+  // Surface a "last spoken" indicator in the dashboard so the user can see
+  // what TTS just fired even if audio is muted on their device.
+  window.addEventListener('namibia-tts-spoke', e => {
+    if (!state.driving) return;
+    state.driving.lastSpokenText = e.detail?.text || e.detail?.ttsKey || '';
+    if (state.activeTab === 'street') {
+      const ind = document.querySelector('.tts-indicator');
+      if (ind) ind.textContent = '🔊 ' + state.driving.lastSpokenText.slice(0, 100);
+      else if (typeof renderTab === 'function') renderTab();
+    }
+  });
 
   // ---- Clock seam ----
   let spoofedNow = null;
@@ -77,6 +90,18 @@
     const r = DC.relevantCards(state.gps, route);
     const prevActive = state.driving.activeCardIndex;
     state.driving.activeCardIndex = r.activeIndex;
+
+    // Demo mode: force-fire a TTS announcement whenever the active card
+    // changes. Threshold-based firing below may skip cards when GPS jumps a
+    // large distance per tick (demo's 1km+/tick speed), so this guarantees
+    // the user hears every card during the playback.
+    if (state.driving.demoMode && prevActive !== r.activeIndex && r.activeIndex >= 0) {
+      const activeCard = route.cards?.[r.activeIndex];
+      if (activeCard?.ttsKey) {
+        const tts = TTS();
+        if (tts) tts.speak(activeCard.ttsKey);
+      }
+    }
 
     // Threshold-based TTS for each upcoming card within range.
     if (route.cards) {
@@ -147,7 +172,7 @@
     if (tabBtn && tabBtn.textContent !== 'Driving') tabBtn.textContent = 'Driving';
   }
 
-  function dashboardHtml(d, route) {
+  function stickyInnerHtml(d, route) {
     const muted = TTS() ? TTS().isMuted() : true;
     const margin = state.driving.sunsetMargin;
     const sunriseLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunriseMs) : '--:--';
@@ -160,16 +185,28 @@
       sunChip = `<span class="sun-chip sun-predawn">🌄 Sunrise <strong>${sunriseLocal}</strong> in ${ST.formatRelative(minToSunrise)}</span>`;
     } else if (margin) {
       const etaLocal = state.driving.eta ? ST.formatTimeOfDay(state.driving.eta) : '--:--';
-      sunChip = `<span class="sun-chip sun-${margin.severity}">🌅 Sunset <strong>${sunsetLocal}</strong> · ETA <strong>${etaLocal}</strong> · margin <strong>${margin.marginMin >= 0 ? '+' : ''}${margin.marginMin} min</strong></span>`;
+      const clockLocal = ST.formatTimeOfDay(nowMs());
+      sunChip = `<span class="sun-chip sun-${margin.severity}">🕒 <strong>${clockLocal}</strong> · 🌅 Sunset <strong>${sunsetLocal}</strong> · ETA <strong>${etaLocal}</strong> · margin <strong>${margin.marginMin >= 0 ? '+' : ''}${margin.marginMin} min</strong></span>`;
     } else {
       sunChip = `<span class="sun-chip">🌅 Sunset <strong>${sunsetLocal}</strong></span>`;
     }
+    const lastSpoken = (typeof state.driving.lastSpokenText === 'string') ? state.driving.lastSpokenText : '';
+    return `
+      <div class="drive-controls">
+        <span class="chip gps-chip">${state.gps ? `GPS ${state.gps.lat.toFixed(3)},${state.gps.lng.toFixed(3)}` : 'GPS: not active'}</span>
+        <button id="ttsMute" class="ghost" aria-pressed="${muted}">${muted ? '🔇 Unmute' : '🔊 Mute'}</button>
+        <button id="ttsReplay" class="ghost">↺ Replay</button>
+        <button id="centerCurrent" class="ghost" title="Scroll back to the current step">📍 Center</button>
+      </div>
+      ${sunChip}
+      ${lastSpoken ? `<div class="tts-indicator">🔊 ${esc(lastSpoken.slice(0, 100))}</div>` : ''}`;
+  }
 
+  function cardsHtml(d, route) {
     const cards = route?.cards || [];
     const active = state.driving.activeCardIndex;
     const displayCards = injectSunsetRiskCard(cards, route, active);
-
-    const cardsHtml = displayCards.map((c, i) => {
+    const html = displayCards.map((c, i) => {
       const isActive = i === active;
       const isPast = active >= 0 && i < active;
       const distLine = state.gps && typeof c.lat === 'number'
@@ -189,19 +226,15 @@
         </div>` : ''}
       </article>`;
     }).join('');
+    return html || '<p>No directions cached for this day.</p>';
+  }
 
+  function dashboardHtml(d, route) {
     return `
       <div class="drive-dashboard">
-        <div class="drive-sticky">
-          <div class="drive-controls">
-            <span class="chip gps-chip">${state.gps ? `GPS ${state.gps.lat.toFixed(3)},${state.gps.lng.toFixed(3)}` : 'GPS: not active'}</span>
-            <button id="ttsMute" class="ghost" aria-pressed="${muted}">${muted ? '🔇 Unmute' : '🔊 Mute'}</button>
-            <button id="ttsReplay" class="ghost">↺ Replay</button>
-          </div>
-          ${sunChip}
-        </div>
+        <div class="drive-sticky">${stickyInnerHtml(d, route)}</div>
         <div class="drive-map" id="driveMapHost"></div>
-        <div class="drive-cards">${cardsHtml || '<p>No directions cached for this day.</p>'}</div>
+        <div class="drive-cards">${cardsHtml(d, route)}</div>
       </div>`;
   }
 
@@ -237,17 +270,159 @@
     return Math.round(m) + ' m';
   }
 
+  // Heavy DOM rebuilds (sticky/cards innerHTML replacement) flicker visibly
+  // when fired at the demo's 10fps tick rate. Split the live update into:
+  //   - cheap, every-tick: map pin + sun chip + GPS chip text
+  //   - throttled (≤ once per HEAVY_REBUILD_MS): cards/sticky innerHTML
+  //   - immediate: rebuild when the active card index changes
+  const HEAVY_REBUILD_MS = 5000;
+
   function renderDashboardLive(route, scrollChanged) {
     const host = document.querySelector('.drive-dashboard');
     if (!host) return;
-    // Inexpensive: replace the cards block only.
     const d = day();
-    const html = dashboardHtml(d, route);
-    host.outerHTML = html;
-    bindDashboardEvents();
-    if (scrollChanged && state.driving.activeCardIndex >= 0) {
-      const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
-      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Cheap updates: always.
+    updateDriveMap();
+    updateGpsChipText();
+    updateSunChip(d, route);
+    updateTtsIndicator();
+
+    // Heavy rebuild: only when needed.
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const lastBuilt = state.driving._lastHeavyRebuild || 0;
+    const activeChanged = state.driving._lastBuiltActiveIdx !== state.driving.activeCardIndex;
+    const shouldRebuild = activeChanged || (now - lastBuilt) >= HEAVY_REBUILD_MS;
+    if (shouldRebuild) {
+      const cards = host.querySelector('.drive-cards');
+      if (cards) cards.innerHTML = cardsHtml(d, route);
+      state.driving._lastHeavyRebuild = now;
+      state.driving._lastBuiltActiveIdx = state.driving.activeCardIndex;
+      bindDashboardEvents();
+    }
+
+    // Auto-scroll only when explicitly requested or demo is running.
+    if ((state.driving.demoMode || state.driving.requestCenterScroll) && scrollChanged && state.driving.activeCardIndex >= 0) {
+      state.driving.requestCenterScroll = false;
+      const target = host.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
+      if (target && target.scrollIntoView) {
+        target.scrollIntoView({ behavior: state.driving.demoMode ? 'auto' : 'smooth', block: 'center' });
+      }
+    }
+  }
+
+  function updateGpsChipText() {
+    const el = document.querySelector('.drive-controls .gps-chip');
+    if (!el) return;
+    el.textContent = state.gps ? `GPS ${state.gps.lat.toFixed(3)},${state.gps.lng.toFixed(3)}` : 'GPS: not active';
+  }
+  function updateSunChip(d, route) {
+    const wrap = document.querySelector('.drive-sticky');
+    if (!wrap || !route) return;
+    const margin = state.driving.sunsetMargin;
+    const sunriseLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunriseMs) : '--:--';
+    const sunsetLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunsetMs) : '--:--';
+    const now = nowMs();
+    const isPreDawn = route?.sunTimes && now < route.sunTimes.sunriseMs;
+    let inner;
+    let cls = 'sun-chip';
+    if (isPreDawn) {
+      const minToSunrise = Math.round((route.sunTimes.sunriseMs - now) / 60000);
+      cls += ' sun-predawn';
+      inner = `🌄 Sunrise <strong>${sunriseLocal}</strong> in ${ST.formatRelative(minToSunrise)}`;
+    } else if (margin) {
+      cls += ' sun-' + margin.severity;
+      const etaLocal = state.driving.eta ? ST.formatTimeOfDay(state.driving.eta) : '--:--';
+      const clockLocal = ST.formatTimeOfDay(nowMs());
+      inner = `🕒 <strong>${clockLocal}</strong> · 🌅 Sunset <strong>${sunsetLocal}</strong> · ETA <strong>${etaLocal}</strong> · margin <strong>${margin.marginMin >= 0 ? '+' : ''}${margin.marginMin} min</strong>`;
+    } else {
+      inner = `🌅 Sunset <strong>${sunsetLocal}</strong>`;
+    }
+    let chip = wrap.querySelector('.sun-chip');
+    if (!chip) {
+      // Sun chip not yet present; trigger one heavy rebuild to insert it.
+      state.driving._lastHeavyRebuild = 0;
+      return;
+    }
+    chip.className = cls;
+    chip.innerHTML = inner;
+  }
+  function updateTtsIndicator() {
+    const last = state.driving.lastSpokenText || '';
+    let el = document.querySelector('.drive-sticky .tts-indicator');
+    if (last && !el) {
+      const sticky = document.querySelector('.drive-sticky');
+      if (sticky) {
+        el = document.createElement('div');
+        el.className = 'tts-indicator';
+        sticky.appendChild(el);
+      }
+    }
+    if (el) el.textContent = '🔊 ' + last.slice(0, 100);
+  }
+
+  // ---- Embedded dashboard map (persists across partial renders) ----
+  let driveMap = null;
+  let driveMapMarker = null;
+  let driveMapPolyline = null;
+  let driveMapHostEl = null;
+
+  function ensureDriveMap() {
+    const host = document.getElementById('driveMapHost');
+    if (!host) return null;
+    if (driveMap && driveMapHostEl === host) return driveMap;
+    driveMapHostEl = host;
+    if (!window.google || !google.maps || !google.maps.Map) return null;
+    try {
+      driveMap = new google.maps.Map(host, {
+        center: { lat: -22.5, lng: 17.0 },
+        zoom: 7,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        gestureHandling: 'cooperative'
+      });
+      driveMapMarker = null;
+      driveMapPolyline = null;
+    } catch (_) {
+      driveMap = null;
+    }
+    return driveMap;
+  }
+
+  function updateDriveMap() {
+    const map = ensureDriveMap();
+    if (!map || !window.google) return;
+    const d = day();
+    const route = state.renderedRoutes?.[d.date];
+    // Draw or refresh the route polyline.
+    if (route?.overviewPath?.length >= 2) {
+      const path = route.overviewPath.map(p => ({ lat: Number(p.lat), lng: Number(p.lng) }));
+      if (!driveMapPolyline) {
+        try {
+          driveMapPolyline = new google.maps.Polyline({
+            path, map, strokeColor: '#5a1738', strokeWeight: 5, strokeOpacity: 0.95
+          });
+        } catch (_) {}
+      } else {
+        try { driveMapPolyline.setPath(path); driveMapPolyline.setMap(map); } catch (_) {}
+      }
+    }
+    // Update the GPS marker.
+    if (state.gps) {
+      const pos = { lat: state.gps.lat, lng: state.gps.lng };
+      if (!driveMapMarker) {
+        try {
+          driveMapMarker = new google.maps.Marker({
+            position: pos, map, label: 'YOU',
+            title: 'Simulated/live GPS position',
+            zIndex: 1000
+          });
+        } catch (_) {}
+      } else {
+        try { driveMapMarker.setPosition(pos); driveMapMarker.setMap(map); } catch (_) {}
+      }
+      try { map.panTo(pos); } catch (_) {}
     }
   }
 
@@ -265,6 +440,12 @@
       const tts = TTS();
       if (tts) tts.replayLast();
     };
+    const centerBtn = document.getElementById('centerCurrent');
+    if (centerBtn) centerBtn.onclick = () => {
+      if (state.driving.activeCardIndex < 0) return;
+      const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
+      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
   }
 
   // ---- Hook renderTab — replace street-view grid with dashboard ----
@@ -272,18 +453,35 @@
     const baseRenderTab = renderTab;
     renderTab = function patchedRenderTabV13() {
       baseRenderTab();
-      if (state.activeTab !== 'street') return;
+      if (state.activeTab !== 'street') {
+        // Drop map refs when leaving the tab so they get rebuilt on return.
+        driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
+        return;
+      }
       relabelStreetTab();
       const d = day();
       const route = state.renderedRoutes?.[d.date];
-      // Always re-evaluate sunset risk when re-rendering, so chip stays fresh
-      // even if GPS hasn't fired (e.g., spoofed clock with stationary GPS).
       if (route) evaluateSunsetRisk(route);
       const tc = document.getElementById('tabContent');
       if (!tc) return;
+
+      // If the dashboard is already mounted for this day, fall back to a
+      // partial update so we don't reset scroll position or rebuild the map.
+      const existingHost = tc.querySelector('.drive-dashboard');
+      if (existingHost && existingHost.dataset.dateKey === d.date) {
+        if (route) renderDashboardLive(route, false);
+        return;
+      }
+
       tc.innerHTML = dashboardHtml(d, route);
+      const newHost = tc.querySelector('.drive-dashboard');
+      if (newHost) newHost.dataset.dateKey = d.date;
+      // Reset embedded map refs since the host DIV is freshly minted.
+      driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
+      updateDriveMap();
       bindDashboardEvents();
-      // Trigger auto-scroll for active card if any.
+      // Initial mount: one-shot scroll to the active card, then never again
+      // unless the user clicks "📍 Center".
       if (state.driving.activeCardIndex >= 0) {
         const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
         if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' });

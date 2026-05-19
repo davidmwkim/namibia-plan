@@ -37,7 +37,8 @@ describe('sun-times', () => {
       // 17:30 and 18:30 CAT. Cross-checks the algorithm against well-known
       // afternoon-sunset behavior in southern-hemisphere autumn.
       const { sunsetMs } = ST.sunriseSunsetUtc(new Date('2026-05-25T00:00:00Z'), -22.55, 17.08);
-      const local = ST.formatTimeOfDay(sunsetMs);
+      // Use 24-hour format to make math easy.
+      const local = ST.formatTimeOfDay(sunsetMs, undefined, { fmt: '24' });
       const minutes = Number(local.slice(0, 2)) * 60 + Number(local.slice(3));
       expect(minutes).toBeGreaterThan(17 * 60 + 30);
       expect(minutes).toBeLessThan(18 * 60 + 30);
@@ -127,9 +128,19 @@ describe('sun-times', () => {
   });
 
   describe('formatTimeOfDay', () => {
-    it('honors the Namibia UTC+2 offset', () => {
+    it('defaults to 12-hour H:MM AM/PM with Namibia UTC+2 offset', () => {
+      // 15:34 UTC + 2h = 17:34 local = 5:34 PM
       const ms = Date.UTC(2026, 4, 25, 15, 34);
-      expect(ST.formatTimeOfDay(ms)).toBe('17:34');
+      expect(ST.formatTimeOfDay(ms)).toBe('5:34 PM');
+    });
+    it('formats AM and noon/midnight correctly', () => {
+      expect(ST.formatTimeOfDay(Date.UTC(2026, 4, 25, 5, 0))).toBe('7:00 AM');
+      expect(ST.formatTimeOfDay(Date.UTC(2026, 4, 25, 10, 30))).toBe('12:30 PM');  // 10:30 UTC + 2h = 12:30 local
+      expect(ST.formatTimeOfDay(Date.UTC(2026, 4, 25, 22, 15))).toBe('12:15 AM'); // 22:15 UTC + 2h = 00:15 next day local
+    });
+    it('supports legacy 24-hour format via opts.fmt = "24"', () => {
+      const ms = Date.UTC(2026, 4, 25, 15, 34);
+      expect(ST.formatTimeOfDay(ms, undefined, { fmt: '24' })).toBe('17:34');
     });
     it('returns -- for NaN', () => {
       expect(ST.formatTimeOfDay(NaN)).toBe('--:--');

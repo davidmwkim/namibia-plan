@@ -27,6 +27,17 @@
   border-radius: 12px;
 }
 
+.tts-indicator {
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fff8f1;
+  border: 1px solid #f0ddc6;
+  font-size: 13px;
+  color: #5a1738;
+  font-style: italic;
+}
+
 .sun-chip {
   display: inline-block;
   padding: 6px 10px;

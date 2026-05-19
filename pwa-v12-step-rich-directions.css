@@ -1,8 +1,47 @@
 /* v12 — step-rich directions */
 .directions ol > li.step {
   position: relative;
-  padding-bottom: 10px;
+  padding: 4px 4px 10px 10px;
+  margin-bottom: 6px;
+  border-left: 4px solid transparent;
+  border-radius: 4px;
 }
+.directions ol > li.step-heather-yes   { border-left-color: #16a34a; background: rgba(22,163,74,0.04); }
+.directions ol > li.step-heather-maybe { border-left-color: #f59e0b; background: rgba(245,158,11,0.05); }
+.directions ol > li.step-heather-no    { border-left-color: #dc2626; background: rgba(220,38,38,0.04); }
+.step-dir {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+.step-heather-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.step-heather-chip-yes   { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+.step-heather-chip-maybe { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+.step-heather-chip-no    { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+
+.step-heather-reason {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.step-heather-reason-yes   { background: #ecfdf5; color: #065f46; border-left: 3px solid #16a34a; }
+.step-heather-reason-maybe { background: #fffbeb; color: #92400e; border-left: 3px solid #f59e0b; }
+.step-heather-reason-no    { background: #fef2f2; color: #991b1b; border-left: 3px solid #dc2626; }
 .step-expand {
   background: none;
   border: 1px solid #5a1738;

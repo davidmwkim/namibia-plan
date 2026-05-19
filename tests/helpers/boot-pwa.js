@@ -25,7 +25,14 @@ const ORDER = [
   'pwa-v11-print-google-maps.js',
   'pwa-v12-step-rich-directions.js',
   'pwa-v13-driving-dashboard.js',
-  'pwa-v14-tts-offline.js'
+  'pwa-v14-tts-offline.js',
+  'pwa-v15-demo-mode.js',
+  'pwa-v16-print-extras.js',
+  'pwa-v17-heather-route-coloring.js',
+  'pwa-v18-arrows-and-pins.js',
+  'pwa-v19-multi-color-route.js',
+  'pwa-v20-layout.js',
+  'pwa-v21-autoload.js'
 ];
 
 function inlineScripts(files) {

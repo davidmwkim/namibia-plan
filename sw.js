@@ -1,4 +1,4 @@
-const CACHE = 'namibia-trip-v12';
+const CACHE = 'namibia-trip-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,9 @@ const ASSETS = [
   './pwa-v12-step-rich-directions.css',
   './pwa-v13-driving-dashboard.css',
   './pwa-v14-tts-offline.css',
+  './pwa-v15-demo-mode.css',
+  './pwa-v16-print-extras.css',
+  './pwa-v17-heather-route-coloring.css',
   './app.js',
   './pwa-v8-segment-patch.js',
   './pwa-v9-map-route-draw.js',
@@ -17,6 +20,13 @@ const ASSETS = [
   './pwa-v12-step-rich-directions.js',
   './pwa-v13-driving-dashboard.js',
   './pwa-v14-tts-offline.js',
+  './pwa-v15-demo-mode.js',
+  './pwa-v16-print-extras.js',
+  './pwa-v17-heather-route-coloring.js',
+  './pwa-v18-arrows-and-pins.js',
+  './pwa-v19-multi-color-route.js',
+  './pwa-v20-layout.js',
+  './pwa-v21-autoload.js',
   './lib/sun-times.js',
   './lib/driving-core.js',
   './data.js',
