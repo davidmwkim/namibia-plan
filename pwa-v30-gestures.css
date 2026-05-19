@@ -1,0 +1,30 @@
+/* v30 — Swipe gesture feedback */
+.swipe-flash {
+  animation: swipe-flash-anim 380ms ease-out;
+}
+@keyframes swipe-flash-anim {
+  0%   { box-shadow: 0 0 0 0 rgba(90, 23, 56, 0.45); }
+  50%  { box-shadow: 0 0 0 8px rgba(90, 23, 56, 0.18); }
+  100% { box-shadow: 0 0 0 0 rgba(90, 23, 56, 0); }
+}
+
+/* Hint cursor on desktop so it's clear the tab content + hero are draggable. */
+#tabContent { touch-action: pan-y; }
+.hero        { touch-action: pan-y; }
+
+/* A subtle once-per-session hint banner at the bottom of the page. */
+.swipe-hint {
+  position: fixed;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(31, 41, 55, 0.92);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  z-index: 9000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.swipe-hint.visible { opacity: 1; }
