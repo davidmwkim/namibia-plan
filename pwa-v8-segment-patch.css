@@ -51,6 +51,11 @@ html, body {
     flex-basis: 100%;
   }
 }
+.route-sketch,
+.route-map-caption,
+.print-map {
+  display: none !important;
+}
 .heather-segments {
   display: grid;
   gap: 8px;
