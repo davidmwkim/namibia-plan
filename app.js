@@ -253,7 +253,7 @@ function loadGoogleAndRenderAll(){
   setStatus('googleStatus','Google: loading…');
   window.__namibiaInitMap=()=>{ state.googleLoaded=true; setStatus('googleStatus','Google: loaded'); initGoogleMap(); renderAllDays(); };
   const script=document.createElement('script');
-  script.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(state.apiKey)}&callback=__namibiaInitMap`;
+  script.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(state.apiKey)}&libraries=places&callback=__namibiaInitMap`;
   script.async=true; script.defer=true;
   script.onerror=()=>{ setStatus('googleStatus','Google: failed'); log('Google script failed. Check key restrictions and enabled APIs.'); };
   document.head.appendChild(script);

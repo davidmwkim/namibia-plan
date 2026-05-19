@@ -80,7 +80,10 @@
   }
 
   function enhanceStepLi(liEl, step, leg, legIdx, stepIdx, route, day) {
-    if (!liEl || liEl.querySelector('.step-detail')) return;
+    // Idempotency: check only v22's *own* classes. v23 also uses .step-detail
+    // for the weather block, and an async-ordering race used to make us bail
+    // out before adding any road info on subsequent re-renders.
+    if (!liEl || liEl.querySelector('.step-road')) return;
     const road = classifyRoad(step.instruction, day);
     const part = window.NamibiaV19 ? window.NamibiaV19.partitionForStep(route, day, legIdx, stepIdx) : null;
     const status = part?.status || 'no';

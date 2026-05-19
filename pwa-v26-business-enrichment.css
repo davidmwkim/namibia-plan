@@ -1,0 +1,77 @@
+/* v26 — Business enrichment card */
+.biz-card {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
+.biz-photo {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f3f4f6;
+}
+.biz-summary {
+  font-size: 13px;
+  color: #374151;
+  font-style: italic;
+  line-height: 1.45;
+}
+.biz-rating {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.biz-addr {
+  font-size: 12px;
+  color: #4b5563;
+}
+.biz-phone {
+  font-size: 13px;
+  color: #1f2937;
+  text-decoration: none;
+  font-weight: 600;
+}
+.biz-phone:hover { text-decoration: underline; }
+.biz-hours {
+  font-size: 12px;
+  color: #374151;
+}
+.biz-hours summary { cursor: pointer; font-weight: 600; }
+.biz-hours ul { margin: 4px 0 0; padding-left: 20px; }
+.biz-hours li { margin: 1px 0; }
+.biz-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.biz-link {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  text-decoration: none;
+}
+.biz-link:hover { background: #f3f4f6; }
+.biz-link.biz-menu { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+.biz-link.biz-menu-fallback { background: #eff6ff; border-color: #93c5fd; color: #1e3a8a; }
+
+@media (min-width: 600px) {
+  .biz-card { grid-template-columns: 220px 1fr; }
+  .biz-photo { max-height: 160px; }
+}

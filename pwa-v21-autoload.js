@@ -45,7 +45,7 @@
       if (typeof render === 'function') render();
     };
     const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(state.apiKey) + '&callback=__namibiaInitMap';
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(state.apiKey) + '&libraries=places&callback=__namibiaInitMap';
     script.async = true; script.defer = true;
     script.onerror = () => {
       if (typeof setStatus === 'function') setStatus('googleStatus', 'Google: failed');

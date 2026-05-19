@@ -73,7 +73,7 @@
     const stops = (day.stops || []).filter(s => s.routeRole === 'mandatory');
     const segments = (day.heatherDriveSegments || []).map(seg => {
       const { fromStop, toStop } = anchorSegment(seg, stops);
-      const fromIdx = fromStop ? nearestPathIdx(path, fromStop).idx : -1;
+      let fromIdx = fromStop ? nearestPathIdx(path, fromStop).idx : -1;
       let toIdx = toStop ? nearestPathIdx(path, toStop).idx : -1;
       // If only `from` matched, extend the segment until the next stop after it.
       if (fromIdx >= 0 && toIdx < 0) {

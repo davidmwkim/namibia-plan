@@ -1,4 +1,4 @@
-const CACHE = 'namibia-trip-v23';
+const CACHE = 'namibia-trip-v24';
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   './pwa-v23-weather.css',
   './pwa-v24-optional-stops.css',
   './pwa-v25-pressure-prominence.css',
+  './pwa-v26-business-enrichment.css',
   './app.js',
   './pwa-v8-segment-patch.js',
   './pwa-v9-map-route-draw.js',
@@ -35,9 +36,12 @@ const ASSETS = [
   './pwa-v23-weather.js',
   './pwa-v24-optional-stops.js',
   './pwa-v25-pressure-prominence.js',
+  './pwa-v26-business-enrichment.js',
+  './pwa-v27-version-and-menus.js',
   './lib/sun-times.js',
   './lib/driving-core.js',
   './lib/weather.js',
+  './lib/places.js',
   './data.js',
   './manifest.webmanifest',
   './icons/icon.svg'
@@ -49,6 +53,7 @@ const ASSETS = [
 const CROSS_ORIGIN_CACHE_PREFIXES = [
   'https://maps.googleapis.com/maps/api/staticmap',
   'https://maps.googleapis.com/maps/api/streetview',
+  'https://maps.googleapis.com/maps/api/place/photo',
   'https://api.open-meteo.com/v1/forecast'
 ];
 

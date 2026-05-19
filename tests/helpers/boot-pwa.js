@@ -19,6 +19,7 @@ const ORDER = [
   'lib/sun-times.js',
   'lib/driving-core.js',
   'lib/weather.js',
+  'lib/places.js',
   'app.js',
   'pwa-v8-segment-patch.js',
   'pwa-v9-map-route-draw.js',
@@ -37,7 +38,9 @@ const ORDER = [
   'pwa-v22-road-conditions.js',
   'pwa-v23-weather.js',
   'pwa-v24-optional-stops.js',
-  'pwa-v25-pressure-prominence.js'
+  'pwa-v25-pressure-prominence.js',
+  'pwa-v26-business-enrichment.js',
+  'pwa-v27-version-and-menus.js'
 ];
 
 function inlineScripts(files) {
