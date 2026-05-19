@@ -1,5 +1,5 @@
-const CACHE='namibia-trip-v5';
-const ASSETS=['./','./index.html','./styles.css','./app.js','./data.js','./manifest.webmanifest','./icons/icon.svg'];
+const CACHE='namibia-trip-v8';
+const ASSETS=['./','./index.html','./styles.css','./pwa-v8-segment-patch.css','./app.js','./pwa-v8-segment-patch.js','./data.js','./manifest.webmanifest','./icons/icon.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
 self.addEventListener('fetch',e=>{
