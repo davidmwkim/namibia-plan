@@ -133,8 +133,13 @@
       const noiseMin = sampleNoise(noise, t);
       const simMs = baseStartMs + (realDriveMinutes * t + noiseMin) * 60000;
       try {
-        if (typeof window.__namibiaSpoofClock === 'function') window.__namibiaSpoofClock(simMs);
-        if (typeof window.__namibiaSpoofGps === 'function' && pos) window.__namibiaSpoofGps(pos);
+        // Prefer the silent variants so the demo doesn't trigger a full
+        // renderTab cascade (~20 patches) on every 100ms tick. The silent
+        // variants update state and the dashboard partials only.
+        const clockFn = window.__namibiaSpoofClockSilent || window.__namibiaSpoofClock;
+        const gpsFn = window.__namibiaSpoofGpsSilent || window.__namibiaSpoofGps;
+        if (typeof clockFn === 'function') clockFn(simMs);
+        if (typeof gpsFn === 'function' && pos) gpsFn(pos);
       } catch (_) {}
       updateDemoButton(t);
       if (t >= 1) stopDemo();

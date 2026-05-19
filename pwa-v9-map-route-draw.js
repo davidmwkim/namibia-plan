@@ -125,5 +125,18 @@
     return result;
   };
 
+  // Force a redraw of the sidebar route polyline. Used by v19 after its
+  // monkey-patch installs LATE — when v9's polyline was already created via
+  // the un-patched Polyline constructor, it stays burgundy and never picks
+  // up the Heather-segment coloring. Force-clearing + redrawing fixes that.
+  window.namibiaForceRedrawSidebarRoute = function namibiaForceRedrawSidebarRoute() {
+    if (routePolyline) {
+      try { routePolyline.setMap(null); } catch (_) {}
+      routePolyline = null;
+    }
+    lastRenderedKey = null;
+    renderSelectedRouteOnGoogleMap();
+  };
+
   window.namibiaRenderSelectedRouteOnGoogleMap = renderSelectedRouteOnGoogleMap;
 })();

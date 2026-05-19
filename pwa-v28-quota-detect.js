@@ -46,10 +46,19 @@
   }
 
   function showQuotaBanner(reason) {
-    if (bannerShown) return;
-    bannerShown = true;
     let nextReset;
     try { nextReset = nextResetLocalString(); } catch (_) { nextReset = 'tomorrow at midnight Pacific'; }
+    // Inline overlay on the dashboard map host so the grey "Oops" tile area
+    // explains itself, even if the user has dismissed the global banner.
+    const mapHost = document.getElementById('driveMapHost');
+    if (mapHost && !mapHost.querySelector('.quota-map-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'quota-map-overlay';
+      overlay.innerHTML = `<div>⚠️ Map quota exhausted<br><small>Reset ${nextReset}</small></div>`;
+      mapHost.appendChild(overlay);
+    }
+    if (bannerShown) return;
+    bannerShown = true;
     const html = `<div id="quotaBanner" class="quota-banner">
       <strong>⚠️ Google Maps daily quota exceeded.</strong>
       The map and live route fetches won't work until the quota resets.

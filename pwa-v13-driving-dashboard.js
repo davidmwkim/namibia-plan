@@ -44,6 +44,7 @@
   // ---- Clock seam ----
   let spoofedNow = null;
   window.__namibiaSpoofClock = (ms) => { spoofedNow = ms; renderTab(); };
+  window.__namibiaSpoofClockSilent = (ms) => { spoofedNow = ms; };  // no renderTab cascade
   window.__namibiaUnspoofClock = () => { spoofedNow = null; renderTab(); };
   function nowMs() { return spoofedNow != null ? spoofedNow : Date.now(); }
 
@@ -54,7 +55,14 @@
     onGpsUpdate();
     if (typeof render === 'function') render();
   }
+  // Silent variant: update state + dashboard partial-render only. Used by
+  // demo mode so we don't burn 20 full renderTab cascades per second.
+  function pushGpsSilent(p) {
+    state.gps = { lat: Number(p.lat), lng: Number(p.lng) };
+    onGpsUpdate();
+  }
   window.__namibiaSpoofGps = pushGps;
+  window.__namibiaSpoofGpsSilent = pushGpsSilent;
   let trackTimer = null;
   window.__namibiaSpoofTrack = function (points, opts) {
     if (trackTimer) clearInterval(trackTimer);
@@ -207,15 +215,39 @@
       ${lastSpoken ? `<div class="tts-indicator">🔊 ${esc(lastSpoken.slice(0, 100))}</div>` : ''}`;
   }
 
+  // For long active steps (think 85 km on B1), the cached Street View at
+  // the step's START is no longer relevant — drivers are 30 km into it.
+  // Compute a fresh Street View URL anchored at the current GPS position.
+  function dynamicStreetViewUrl() {
+    if (!state.gps || !state.apiKey) return null;
+    const heading = state.driving?.heading ?? 0;
+    const p = new URLSearchParams({
+      size: '320x180',
+      location: `${state.gps.lat},${state.gps.lng}`,
+      heading: String(Math.round(heading || 0)),
+      pitch: '0', fov: '90', source: 'outdoor', radius: '300',
+      key: state.apiKey
+    });
+    return 'https://maps.googleapis.com/maps/api/streetview?' + p.toString();
+  }
+
   function cardsHtml(d, route) {
     const cards = route?.cards || [];
     const active = state.driving.activeCardIndex;
     const displayCards = injectSunsetRiskCard(cards, route, active);
+    const liveSv = dynamicStreetViewUrl();
     const html = displayCards.map((c, i) => {
       const isActive = i === active;
       const isPast = active >= 0 && i < active;
       const distLine = state.gps && typeof c.lat === 'number'
         ? `<span class="card-dist">${formatM(DC.distMeters(state.gps, c))}</span>`
+        : '';
+      // Use live GPS-anchored Street View on the active card (so long
+      // stretches keep updating as you progress). Past + future cards keep
+      // their cached snapshots.
+      const svUrl = (isActive && liveSv) ? liveSv : c.streetViewUrl;
+      const youAreHere = isActive && state.gps
+        ? `<span class="card-here">📍 You are here</span>`
         : '';
       return `<article class="drive-card card-${c.kind} ${isActive ? 'card-active' : ''} ${isPast ? 'card-past' : ''}"
                        data-card-index="${i}" data-active="${isActive}" data-kind="${c.kind}">
@@ -223,11 +255,12 @@
           <span class="card-kind">${kindEmoji(c.kind)} ${c.kind}</span>
           ${distLine}
         </header>
+        ${youAreHere}
         <h3>${esc(c.title || '')}</h3>
         <p>${esc(c.body || '')}</p>
-        ${c.mapUrl || c.streetViewUrl ? `<div class="card-media">
+        ${c.mapUrl || svUrl ? `<div class="card-media">
           ${c.mapUrl ? `<img loading="lazy" src="${esc(c.mapUrl)}" alt="Map">` : ''}
-          ${c.streetViewUrl ? `<img loading="lazy" src="${esc(c.streetViewUrl)}" alt="Street view">` : ''}
+          ${svUrl ? `<img loading="lazy" src="${esc(svUrl)}" alt="Street view at GPS">` : ''}
         </div>` : ''}
       </article>`;
     }).join('');
@@ -287,11 +320,12 @@
     if (!host) return;
     const d = day();
 
-    // Cheap updates: always.
+    // Cheap updates: always (each diff-checks to avoid no-op DOM writes).
     updateDriveMap();
     updateGpsChipText();
     updateSunChip(d, route);
     updateTtsIndicator();
+    updateCardDistances(route);
 
     // Heavy rebuild: only when needed.
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -319,7 +353,10 @@
   function updateGpsChipText() {
     const el = document.querySelector('.drive-controls .gps-chip');
     if (!el) return;
-    el.textContent = state.gps ? `GPS ${state.gps.lat.toFixed(3)},${state.gps.lng.toFixed(3)}` : 'GPS: not active';
+    const txt = state.gps ? `GPS ${state.gps.lat.toFixed(3)},${state.gps.lng.toFixed(3)}` : 'GPS: not active';
+    // Diff-check: only mutate DOM when content actually changed. Prevents
+    // browser repaint flicker on every demo tick (10 Hz).
+    if (el.textContent !== txt) el.textContent = txt;
   }
   function updateSunChip(d, route) {
     const wrap = document.querySelector('.drive-sticky');
@@ -345,13 +382,32 @@
     }
     let chip = wrap.querySelector('.sun-chip');
     if (!chip) {
-      // Sun chip not yet present; trigger one heavy rebuild to insert it.
       state.driving._lastHeavyRebuild = 0;
       return;
     }
-    chip.className = cls;
-    chip.innerHTML = inner;
+    // Diff-check to avoid 10 Hz repaint of the same string.
+    if (chip.className !== cls) chip.className = cls;
+    if (chip.innerHTML !== inner) chip.innerHTML = inner;
   }
+  // Update the km/m distance text on each rendered card without rebuilding
+  // the cards list. Smooth motion, no flicker.
+  function updateCardDistances(route) {
+    if (!state.gps) return;
+    const host = document.querySelector('.drive-cards');
+    if (!host) return;
+    const cardEls = host.querySelectorAll('.drive-card');
+    const cards = (route && route.cards) || [];
+    cardEls.forEach(el => {
+      const idx = Number(el.dataset.cardIndex);
+      const c = cards[idx];
+      if (!c || typeof c.lat !== 'number') return;
+      const distM = DC.distMeters(state.gps, c);
+      const txt = formatM(distM);
+      const slot = el.querySelector('.card-dist');
+      if (slot && slot.textContent !== txt) slot.textContent = txt;
+    });
+  }
+
   function updateTtsIndicator() {
     const last = state.driving.lastSpokenText || '';
     let el = document.querySelector('.drive-sticky .tts-indicator');
@@ -363,7 +419,10 @@
         sticky.appendChild(el);
       }
     }
-    if (el) el.textContent = '🔊 ' + last.slice(0, 100);
+    if (el) {
+      const txt = '🔊 ' + last.slice(0, 100);
+      if (el.textContent !== txt) el.textContent = txt;
+    }
   }
 
   // ---- Embedded dashboard map (persists across partial renders) ----

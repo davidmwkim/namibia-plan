@@ -197,11 +197,26 @@
   }
 
   function installWhenReady() {
-    if (window.google && google.maps) { patchPolyline(); return true; }
+    if (window.google && google.maps) {
+      patchPolyline();
+      // v9 may have already drawn the sidebar polyline BEFORE our patch
+      // installed (race: v19's interval polls at 200ms, but v9 draws
+      // synchronously inside the SDK callback). Force it to redraw so our
+      // segmented coloring takes effect.
+      if (typeof window.namibiaForceRedrawSidebarRoute === 'function') {
+        setTimeout(() => {
+          try { window.namibiaForceRedrawSidebarRoute(); } catch (_) {}
+        }, 50);
+      }
+      return true;
+    }
     return false;
   }
   if (!installWhenReady()) {
-    const t = setInterval(() => { if (installWhenReady()) clearInterval(t); }, 200);
+    // Tighter polling — 16ms / one animation frame — so we catch the SDK
+    // load nearly synchronously, minimising the window where v9 might draw
+    // through the un-patched constructor.
+    const t = setInterval(() => { if (installWhenReady()) clearInterval(t); }, 16);
     setTimeout(() => clearInterval(t), 60000);
   }
 
