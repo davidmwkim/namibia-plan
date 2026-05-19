@@ -94,15 +94,25 @@
     }).then(result => {
       const path = (result?.routes?.[0]?.overview_path || []).map(p => ({ lat: p.lat(), lng: p.lng() }));
       if (path.length < 2) return;
+      // Side-trips are secondary information — stay below the main Heather-
+      // colored route (z=10) and use a thinner / more transparent / dashed
+      // stroke so the green/amber/red main polyline is always dominant.
       const pl = new Orig({
         path, map,
         strokeColor: stroke,
-        strokeOpacity: 0.85,
-        strokeWeight: 4,
-        zIndex: 8,
+        strokeOpacity: 0,           // base line invisible; only the dashes show
+        strokeWeight: 3,
+        zIndex: 5,
         icons: [{
-          icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 2.5, strokeColor: stroke, strokeWeight: 2 },
-          offset: '0%', repeat: '70px'
+          icon: {
+            path: 'M 0,-1 0,1',
+            strokeColor: stroke,
+            strokeOpacity: 0.55,
+            strokeWeight: 3,
+            scale: 3
+          },
+          offset: '0',
+          repeat: '12px'
         }]
       });
       sideTripPolylines.push(pl);

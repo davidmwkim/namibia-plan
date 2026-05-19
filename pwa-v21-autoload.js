@@ -43,6 +43,10 @@
       if (typeof setStatus === 'function') setStatus('googleStatus', 'Google: loaded');
       if (typeof initGoogleMap === 'function') initGoogleMap();
       if (typeof render === 'function') render();
+      // If ANY self-drive day is missing a cached overviewPath, auto-run
+      // renderAllDays so the user doesn't have to click "Save key + render
+      // all" every time the app first boots after install / cache reset.
+      try { maybeAutoRenderRoutes(); } catch (_) {}
     };
     const script = document.createElement('script');
     script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(state.apiKey) + '&libraries=places&callback=__namibiaInitMap';
@@ -62,5 +66,26 @@
     setTimeout(loadSdkOnly, 0);
   }
 
-  window.NamibiaAutoLoad = { loadSdkOnly };
+  // If we have a key + SDK but the route cache is missing days, auto-fetch.
+  // Otherwise the user has to click "Save key + render all" on every fresh
+  // install. Cached routes (from a previous successful render) are reused
+  // verbatim — we never re-fetch unnecessarily.
+  function maybeAutoRenderRoutes() {
+    if (typeof state === 'undefined' || !state) return;
+    if (!state.directionsService) return;
+    const data = window.NAMIBIA_TRIP_DATA;
+    if (!data) return;
+    const needed = data.days.filter(d => d.selfDrive && (d.stops || []).filter(s => s.routeRole === 'mandatory').length >= 2);
+    const missing = needed.filter(d => !(state.renderedRoutes?.[d.date]?.overviewPath?.length >= 2));
+    if (!missing.length) return;
+    if (typeof log === 'function') log(`Auto-rendering ${missing.length} missing route(s) on first boot…`);
+    if (typeof renderAllDays === 'function') {
+      // renderAllDays returns a promise; we don't await so SDK init doesn't block.
+      renderAllDays().catch(err => {
+        if (typeof log === 'function') log('Auto-render failed: ' + (err?.message || err));
+      });
+    }
+  }
+
+  window.NamibiaAutoLoad = { loadSdkOnly, maybeAutoRenderRoutes };
 })();

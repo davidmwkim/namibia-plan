@@ -63,13 +63,13 @@ describe('Driving Dashboard with spoofed GPS', () => {
     expect(active.textContent.toLowerCase()).toContain('b1');
   });
 
-  it('relabels the Street View tab to Driving', async () => {
+  it('renames the Street View tab to "Driver" and Directions to "Passenger"', async () => {
     const dom = await bootPwaWithRoute('2026-05-24', day2);
     const w = dom.window;
     w.state.activeTab = 'street';
     w.renderTab();
-    const tabBtn = w.document.querySelector('.tab[data-tab="street"]');
-    expect(tabBtn.textContent).toBe('Driving');
+    expect(w.document.querySelector('.tab[data-tab="street"]').textContent).toBe('Driver');
+    expect(w.document.querySelector('.tab[data-tab="directions"]').textContent).toBe('Passenger');
   });
 });
 

@@ -22,6 +22,9 @@
 window.NAMIBIA_APP_VERSION = null;
 
 (function () {
+  // Path A: ask the active service worker via MessageChannel. Works once the
+  // SW has a controller (typically only on the SECOND page load — the first
+  // load after a fresh install has registration but no controller yet).
   async function fetchVersionFromSW() {
     try {
       if (!('serviceWorker' in navigator)) return null;
@@ -36,6 +39,25 @@ window.NAMIBIA_APP_VERSION = null;
       sw.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
       return await reply;
     } catch (_) { return null; }
+  }
+
+  // Path B: fetch sw.js directly and regex out APP_VERSION. Always works on
+  // first load, even before the SW is installed. We hit the network here
+  // intentionally — that's the only way to learn the *latest* version when
+  // the local SW hasn't activated yet.
+  async function fetchVersionFromSwJs() {
+    try {
+      const res = await fetch('./sw.js', { cache: 'no-store' });
+      if (!res.ok) return null;
+      const txt = await res.text();
+      const m = txt.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+      return m ? m[1] : null;
+    } catch (_) { return null; }
+  }
+
+  async function resolveVersion() {
+    // Try the live SW first (instant when available); fall back to fetching sw.js.
+    return (await fetchVersionFromSW()) || (await fetchVersionFromSwJs()) || 'unknown';
   }
 
   function setVersion(v) {
@@ -55,7 +77,13 @@ window.NAMIBIA_APP_VERSION = null;
     bar.appendChild(chip);
   }
 
-  fetchVersionFromSW().then(v => { if (v) setVersion(v); });
+  resolveVersion().then(v => setVersion(v));
+  // Also re-resolve once the SW takes control (e.g. after force-update reload).
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      resolveVersion().then(v => setVersion(v));
+    });
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectVersionChip);
   else injectVersionChip();
   // Hero may re-render via render() — re-inject if needed.

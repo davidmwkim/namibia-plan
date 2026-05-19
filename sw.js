@@ -2,7 +2,13 @@
 // handler purges every cache whose name doesn't match, forcing browsers to
 // re-fetch the new files. Users currently on an older cache get the v10
 // "New version available" toast prompting reload.
-const APP_VERSION = '2026.05.30.2';  // bump fractional when same-day CSS-only tweak
+// Semantic-ish version: major.minor.patch.
+//   major: app-architecture change
+//   minor: new patch file added (v15, v16, ...)
+//   patch: bug fix / CSS tweak / data change
+// Bump this any time files in ASSETS change — the activate handler purges
+// stale caches keyed by name so the next reload fetches fresh files.
+const APP_VERSION = '1.17.0';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [

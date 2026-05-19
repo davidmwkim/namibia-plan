@@ -3,6 +3,11 @@
   /* Parent .stop is a 2-column grid (icon + content). Without this the card
      gets auto-placed into the narrow icon column. Span both columns. */
   grid-column: 1 / -1;
+  /* Sit ABOVE the .stop::before timeline rail so the rail visually passes
+     behind the card (rail stays visible in the row gaps; card covers it
+     within its own footprint). */
+  position: relative;
+  z-index: 1;
   margin-top: 10px;
   display: grid;
   grid-template-columns: 1fr;
@@ -11,8 +16,8 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #fafafa;
-  min-width: 0;           /* allow children to shrink below intrinsic width */
-  overflow: hidden;       /* clip any unforeseen overflow on narrow phones */
+  min-width: 0;
+  overflow: hidden;
 }
 .biz-card * { min-width: 0; }
 .biz-photo {
@@ -89,11 +94,13 @@
 
 /* Mobile (default): photo on top, single column. Tighter padding. */
 @media (max-width: 480px) {
-  .biz-card { padding: 8px; gap: 6px; border-radius: 8px; }
-  .biz-photo { max-height: 140px; }
-  .biz-summary { font-size: 12.5px; }
+  .biz-card { padding: 8px; gap: 6px; border-radius: 8px; margin-top: 8px; }
+  .biz-photo { max-height: 140px; aspect-ratio: 16 / 9; }
+  .biz-summary { font-size: 12.5px; line-height: 1.4; }
   .biz-link { font-size: 11px; padding: 3px 8px; }
-  .biz-noteworthy, .biz-closing { font-size: 11px; }
+  .biz-noteworthy, .biz-closing { font-size: 11px; padding: 3px 6px; }
+  .biz-rating, .biz-price { font-size: 11px; padding: 1px 6px; }
+  .biz-meta { gap: 4px; display: flex; flex-direction: column; }
 }
 
 /* Wider screens: photo on the left, meta on the right. */

@@ -16,20 +16,26 @@
     12:{summary:'Long southbound return from Etosha King Nehale to Windhoek.',expect:['Another long repositioning day about endurance, fuel discipline, and buffer time.','Fuel strategy assumes you wait until Otjiwarongo if the gauge supports it; use earlier options if the actual gauge differs.'],hazards:['Long duration','Fatigue','Lunch uncertainty','Paved-road overconfidence']},
     13:{summary:'Short Windhoek-to-airport departure drive with rental return logistics.',expect:['Urban departure plus paved airport road.','Craft Centre is optional and should not compromise airport/rental-return buffer.'],hazards:['Time pressure','Urban traffic','Rental return delays','Final fuel']}
   };
+  // HEATHER segment data — calibrated against per-route Namibia road research
+  // (sources: Expert Africa, Tracks4Africa, Dangerous Roads, Namibia Bookings).
+  // Spreetshoogte (C24) and Bosua (C28) are explicitly David-only at 14–20%
+  // gradient; C14 corrugations require gravel confidence; B1/B2/B6 are fully
+  // paved and well within a cautious driver's range. The 60 km Sesriem→2x4
+  // park road is paved and is actually Heather's best driving opportunity.
   const HEATHER = {
-    1:[{status:'partial',label:'Heather maybe: airport road only after settling in',from:'Hosea Kutako International Airport',to:'Windhoek outskirts / before city errands',reason:'Paved, relatively direct airport road can be gentle left-side practice if she feels alert. David should take over for city navigation, parking, food choices, grocery, and hotel approach.'}],
-    2:[{status:'partial',label:'Heather maybe: only calm paved/simple exit section',from:'Windhoek',to:'Before gravel/corrugated roads begin',reason:'She could handle a short calm paved section if traffic is light. David should handle the gravel/corrugated desert route, pressure setup, Solitaire approach, and lodge access.'}],
-    3:[],
-    4:[{status:'partial',label:'Heather maybe: daylight post-balloon logistics only',from:'The Desert Grace',to:'Namib Desert Lodge / Dune Star logistics',reason:'After the balloon, short daylight lodge-to-lodge logistics may be manageable if roads are clear. David should drive the pre-dawn balloon leg and unclear access roads.'}],
-    5:[],
-    6:[{status:'can_drive',label:'Heather OK: Swakopmund ↔ Walvis Bay paved coastal road',from:'Fritz Manor',to:'Mola Mola / Walvis Bay Waterfront and back',reason:'Shortest and simplest real driving leg: paved coastal out-and-back, low route complexity, and the tour operator handles dune/off-road driving.'}],
-    7:[{status:'partial',label:'Heather maybe: paved B2 inland segment only',from:'Walvis Bay / Swakopmund area',to:'Usakos',reason:'The B2 highway-style inland segment may be manageable if she is rested. David should handle kayaking fatigue, route decisions, tyre-pressure change at Usakos, and Spitzkoppe access roads.'}],
-    8:[{status:'partial',label:'Heather maybe: only short lodge-approved local tracks',from:'Spitzkoppen Lodge',to:'Nearby smooth/marked local tracks',reason:'Only if lodge staff confirms the route is smooth, clearly marked, and not sandy/rocky. David handles anything ambiguous, rocky, sandy, or off-camber.'}],
-    9:[{status:'partial',label:'Heather maybe: selected paved B-road/B1 stretches',from:'After pressure reset / main paved corridor',to:'Before final lodge approach',reason:'She may be able to drive a simple paved stretch if rested and traffic is light. David owns the long-day plan, fuel decisions, pressure reset, route uncertainty, and final approach.'}],
-    10:[],
-    11:[],
-    12:[{status:'partial',label:'Heather maybe: simple paved highway stretches',from:'B1/A1 southbound sections',to:'Before Windhoek approach',reason:'She may drive an easy paved stretch to reduce David fatigue. David should handle fuel timing, navigation decisions, fatigue management, and Windhoek approach.'}],
-    13:[{status:'partial',label:'Heather maybe: airport-road segment only',from:'After city/fuel logistics',to:'Hosea Kutako International Airport',reason:'She could drive the simple paved airport-road segment if timing and traffic are calm. David should handle city departure, final fuel, and rental-return logistics.'}]
+    1:[{status:'can_drive',label:'Heather drives: B6 airport road end-to-end',from:'Hosea Kutako International Airport',to:'Windhoek hotel approach',reason:'B6 / Hage Geingob Freeway is fully paved (~45 km), well-signed, light morning traffic. Ideal warm-up. David takes city errands + parking only.'}],
+    2:[{status:'partial',label:'Heather: B1 Windhoek → Rehoboth only',from:'Windhoek',to:'Rehoboth',reason:'B1 paved trunk highway for the first ~90 km is comfortable. Hand the wheel at or before Rehoboth — the C24 gravel + Spreetshoogte Pass (14% gradient, 1,000 m drop in 4 km, no guardrails) is firmly David-only.'}],
+    3:[{status:'can_drive',label:"Heather: Sesriem → 2x4 car park (paved park road)",from:'Sesriem gate',to:'2x4 car park (before sand section)',reason:"~60 km of fully tarred straight park road, light traffic, 60 km/h park speed limit. One of Heather's best driving opportunities of the whole trip. David takes the final 5 km deep-sand track to Deadvlei (or use the About Africa shuttle)."}],
+    4:[],  // Namib Dune Star Camp is lodge transfer only — no self-drive
+    5:[],  // C14 Solitaire → Walvis Bay is gorge-edge corrugated gravel, David only
+    6:[{status:'can_drive',label:'Heather: B2 Swakopmund ↔ Walvis Bay both ways',from:'Fritz Manor (Swakopmund)',to:'Walvis Bay Waterfront and back',reason:"Fully paved B2 coastal corridor, ~30 km each way, flat. The easiest driving day of the trip and a good seat-time builder."}],
+    7:[{status:'partial',label:'Heather: B2 paved + well-graded D1918 start',from:'Walvis Bay area',to:'D1918 first ~13 km from Usakos turnoff',reason:'B2 to the Usakos turnoff is straightforward. The well-graded first portion of D1918 at reduced speed (<60 km/h) is manageable; David takes over once corrugations begin in the final ~10 km before the gate, and the rough lodge access track.'}],
+    8:[],  // Local Spitzkoppe tracks — rocky/sandy, low-speed 4x4 judgment required
+    9:[{status:'can_drive',label:'Heather: ~550 km of paved B2/B1 highway',from:'Spitzkoppe',to:'King Nehale Gate spur',reason:'Long mostly-highway day. B2 → Okahandja → B1 north through Otjiwarongo and Tsumeb is fully paved. Heather handles the bulk. David takes the final 5 km C3646 gravel spur to the gate (or Heather at 30 km/h).'}],
+    10:[],  // Guided game drives
+    11:[],  // Guided game drives
+    12:[{status:'can_drive',label:'Heather: substantial B1 south stretches',from:'B1 south paved sections',to:'Windhoek approach outskirts',reason:'Long ~600 km B1 paved highway day. Recommend sharing in 2-hour blocks with breaks. David handles fuel timing decisions and any unexpected detours.'}],
+    13:[{status:'can_drive',label:'Heather: B6 airport drive end-to-end',from:'Windhoek',to:'Hosea Kutako International Airport',reason:'B6 fully paved, ~45 km, very light early-morning traffic. Simplest driving day. David handles only final rental-return logistics at the airport.'}]
   };
   for (const d of DATA.days) { d.driveExperience = DRIVE[d.day] || {summary:'',expect:[],hazards:[]}; delete d.heatherDrive; d.heatherDriveSegments = HEATHER[d.day] || []; }
 

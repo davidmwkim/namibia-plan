@@ -167,9 +167,14 @@
   }
 
   // ---- Dashboard renderer ----
+  // Rename the two tabs that mean different things during a road trip:
+  //   "Directions" → "Passenger"  (rich detail, time to read)
+  //   "Street View" → "Driver"     (live GPS-driven dashboard, eyes-on-road)
   function relabelStreetTab() {
-    const tabBtn = document.querySelector('.tab[data-tab="street"]');
-    if (tabBtn && tabBtn.textContent !== 'Driving') tabBtn.textContent = 'Driving';
+    const driveBtn = document.querySelector('.tab[data-tab="street"]');
+    if (driveBtn && driveBtn.textContent !== 'Driver') driveBtn.textContent = 'Driver';
+    const passBtn = document.querySelector('.tab[data-tab="directions"]');
+    if (passBtn && passBtn.textContent !== 'Passenger') passBtn.textContent = 'Passenger';
   }
 
   function stickyInnerHtml(d, route) {
@@ -453,12 +458,14 @@
     const baseRenderTab = renderTab;
     renderTab = function patchedRenderTabV13() {
       baseRenderTab();
+      // Tab labels must be correct on every render, not only when the user is
+      // already viewing the Driver tab.
+      relabelStreetTab();
       if (state.activeTab !== 'street') {
         // Drop map refs when leaving the tab so they get rebuilt on return.
         driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
         return;
       }
-      relabelStreetTab();
       const d = day();
       const route = state.renderedRoutes?.[d.date];
       if (route) evaluateSunsetRisk(route);

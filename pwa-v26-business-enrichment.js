@@ -211,11 +211,26 @@
       const menuHtml = menuUrl
         ? `<a class="biz-link biz-menu" href="${esc(menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
         : (website ? `<a class="biz-link biz-menu-fallback" href="${esc(website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
-      const photoUrl = shaped.photoRef && state.apiKey
-        ? PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600)
-        : null;
+      // Cover image priority:
+      //   1. Google Places photo (best: actual business cover)
+      //   2. Street View image at the stop's coords (so remote lodges with no
+      //      Places photo still show *something* of the location)
+      let photoUrl = null;
+      let photoSource = '';
+      if (shaped.photoRef && state.apiKey) {
+        photoUrl = PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600);
+        photoSource = 'places';
+      } else if (state.apiKey && typeof stop.lat === 'number' && typeof stop.lng === 'number') {
+        const sv = new URLSearchParams({
+          size: '600x300', location: `${stop.lat},${stop.lng}`,
+          fov: '90', pitch: '0', source: 'outdoor', radius: '120',
+          key: state.apiKey
+        });
+        photoUrl = 'https://maps.googleapis.com/maps/api/streetview?' + sv.toString();
+        photoSource = 'streetview';
+      }
       const photoHtml = photoUrl
-        ? `<img class="biz-photo" src="${esc(photoUrl)}" alt="${esc(stop.name)} cover photo" loading="lazy">`
+        ? `<img class="biz-photo biz-photo-${photoSource}" src="${esc(photoUrl)}" alt="${esc(stop.name)} cover" loading="lazy" onerror="this.style.display='none'">`
         : '';
 
       const wrap = document.createElement('div');
