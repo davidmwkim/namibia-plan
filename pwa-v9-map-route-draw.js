@@ -1,7 +1,6 @@
 // Namibia PWA v9 patch: render selected day routes on the embedded Google Map.
 // Uses cached Google Directions overviewPath when available to avoid repeated billable Directions calls.
 (function () {
-  let staleGeneration = 0;
   let routePolyline = null;
   let lastRenderedKey = null;
   const inFlightByDate = new Map();
@@ -92,7 +91,6 @@
     const d = day();
     const request = selectedDayRouteRequest(d);
     if (!request) {
-      staleGeneration += 1;
       clearRouteOverlay();
       return;
     }
