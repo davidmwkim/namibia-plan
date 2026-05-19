@@ -41,7 +41,8 @@ const ORDER = [
   'pwa-v25-pressure-prominence.js',
   'pwa-v26-business-enrichment.js',
   'pwa-v27-version-and-menus.js',
-  'pwa-v28-quota-detect.js'
+  'pwa-v28-quota-detect.js',
+  'pwa-v29-force-update.js'
 ];
 
 function inlineScripts(files) {
