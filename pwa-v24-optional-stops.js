@@ -94,25 +94,27 @@
     }).then(result => {
       const path = (result?.routes?.[0]?.overview_path || []).map(p => ({ lat: p.lat(), lng: p.lng() }));
       if (path.length < 2) return;
-      // Side-trips are secondary information — stay below the main Heather-
-      // colored route (z=10) and use a thinner / more transparent / dashed
-      // stroke so the green/amber/red main polyline is always dominant.
+      // Side-trips are *ambient hint* information — they must never compete
+      // visually with the main Heather-colored route polyline (green/amber/
+      // red at z=10, weight 6, opacity 0.95). We render them as faint widely-
+      // spaced dots at z=5 so the eye reads them as "you could also detour
+      // here" rather than as a primary route.
       const pl = new Orig({
         path, map,
         strokeColor: stroke,
-        strokeOpacity: 0,           // base line invisible; only the dashes show
-        strokeWeight: 3,
+        strokeOpacity: 0,
+        strokeWeight: 2,
         zIndex: 5,
         icons: [{
           icon: {
-            path: 'M 0,-1 0,1',
+            path: 'M 0,0 0,0.5',
             strokeColor: stroke,
-            strokeOpacity: 0.55,
-            strokeWeight: 3,
-            scale: 3
+            strokeOpacity: 0.25,
+            strokeWeight: 2,
+            scale: 2
           },
           offset: '0',
-          repeat: '12px'
+          repeat: '24px'
         }]
       });
       sideTripPolylines.push(pl);

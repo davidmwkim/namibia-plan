@@ -105,17 +105,46 @@
   }
 
   // ---- Per-step ETA + attachment ----
+  // Resolve the "wall-clock anchor" for the start of this day's driving:
+  //   - If GPS is active AND the GPS is on this route, anchor at NOW minus the
+  //     cumulative minutes to the active step (so steps ahead are in the
+  //     future relative to right now). Steps already passed get the
+  //     historical hour they were driven through, but that's fine.
+  //   - Otherwise (planning mode), use the day's 08:00 local start.
+  function dayStartMs(d, route) {
+    const planMs = Date.parse(d.date + 'T08:00:00+02:00');
+    if (typeof state === 'undefined' || !state?.gps || !state.driving) return planMs;
+    if (state.driving.offRoute) return planMs;
+    if (typeof state.driving.legIdx !== 'number' || typeof state.driving.stepIdx !== 'number') return planMs;
+    // Cumulative minutes from the start of the day through the active step's start.
+    let cumMin = 0;
+    for (let li = 0; li < route.legs.length; li++) {
+      const leg = route.legs[li];
+      for (let si = 0; si < leg.steps.length; si++) {
+        if (li === state.driving.legIdx && si === state.driving.stepIdx) {
+          // Pro-rate the current step by how far into it the GPS has travelled.
+          const fullM = ST.parseDistanceToMeters(leg.steps[si].distance) || 1;
+          const stepMin = ST.parseDurationToMinutes(leg.steps[si].duration);
+          const intoStepMin = stepMin * Math.max(0, Math.min(1, (state.driving.distToStepM || 0) / fullM));
+          // Anchor: now - (cumMin + intoStepMin)
+          return Date.now() - (cumMin + intoStepMin) * 60000;
+        }
+        cumMin += ST.parseDurationToMinutes(leg.steps[si].duration);
+      }
+    }
+    return planMs;
+  }
+
   function etaIsoLocalForStep(d, leg, stepIdx, route) {
     if (!ST) return null;
-    // Cumulative minutes from the day's 08:00 local start through this step's start.
+    const startMs = dayStartMs(d, route);
     let cumMin = 0;
     for (const l of route.legs) {
       for (let i = 0; i < l.steps.length; i++) {
         if (l === leg && i === stepIdx) {
-          const startMs = Date.parse(d.date + 'T08:00:00+02:00');
-          const local = new Date(startMs + cumMin * 60000);
-          // Express as "YYYY-MM-DDTHH:00" local. Open-Meteo's hourly entries
-          // use the location's local tz (we requested timezone:auto).
+          // Express ETA in the location's local tz (we requested
+          // timezone:auto from Open-Meteo so its `hourly.time` entries are
+          // tz-naive local strings, e.g. "2026-05-24T08:00").
           const localPlus = new Date(startMs + cumMin * 60000 + NAMIBIA_TZ_OFFSET_MIN * 60000);
           const iso = localPlus.toISOString().slice(0, 13) + ':00';
           return iso;
@@ -143,16 +172,31 @@
     }
   }
 
+  // ---- Unit helpers (metric + imperial side-by-side) ----
+  function cToF(c) { return c * 9 / 5 + 32; }
+  function kmhToMph(k) { return k / 1.60934; }
+  function mmToIn(mm) { return mm / 25.4; }
+  function fmtTemp(c) {
+    if (typeof c !== 'number') return '—';
+    return `${Math.round(c)}°C / ${Math.round(cToF(c))}°F`;
+  }
+  function fmtWind(k) {
+    if (typeof k !== 'number') return '—';
+    return `${Math.round(k)} km/h / ${Math.round(kmhToMph(k))} mph`;
+  }
+  function fmtPrecip(mm) {
+    if (typeof mm !== 'number' || mm <= 0) return '';
+    const inches = mmToIn(mm);
+    return ` · 💧${mm.toFixed(1)} mm / ${inches.toFixed(2)} in`;
+  }
+
   // ---- DOM injection: weather block per step in Directions tab ----
   function weatherBlockHtml(w) {
     if (!w) return '';
     const rainCls = w.rainy ? 'step-weather-rain' : '';
-    const temp = (typeof w.tempC === 'number') ? `${Math.round(w.tempC)}°C` : '—';
-    const wind = (typeof w.windKmh === 'number') ? `${Math.round(w.windKmh)} km/h` : '—';
-    const precip = (typeof w.precipMm === 'number' && w.precipMm > 0) ? ` · 💧${w.precipMm}mm` : '';
     const hour = w.isoLocal ? w.isoLocal.slice(11, 16) : '';
     const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<div class="step-detail step-weather ${rainCls}"><strong>Forecast at ETA${hour ? ' (' + hour + ')' : ''}:</strong> ${esc(w.emoji)} ${esc(w.label)} · ${temp} · 💨${wind}${precip}</div>`;
+    return `<div class="step-detail step-weather ${rainCls}"><strong>Forecast at ETA${hour ? ' (' + hour + ')' : ''}:</strong> ${esc(w.emoji)} ${esc(w.label)} · ${fmtTemp(w.tempC)} · 💨${fmtWind(w.windKmh)}${fmtPrecip(w.precipMm)}</div>`;
   }
 
   function renderWeatherIntoDirections() {
@@ -170,11 +214,20 @@
       leg.steps.forEach((step, si) => {
         const liEl = lis[si];
         if (!liEl) return;
-        if (liEl.querySelector('.step-weather')) return;
         const html = weatherBlockHtml(step.weatherAtEta);
-        if (!html) return;
-        // Insert weather just before the step-media (or at end).
-        const anchor = liEl.querySelector('.step-media') || liEl.querySelector('.step-details') || null;
+        const existing = liEl.querySelector('.step-weather');
+        // Update-in-place rather than skip: as GPS advances along the route,
+        // the dayStartMs anchor shifts and each step's ETA hour changes, so
+        // the weather row should re-paint.
+        if (!html) {
+          if (existing) existing.remove();
+          return;
+        }
+        if (existing) {
+          existing.outerHTML = html;
+          return;
+        }
+        const anchor = liEl.querySelector('.step-media') || liEl.querySelector('.step-conditions') || null;
         const tmp = document.createElement('div');
         tmp.innerHTML = html;
         const node = tmp.firstElementChild;
@@ -251,6 +304,34 @@
       if (state.activeTab === 'directions') renderWeatherIntoDirections();
     }).catch(() => {});
   }, 1500);
+
+  // Stale-while-revalidate: if the user comes back to the tab and the cached
+  // forecast is more than 1 hour old, kick off a background refresh. Keeps
+  // the displayed weather "live" without burning quotas mid-drive.
+  function maybeRevalidateWeather() {
+    if (document.visibilityState !== 'visible') return;
+    let oldestMs = Date.now();
+    let any = false;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith('namibia_weather_v1:')) continue;
+      try {
+        const obj = JSON.parse(localStorage.getItem(k) || '{}');
+        if (obj.fetchedAt && obj.fetchedAt < oldestMs) { oldestMs = obj.fetchedAt; any = true; }
+      } catch (_) {}
+    }
+    if (!any) return;
+    const ageMs = Date.now() - oldestMs;
+    if (ageMs < 60 * 60 * 1000) return; // < 1h: still fresh
+    loadAllWeather({ force: true }).then(() => {
+      attachWeatherToSteps();
+      if (state.activeTab === 'directions') renderWeatherIntoDirections();
+      if (typeof log === 'function') log('Weather auto-refreshed (cache > 1h old).');
+    }).catch(() => {});
+  }
+  document.addEventListener('visibilitychange', maybeRevalidateWeather);
+  // Also poll every 30 min while the page is open.
+  setInterval(maybeRevalidateWeather, 30 * 60 * 1000);
 
   window.NamibiaV23 = {
     loadAllWeather, refreshAll, attachWeatherToSteps, etaIsoLocalForStep,

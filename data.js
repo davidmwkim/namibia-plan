@@ -296,7 +296,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.7215,
           "lng": 15.353,
           "notes": "Reinflate before leaving the sand section and resuming faster gravel/park-road driving.",
-          "pressure": "MANDATORY INCREASE: reinflate from sand to Namibia2Go gravel/road pressure before sustained road speeds."
+          "pressure": "MANDATORY RAISE back to tar/highway pressure after Sossusvlei sand. Re-inflate to ~32 psi / 2.2 bar for the paved Sesriem road and beyond.",
+          "pressureAction": "up"
         },
         {
           "time": "12:15 PM",
@@ -382,7 +383,8 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -24.4877,
           "lng": 15.7972,
           "notes": "Optional check/reset if Day 3 pressure was not resolved.",
-          "pressure": "CHECK/RESET only if needed."
+          "pressure": "CHECK pressure before short logistics drive. Stay on gravel pressure (~26 psi / 1.8 bar) — desert routes only today.",
+          "pressureAction": "check"
         },
         {
           "time": "10:00 AM",
@@ -489,8 +491,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -22.9575,
           "lng": 14.5053,
           "notes": "Use a convenient staffed station in Walvis Bay/Swakopmund; coordinate is a prompt.",
-          "pressure": "MANDATORY INCREASE: reset from gravel/corrugated pressure to highway/tar pressure before B2/coastal highway driving.",
-          "fuel": "Optional top-up. Estimated after Solitaire → coast: ~48–52 L / 60–65%; enough to continue, but top up if gauge differs."
+          "pressure": "MANDATORY RAISE back to tar pressure after C14 gravel. Set ~32 psi / 2.2 bar before B2 tar to Swakopmund.",
+          "fuel": "Optional top-up. Estimated after Solitaire → coast: ~48–52 L / 60–65%; enough to continue, but top up if gauge differs.",
+          "pressureAction": "up"
         },
         {
           "time": "1:30 PM",
@@ -820,8 +823,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -21.4172,
           "lng": 15.9548,
           "notes": "Use a staffed station in/near Omaruru if practical; coordinate is planning prompt.",
-          "pressure": "MANDATORY INCREASE/RESET: switch from gravel/local-track to highway/tar pressure if remaining route is tar/highway.",
-          "fuel": "Optional. Estimated arrival from Usakos fill after Spitzkoppe/local driving: ~47–55 L / 59–69%."
+          "pressure": "RAISE to tar pressure (~32 psi / 2.2 bar). Spitzkoppe gravel access road ends here; B1 north to Otjiwarongo / Tsumeb is paved.",
+          "fuel": "Optional. Estimated arrival from Usakos fill after Spitzkoppe/local driving: ~47–55 L / 59–69%.",
+          "pressureAction": "up"
         },
         {
           "time": "12:00 PM",

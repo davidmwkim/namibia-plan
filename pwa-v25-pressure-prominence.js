@@ -7,12 +7,20 @@
 //   * Driving Dashboard sticky chip warning "Tyre pressure check ahead" when
 //     the closest upcoming card kind === 'pressure'.
 (function () {
-  // Heuristic: read the stop.pressure text and decide direction.
-  function pressureDirection(text) {
+  // Direction priority:
+  //   1. Explicit `stop.pressureAction` field ('up' | 'down' | 'check').
+  //   2. Otherwise: keyword heuristic on the `stop.pressure` text. RAISE
+  //      keywords beat LOWER keywords when both appear (e.g. "re-inflate
+  //      after gravel" → up, even though it contains "gravel").
+  function pressureDirection(text, stop) {
+    if (stop && (stop.pressureAction === 'up' || stop.pressureAction === 'raise')) return 'up';
+    if (stop && (stop.pressureAction === 'down' || stop.pressureAction === 'lower')) return 'down';
+    if (stop && stop.pressureAction === 'check') return null;
     if (!text) return null;
     const t = String(text).toLowerCase();
-    if (/(lower|deflate|drop|reduce|sand|gravel|soft|off-?road)/.test(t)) return 'down';
-    if (/(raise|inflate|increase|harden|tar|highway|paved|reinflate|re-inflate)/.test(t)) return 'up';
+    // Check RAISE keywords FIRST so "re-inflate after gravel" classifies as up.
+    if (/(raise|inflate|increase|harden|tar pressure|highway pressure|paved pressure|reinflate|re-inflate|back to (tar|highway|gravel))/.test(t)) return 'up';
+    if (/(lower|deflate|drop|reduce|sand pressure|gravel pressure|soft pressure|off-?road)/.test(t)) return 'down';
     return null;
   }
 
@@ -20,7 +28,7 @@
     const stops = (d.stops || []).filter(s => s.pressure);
     if (!stops.length) return '';
     return `<div class="press-banner">${stops.map(s => {
-      const dir = pressureDirection(s.pressure);
+      const dir = pressureDirection(s.pressure, s);
       const arrow = dir === 'down' ? '⬇️ LOWER' : dir === 'up' ? '⬆️ RAISE' : '🛞 CHECK';
       const cls = dir === 'down' ? 'press-down' : dir === 'up' ? 'press-up' : 'press-neutral';
       const esc = x => String(x ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -71,7 +79,7 @@
 
   function pressureIcon(stop) {
     if (!window.google?.maps) return null;
-    const dir = pressureDirection(stop?.pressure);
+    const dir = pressureDirection(stop?.pressure, stop);
     const color = stop?.routeRole === 'optional' ? '#f59e0b' : '#dc2626';
     const svg = dir === 'up' ? svgUp(color) : (dir === 'down' ? svgDown(color) : svgQ(color));
     return {
