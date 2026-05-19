@@ -75,3 +75,40 @@
   .biz-card { grid-template-columns: 220px 1fr; }
   .biz-photo { max-height: 160px; }
 }
+
+.biz-noteworthy {
+  font-size: 12px;
+  color: #4b5563;
+  background: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #f59e0b;
+}
+.biz-line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.biz-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #6ee7b7;
+}
+.biz-closing {
+  font-size: 12px;
+  color: #92400e;
+  background: #fffbeb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #f59e0b;
+}
+
+.quota-banner {
+  position: sticky; top: 0; z-index: 9999;
+  padding: 12px 16px;
+  background: #fef2f2; color: #7f1d1d;
+  border-bottom: 2px solid #b91c1c;
+  font-size: 13px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.quota-banner button { margin-left: auto; }

@@ -15,20 +15,47 @@
 //   * A guarantee that menus are downloaded. Many restaurants don't publish
 //     PDF menus, host them on social media, or block hot-linking.
 //   * A scraper of Google Maps. We don't touch their UI.
-window.NAMIBIA_APP_VERSION = 'v27 (cache:namibia-trip-v24)';
+// Version is single-sourced from sw.js (APP_VERSION). The active SW exposes
+// it via a message reply; if the SW hasn't replied yet we display "loading…"
+// and update once we hear back. This is the only place that reads the cache
+// version, so we never have two version constants to keep in sync again.
+window.NAMIBIA_APP_VERSION = null;
 
 (function () {
-  // ---- Header version chip ----
+  async function fetchVersionFromSW() {
+    try {
+      if (!('serviceWorker' in navigator)) return null;
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sw = reg?.active || navigator.serviceWorker.controller;
+      if (!sw) return null;
+      const channel = new MessageChannel();
+      const reply = new Promise(resolve => {
+        const timer = setTimeout(() => resolve(null), 1500);
+        channel.port1.onmessage = (e) => { clearTimeout(timer); resolve(e.data); };
+      });
+      sw.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
+      return await reply;
+    } catch (_) { return null; }
+  }
+
+  function setVersion(v) {
+    window.NAMIBIA_APP_VERSION = v;
+    const chip = document.getElementById('appVersionChip');
+    if (chip) chip.textContent = '⚙ ' + v;
+  }
+
   function injectVersionChip() {
     const bar = document.querySelector('.statusbar');
     if (!bar || document.getElementById('appVersionChip')) return;
     const chip = document.createElement('span');
     chip.className = 'chip';
     chip.id = 'appVersionChip';
-    chip.title = 'PWA build version — useful when verifying that the service-worker has activated the latest code.';
-    chip.textContent = '⚙ ' + window.NAMIBIA_APP_VERSION;
+    chip.title = 'PWA build version — single-sourced from sw.js. Useful when verifying that the SW has activated the latest code.';
+    chip.textContent = '⚙ ' + (window.NAMIBIA_APP_VERSION || 'loading…');
     bar.appendChild(chip);
   }
+
+  fetchVersionFromSW().then(v => { if (v) setVersion(v); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectVersionChip);
   else injectVersionChip();
   // Hero may re-render via render() — re-inject if needed.

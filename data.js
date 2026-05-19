@@ -36,7 +36,14 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 17.4627,
           "notes": "Arrive, immigration, SIM/cash, rental car pickup. Ask Namibia2Go for exact tyre pressures for tar, gravel, and sand; verify spare tyre.",
           "pressure": "BASELINE: confirm tyre pressure values and spare tyre with rental staff.",
-          "fuel": "Initial rental fuel level unknown; record it at handover."
+          "fuel": "Initial rental fuel level unknown; record it at handover.",
+          "details": {
+            "summary": "Namibia's main international gateway (WDH), 45 km east of Windhoek. Duty-free, currency exchange, free WiFi, car-rental desks. Allow 3 hours before international departures.",
+            "website": "https://en.wikipedia.org/wiki/Hosea_Kutako_International_Airport",
+            "hours": [
+              "24/7 — terminal open around the clock"
+            ]
+          }
         },
         {
           "time": "4:15 PM",
@@ -47,7 +54,19 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.5645,
           "lng": 17.0913,
-          "notes": "Late lunch / early dinner option; choose this OR Joe's Beerhouse OR none."
+          "notes": "Late lunch / early dinner option; choose this OR Joe's Beerhouse OR none.",
+          "details": {
+            "summary": "Windhoek's most wine-forward bistro on Sam Nujoma Drive, sourcing prime cuts from the owners' own nature reserve and grilling over open flame. World's 50 Best Discovery listed.",
+            "phone": "+264 61 309 141",
+            "website": "https://www.thestellenboschwinebar.com",
+            "hours": [
+              "Monday: Closed",
+              "Tue-Sat: 12:00-22:00",
+              "Sunday: Closed"
+            ],
+            "closingDays": "Closed Sun + Mon (verify before booking)",
+            "noteworthyDish": "Open-flame grilled Namibian beef"
+          }
         },
         {
           "time": "4:15 PM",
@@ -58,7 +77,18 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.5516,
           "lng": 17.0912,
-          "notes": "Late lunch / early dinner option; choose this OR Stellenbosch OR none."
+          "notes": "Late lunch / early dinner option; choose this OR Stellenbosch OR none.",
+          "details": {
+            "summary": "Windhoek's iconic game-meat restaurant under thatched roofs, fairy lights and eclectic Namibiana decor. Expect kudu, gemsbok and oryx alongside craft beer and a festive open-air vibe.",
+            "phone": "+264 61 232 457",
+            "website": "https://joesbeerhouse.com",
+            "hours": [
+              "Mon-Sun: 12:00-21:00"
+            ],
+            "menuUrl": "https://joesbeerhouse.com/lekker-menu/",
+            "avgPriceUSD": 20,
+            "noteworthyDish": "Kudu fillet, mixed game platter"
+          }
         },
         {
           "time": "5:15 PM",
@@ -69,7 +99,17 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.6175,
           "lng": 17.095,
-          "notes": "Scheduled supply stop: water, electrolytes, snacks, sunscreen, wipes, cooler/ice."
+          "notes": "Scheduled supply stop: water, electrolytes, snacks, sunscreen, wipes, cooler/ice.",
+          "details": {
+            "summary": "Full-service SUPERSPAR on the upper level of Grove Mall (Kleine Kuppe), Windhoek's most modern shopping centre. Best stop for road-trip supplies before heading into the desert.",
+            "phone": "+264 61 427 300",
+            "website": "https://www.weckevoigtsspar.com/store-location/grove-super-spar",
+            "hours": [
+              "Mon-Fri: 07:00-20:00",
+              "Saturday: 07:00-19:00",
+              "Sunday: 08:00-19:00"
+            ]
+          }
         },
         {
           "time": "6:30 PM",
@@ -80,7 +120,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.5732,
           "lng": 17.1027,
-          "notes": "Check in."
+          "notes": "Check in.",
+          "details": {
+            "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
+            "phone": "+264 61 209 0900",
+            "website": "https://gondwana-collection.com/accommodation/the-weinberg"
+          }
         }
       ]
     },
@@ -101,7 +146,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.5732,
           "lng": 17.1027,
-          "notes": "Check out and load car."
+          "notes": "Check out and load car.",
+          "details": {
+            "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
+            "phone": "+264 61 209 0900",
+            "website": "https://gondwana-collection.com/accommodation/the-weinberg"
+          }
         },
         {
           "time": "8:15 AM",
@@ -127,7 +177,15 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.9941,
           "notes": "Fuel, bathroom, coffee, apple pie.",
           "pressure": "MANDATORY CHECK: verify gravel pressure and inspect tyres after rough/corrugated roads.",
-          "fuel": "Estimated arrival if filled in Windhoek: ~46–50 L / 58–63%. Last prudent fill before Sesriem area: fill to 100%."
+          "fuel": "Estimated arrival if filled in Windhoek: ~46–50 L / 58–63%. Last prudent fill before Sesriem area: fill to 100%.",
+          "details": {
+            "summary": "Legendary desert pit-stop at the Solitaire crossroads — Moose McGregor's famous German-recipe apple pie has been feeding Namib travellers for decades. Also the only fuel for many miles.",
+            "website": "https://www.solitairenamibia.com",
+            "hours": [
+              "Mon-Sun: 06:00-16:00 (bakery)"
+            ],
+            "noteworthyDish": "Apple pie, fresh meat pies"
+          }
         },
         {
           "time": "3:30 PM",
@@ -138,7 +196,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.17389,
           "lng": 15.90139,
-          "notes": "Check in. Exact itinerary GPS."
+          "notes": "Check in. Exact itinerary GPS.",
+          "details": {
+            "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/desert-grace"
+          }
         }
       ]
     },
@@ -159,7 +222,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.17389,
           "lng": 15.90139,
-          "notes": "Depart with packed breakfast/lunch, water, hats, sunscreen, cash/cards."
+          "notes": "Depart with packed breakfast/lunch, water, hats, sunscreen, cash/cards.",
+          "details": {
+            "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/desert-grace"
+          }
         },
         {
           "time": "6:30 AM",
@@ -250,7 +318,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.17389,
           "lng": 15.90139,
-          "notes": "Return/rest."
+          "notes": "Return/rest.",
+          "details": {
+            "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/desert-grace"
+          }
         }
       ]
     },
@@ -271,7 +344,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.17389,
           "lng": 15.90139,
-          "notes": "Depart for Namib Sky; exact timing confirmed day before."
+          "notes": "Depart for Namib Sky; exact timing confirmed day before.",
+          "details": {
+            "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/desert-grace"
+          }
         },
         {
           "time": "6:00 AM",
@@ -282,7 +360,17 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.5732,
           "lng": 15.8118,
-          "notes": "Sunrise balloon flight, breakfast, return transfer."
+          "notes": "Sunrise balloon flight, breakfast, return transfer.",
+          "details": {
+            "summary": "Premium hot-air balloon operator over the Namib, launching at sunrise from 20 km south of Sesriem for a ~1-hour flight over dunes, followed by a champagne breakfast.",
+            "phone": "+264 63 683 188",
+            "website": "https://balloon-safaris.com",
+            "hours": [
+              "Daily: pre-sunrise flights (meet ~1 hr before sunrise)"
+            ],
+            "closingDays": "Closed Dec 25, Jan 1, and Jan 15–Feb 15",
+            "avgPriceUSD": 545
+          }
         },
         {
           "time": "10:00 AM",
@@ -305,7 +393,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.17389,
           "lng": 15.90139,
-          "notes": "Collect luggage."
+          "notes": "Collect luggage.",
+          "details": {
+            "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/desert-grace"
+          }
         },
         {
           "time": "11:00 AM",
@@ -316,7 +409,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.1202,
           "lng": 15.8821,
-          "notes": "Check-in/logistics for Dune Star."
+          "notes": "Check-in/logistics for Dune Star.",
+          "details": {
+            "summary": "66-room Gondwana Collection lodge at the foot of ancient fossilized dunes near Sossusvlei — homely atmosphere with direct dune access.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/namib-desert-lodge"
+          }
         },
         {
           "time": "4:00 PM",
@@ -327,7 +425,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.098611,
           "lng": 15.868611,
-          "notes": "Sleep-out experience. Exact GPS."
+          "notes": "Sleep-out experience. Exact GPS.",
+          "details": {
+            "summary": "Nine open-air cabins perched on ancient dune crests with retractable roofs for star-gazing. Luxury camping by Gondwana Collection near Sossusvlei.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/namib-dune-star-camp"
+          }
         }
       ]
     },
@@ -348,7 +451,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.098611,
           "lng": 15.868611,
-          "notes": "Check out."
+          "notes": "Check out.",
+          "details": {
+            "summary": "Nine open-air cabins perched on ancient dune crests with retractable roofs for star-gazing. Luxury camping by Gondwana Collection near Sossusvlei.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/namib-dune-star-camp"
+          }
         },
         {
           "time": "10:00 AM est.",
@@ -361,7 +469,15 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.9941,
           "notes": "Critical refuel before the long C14 coast crossing.",
           "pressure": "MANDATORY CHECK: maintain gravel/corrugated-road pressure for C14.",
-          "fuel": "Estimated arrival since May 24 fill, including Sossusvlei/balloon/local driving: ~18–26 L / 23–33%. Fill to 100%."
+          "fuel": "Estimated arrival since May 24 fill, including Sossusvlei/balloon/local driving: ~18–26 L / 23–33%. Fill to 100%.",
+          "details": {
+            "summary": "Legendary desert pit-stop at the Solitaire crossroads — Moose McGregor's famous German-recipe apple pie has been feeding Namib travellers for decades. Also the only fuel for many miles.",
+            "website": "https://www.solitairenamibia.com",
+            "hours": [
+              "Mon-Sun: 06:00-16:00 (bakery)"
+            ],
+            "noteworthyDish": "Apple pie, fresh meat pies"
+          }
         },
         {
           "time": "1:00 PM est.",
@@ -385,7 +501,20 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.6835,
           "lng": 14.5211,
-          "notes": "Lunch/dinner option; call ahead for lunch service."
+          "notes": "Lunch/dinner option; call ahead for lunch service.",
+          "details": {
+            "summary": "Swakopmund's atmospheric seafood and sushi spot perched on the historic 1905 jetty with views straight out over the Atlantic. Reservations recommended.",
+            "phone": "+264 81 380 3595",
+            "website": "https://lhg.na/jetty-1905/",
+            "hours": [
+              "Monday: Closed",
+              "Tue-Thu: 17:00-22:00",
+              "Fri-Sun: 12:00-22:00"
+            ],
+            "closingDays": "Closed Mondays",
+            "menuUrl": "https://lhg.na/jetty-1905-menu/",
+            "noteworthyDish": "Kingklip, fresh Namibian sushi"
+          }
         },
         {
           "time": "1:30 PM",
@@ -396,7 +525,19 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.6811,
           "lng": 14.5218,
-          "notes": "Dinner option; weekday lunch may not be available."
+          "notes": "Dinner option; weekday lunch may not be available.",
+          "details": {
+            "summary": "Built into a beached tugboat hull on the Swakopmund waterfront — a beloved institution for fresh Namibian seafood in a nautically charming setting.",
+            "phone": "+264 64 402 356",
+            "website": "https://www.the-tug.com",
+            "hours": [
+              "Mon-Sat: 17:00-22:00",
+              "Sunday: 12:00-22:00"
+            ],
+            "menuUrl": "https://www.the-tug.com/menu/MENU.pdf",
+            "avgPriceUSD": 25,
+            "noteworthyDish": "Namibian lobster, kingklip"
+          }
         },
         {
           "time": "3:00 PM",
@@ -407,7 +548,15 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.6823,
           "lng": 14.5245,
-          "notes": "Check in."
+          "notes": "Check in.",
+          "details": {
+            "summary": "Charming colonial-era B&B at 19 Lüderitz Street in central Swakopmund, under The Fritz Collection brand. Suited to groups; homely atmosphere with local character.",
+            "phone": "+264 81 739 4910",
+            "website": "https://www.thefritzcollection.com/fritz-manor",
+            "hours": [
+              "Check-in: 14:00 | Check-out: 10:00"
+            ]
+          }
         }
       ]
     },
@@ -428,7 +577,15 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.6823,
           "lng": 14.5245,
-          "notes": "Drive to Walvis Bay."
+          "notes": "Drive to Walvis Bay.",
+          "details": {
+            "summary": "Charming colonial-era B&B at 19 Lüderitz Street in central Swakopmund, under The Fritz Collection brand. Suited to groups; homely atmosphere with local character.",
+            "phone": "+264 81 739 4910",
+            "website": "https://www.thefritzcollection.com/fritz-manor",
+            "hours": [
+              "Check-in: 14:00 | Check-out: 10:00"
+            ]
+          }
         },
         {
           "time": "8:45 AM",
@@ -439,7 +596,17 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.9554,
           "lng": 14.4925,
-          "notes": "Sandwich Harbour 4x4 tour; lunch included."
+          "notes": "Sandwich Harbour 4x4 tour; lunch included.",
+          "details": {
+            "summary": "Walvis Bay's go-to catamaran operator for seal and dolphin cruises out to Pelican Point. Expect bottlenose dolphins, Cape fur seals, pelicans and oysters served on board.",
+            "phone": "+264 81 127 2522",
+            "website": "https://www.mola-namibia.com",
+            "hours": [
+              "Daily: departures at 09:00 (check-in 08:30)"
+            ],
+            "avgPriceUSD": 75,
+            "noteworthyDish": "Fresh oysters and sparkling wine on board"
+          }
         },
         {
           "time": "4:00 PM",
@@ -462,7 +629,15 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.6823,
           "lng": 14.5245,
-          "notes": "Return."
+          "notes": "Return.",
+          "details": {
+            "summary": "Charming colonial-era B&B at 19 Lüderitz Street in central Swakopmund, under The Fritz Collection brand. Suited to groups; homely atmosphere with local character.",
+            "phone": "+264 81 739 4910",
+            "website": "https://www.thefritzcollection.com/fritz-manor",
+            "hours": [
+              "Check-in: 14:00 | Check-out: 10:00"
+            ]
+          }
         }
       ]
     },
@@ -483,7 +658,15 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.6823,
           "lng": 14.5245,
-          "notes": "Drive to kayaking meeting point."
+          "notes": "Drive to kayaking meeting point.",
+          "details": {
+            "summary": "Charming colonial-era B&B at 19 Lüderitz Street in central Swakopmund, under The Fritz Collection brand. Suited to groups; homely atmosphere with local character.",
+            "phone": "+264 81 739 4910",
+            "website": "https://www.thefritzcollection.com/fritz-manor",
+            "hours": [
+              "Check-in: 14:00 | Check-out: 10:00"
+            ]
+          }
         },
         {
           "time": "8:00 AM",
@@ -529,7 +712,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -21.8398,
           "lng": 15.1616,
-          "notes": "Check in. Ask lodge about local track conditions."
+          "notes": "Check in. Ask lodge about local track conditions.",
+          "details": {
+            "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
+            "phone": "+264 81 143 5048",
+            "website": "https://www.spitzkoppenlodge.com"
+          }
         }
       ]
     },
@@ -551,7 +739,12 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -21.8398,
           "lng": 15.1616,
           "notes": "Ask lodge about local-track pressure and permitted roads.",
-          "pressure": "CHECK with lodge staff; likely keep gravel/local-track pressure."
+          "pressure": "CHECK with lodge staff; likely keep gravel/local-track pressure.",
+          "details": {
+            "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
+            "phone": "+264 81 143 5048",
+            "website": "https://www.spitzkoppenlodge.com"
+          }
         },
         {
           "time": "8:00 AM",
@@ -584,7 +777,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -21.8398,
           "lng": 15.1616,
-          "notes": "Dinner at lodge."
+          "notes": "Dinner at lodge.",
+          "details": {
+            "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
+            "phone": "+264 81 143 5048",
+            "website": "https://www.spitzkoppenlodge.com"
+          }
         }
       ]
     },
@@ -605,7 +803,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -21.8398,
           "lng": 15.1616,
-          "notes": "Check out/load car."
+          "notes": "Check out/load car.",
+          "details": {
+            "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
+            "phone": "+264 81 143 5048",
+            "website": "https://www.spitzkoppenlodge.com"
+          }
         },
         {
           "time": "10:00 AM est.",
@@ -642,7 +845,16 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -20.4608,
           "lng": 16.6534,
-          "notes": "Lunch option only if timing/routing works; pack backup lunch."
+          "notes": "Lunch option only if timing/routing works; pack backup lunch.",
+          "details": {
+            "summary": "Otjiwarongo's favorite stop between Windhoek and Etosha — country-style Italian with a wood-fired pizza oven, freshly baked bread and a shady garden.",
+            "phone": "+264 81 159 0000",
+            "website": "https://casaforno.com",
+            "hours": [
+              "Mon-Sun: 07:00-late"
+            ],
+            "noteworthyDish": "Wood-fired pizza, house breads"
+          }
         },
         {
           "time": "4:30 PM est.",
@@ -666,7 +878,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Check in. Exact GPS converted from itinerary."
+          "notes": "Check in. Exact GPS converted from itinerary.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         }
       ]
     },
@@ -687,7 +904,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Wake up; coffee/light snack."
+          "notes": "Wake up; coffee/light snack.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         },
         {
           "time": "6:00 AM",
@@ -720,7 +942,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Dinner after return."
+          "notes": "Dinner after return.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         }
       ]
     },
@@ -741,7 +968,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Wake up; coffee/light snack."
+          "notes": "Wake up; coffee/light snack.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         },
         {
           "time": "6:00 AM approx.",
@@ -774,7 +1006,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Dinner after return."
+          "notes": "Dinner after return.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         }
       ]
     },
@@ -795,7 +1032,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -18.493767,
           "lng": 16.727172,
-          "notes": "Check out/load car."
+          "notes": "Check out/load car.",
+          "details": {
+            "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
+            "phone": "+264 61 427 200",
+            "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
+          }
         },
         {
           "time": "8:45 AM est.",
@@ -841,7 +1083,16 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -20.4608,
           "lng": 16.6534,
-          "notes": "Lunch option; otherwise packed lunch."
+          "notes": "Lunch option; otherwise packed lunch.",
+          "details": {
+            "summary": "Otjiwarongo's favorite stop between Windhoek and Etosha — country-style Italian with a wood-fired pizza oven, freshly baked bread and a shady garden.",
+            "phone": "+264 81 159 0000",
+            "website": "https://casaforno.com",
+            "hours": [
+              "Mon-Sun: 07:00-late"
+            ],
+            "noteworthyDish": "Wood-fired pizza, house breads"
+          }
         },
         {
           "time": "5:00 PM",
@@ -852,7 +1103,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.5732,
           "lng": 17.1027,
-          "notes": "Check in."
+          "notes": "Check in.",
+          "details": {
+            "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
+            "phone": "+264 61 209 0900",
+            "website": "https://gondwana-collection.com/accommodation/the-weinberg"
+          }
         }
       ]
     },
@@ -873,7 +1129,12 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.5732,
           "lng": 17.1027,
-          "notes": "Pack and check out."
+          "notes": "Pack and check out.",
+          "details": {
+            "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
+            "phone": "+264 61 209 0900",
+            "website": "https://gondwana-collection.com/accommodation/the-weinberg"
+          }
         },
         {
           "time": "9:00 AM",
@@ -884,7 +1145,16 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.5714,
           "lng": 17.0831,
-          "notes": "Optional if missed May 23."
+          "notes": "Optional if missed May 23.",
+          "details": {
+            "summary": "Largest curated craft marketplace in Windhoek, housed in the Old Breweries Complex on Tal Street. 40+ stalls of woodcarvings, jewellery, textiles, San crafts. Great for last-minute souvenirs.",
+            "website": "https://www.namibiacraftcentre.com",
+            "hours": [
+              "Mon-Fri: 09:00-17:30",
+              "Saturday: 09:00-16:00",
+              "Sunday: 09:00-13:30"
+            ]
+          }
         },
         {
           "time": "10:45 AM",
@@ -907,7 +1177,14 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.4848,
           "lng": 17.4627,
-          "notes": "Return rental car; check in for 2:30 PM flight."
+          "notes": "Return rental car; check in for 2:30 PM flight.",
+          "details": {
+            "summary": "Namibia's main international gateway (WDH), 45 km east of Windhoek. Duty-free, currency exchange, free WiFi, car-rental desks. Allow 3 hours before international departures.",
+            "website": "https://en.wikipedia.org/wiki/Hosea_Kutako_International_Airport",
+            "hours": [
+              "24/7 — terminal open around the clock"
+            ]
+          }
         }
       ]
     }

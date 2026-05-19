@@ -171,28 +171,46 @@
       if (!shaped) return;
       cardEl.dataset.v26Done = '1';
 
-      const summary = PL.effectiveSummary(stop, shaped);
+      // Hand-authored stop.details (from data.js) take precedence over
+      // Places API results so we always render the curated copy even when
+      // the API has stale or thin data for remote Namibian businesses.
+      const det = stop.details || {};
+      const summary = det.summary || PL.effectiveSummary(stop, shaped);
+      const phone = det.phone || shaped.formatted_phone_number;
+      const website = det.website || shaped.website;
+      const address = shaped.formatted_address;
+      const hours = (det.hours && det.hours.length) ? det.hours : shaped.opening_hours;
+      const menuUrl = det.menuUrl || stop.menuUrl;
+      const openMaybeNote = det.closingDays || '';
+      const noteworthy = det.noteworthyDish ? `<div class="biz-noteworthy">⭐ <em>${esc(det.noteworthyDish)}</em></div>` : '';
+      const priceHtml = det.avgPriceUSD ? `<span class="biz-price" title="Approx per-person USD">~$${det.avgPriceUSD}</span>` : '';
+
       const ratingHtml = shaped.rating
         ? `<span class="biz-rating">${PL.ratingChipLabel(shaped.rating, shaped.user_ratings_total)}</span>`
         : '';
-      const phoneHtml = shaped.formatted_phone_number
-        ? `<a class="biz-phone" href="tel:${encodeURIComponent(shaped.formatted_phone_number)}">📞 ${esc(shaped.formatted_phone_number)}</a>`
+      const phoneHtml = phone ? `<a class="biz-phone" href="tel:${encodeURIComponent(phone)}">📞 ${esc(phone)}</a>` : '';
+      const addrHtml = address ? `<div class="biz-addr">📍 ${esc(address)}</div>` : '';
+      const closingHtml = openMaybeNote ? `<div class="biz-closing">⚠️ ${esc(openMaybeNote)}</div>` : '';
+      const hoursHtml = (hours && hours.length)
+        ? `<details class="biz-hours"><summary>🕒 Hours${shaped.open_now != null ? ' · ' + (shaped.open_now ? 'open now' : 'closed now') : ''}</summary><ul>${hours.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>`
         : '';
-      const addrHtml = shaped.formatted_address
-        ? `<div class="biz-addr">📍 ${esc(shaped.formatted_address)}</div>`
+      const websiteHtml = website
+        ? `<a class="biz-link" href="${esc(website)}" target="_blank" rel="noopener">🌐 Website</a>`
         : '';
-      const hoursHtml = (shaped.opening_hours && shaped.opening_hours.length)
-        ? `<details class="biz-hours"><summary>🕒 Hours${shaped.open_now != null ? ' · ' + (shaped.open_now ? 'open now' : 'closed now') : ''}</summary><ul>${shaped.opening_hours.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>`
+      // TWO Maps links per user request:
+      //   1) the actual Google Maps business listing (uses Place ID + place URL
+      //      from Places API) — opens the curated business page.
+      //   2) a coordinate-only search URL — works offline-first via cached map
+      //      tiles if you've lost cell service.
+      const bizPageHtml = shaped.url
+        ? `<a class="biz-link" href="${esc(shaped.url)}" target="_blank" rel="noopener">🗺️ Business page</a>`
         : '';
-      const websiteHtml = shaped.website
-        ? `<a class="biz-link" href="${esc(shaped.website)}" target="_blank" rel="noopener">🌐 Website</a>`
+      const coordLinkHtml = (typeof stop.lat === 'number' && typeof stop.lng === 'number')
+        ? `<a class="biz-link" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank" rel="noopener" title="Open by GPS coordinate — works with offline Google Maps">📍 Open by coordinate</a>`
         : '';
-      const mapsLinkHtml = shaped.url
-        ? `<a class="biz-link" href="${esc(shaped.url)}" target="_blank" rel="noopener">🗺️ Google Maps</a>`
-        : '';
-      const menuHtml = stop.menuUrl
-        ? `<a class="biz-link biz-menu" href="${esc(stop.menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
-        : (shaped.website ? `<a class="biz-link biz-menu-fallback" href="${esc(shaped.website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
+      const menuHtml = menuUrl
+        ? `<a class="biz-link biz-menu" href="${esc(menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
+        : (website ? `<a class="biz-link biz-menu-fallback" href="${esc(website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
       const photoUrl = shaped.photoRef && state.apiKey
         ? PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600)
         : null;
@@ -206,11 +224,13 @@
         ${photoHtml}
         <div class="biz-meta">
           <div class="biz-summary">${esc(summary)}</div>
-          ${ratingHtml ? `<div>${ratingHtml}</div>` : ''}
+          ${noteworthy}
+          <div class="biz-line">${ratingHtml}${priceHtml ? ' ' + priceHtml : ''}</div>
           ${addrHtml}
           ${phoneHtml ? `<div>${phoneHtml}</div>` : ''}
           ${hoursHtml}
-          <div class="biz-links">${websiteHtml}${mapsLinkHtml}${menuHtml}</div>
+          ${closingHtml}
+          <div class="biz-links">${websiteHtml}${bizPageHtml}${coordLinkHtml}${menuHtml}</div>
         </div>`;
       cardEl.appendChild(wrap);
     });

@@ -1,4 +1,10 @@
-const CACHE = 'namibia-trip-v24';
+// Bump this version string ANY time a file in ASSETS changes. The activate
+// handler purges every cache whose name doesn't match, forcing browsers to
+// re-fetch the new files. Users currently on an older cache get the v10
+// "New version available" toast prompting reload.
+const APP_VERSION = '2026.05.28';  // YYYY.MM.DD — easier than counting patch numbers
+const CACHE = 'namibia-trip-' + APP_VERSION;
+self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
   './',
   './index.html',
@@ -38,6 +44,7 @@ const ASSETS = [
   './pwa-v25-pressure-prominence.js',
   './pwa-v26-business-enrichment.js',
   './pwa-v27-version-and-menus.js',
+  './pwa-v28-quota-detect.js',
   './lib/sun-times.js',
   './lib/driving-core.js',
   './lib/weather.js',
@@ -64,6 +71,11 @@ self.addEventListener('install', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
+  }
+  if (event.data && event.data.type === 'GET_VERSION') {
+    if (event.ports && event.ports[0]) event.ports[0].postMessage(APP_VERSION);
+    return;
   }
 });
 

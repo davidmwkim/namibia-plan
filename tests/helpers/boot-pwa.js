@@ -40,7 +40,8 @@ const ORDER = [
   'pwa-v24-optional-stops.js',
   'pwa-v25-pressure-prominence.js',
   'pwa-v26-business-enrichment.js',
-  'pwa-v27-version-and-menus.js'
+  'pwa-v27-version-and-menus.js',
+  'pwa-v28-quota-detect.js'
 ];
 
 function inlineScripts(files) {

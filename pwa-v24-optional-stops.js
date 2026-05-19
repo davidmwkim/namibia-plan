@@ -56,10 +56,16 @@
     };
     Cls.prototype.draw = function () {
       if (!this.div) return;
+      // getProjection() can be null when the map has been put into error mode
+      // (e.g. OverQuotaMapError) — be defensive so the page doesn't crash.
       const proj = this.getProjection();
-      const px = proj.fromLatLngToDivPixel(new google.maps.LatLng(this.position.lat, this.position.lng));
-      this.div.style.left = px.x + 'px';
-      this.div.style.top = px.y + 'px';
+      if (!proj || !window.google?.maps?.LatLng) return;
+      try {
+        const px = proj.fromLatLngToDivPixel(new google.maps.LatLng(this.position.lat, this.position.lng));
+        if (!px) return;
+        this.div.style.left = px.x + 'px';
+        this.div.style.top = px.y + 'px';
+      } catch (_) { /* projection died mid-draw */ }
     };
     Cls.prototype.onRemove = function () { if (this.div && this.div.parentNode) this.div.parentNode.removeChild(this.div); this.div = null; };
     LabelOverlay = Cls;

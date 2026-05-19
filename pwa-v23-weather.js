@@ -43,6 +43,14 @@
   }
 
   async function fetchDayWeather(date, lat, lng) {
+    // Open-Meteo's forecast endpoint only covers a rolling window (~16 days
+    // out). Dates beyond that return 400. Skip silently so the request loop
+    // doesn't blow up on the tail end of a multi-day trip.
+    const dayMs = Date.parse(date + 'T00:00:00Z');
+    const horizonMs = Date.now() + 16 * 86400000;
+    if (!isFinite(dayMs) || dayMs > horizonMs) {
+      throw new Error('beyond forecast horizon');
+    }
     const params = new URLSearchParams({
       latitude: String(lat),
       longitude: String(lng),
