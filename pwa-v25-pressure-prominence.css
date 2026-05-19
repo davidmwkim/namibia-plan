@@ -1,0 +1,55 @@
+/* v25 — Pressure prominence */
+.press-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.press-row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 6px solid #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.press-row.press-down {
+  border-left-color: #b45309;
+  background: #ffedd5;
+  color: #7c2d12;
+}
+.press-row.press-up {
+  border-left-color: #047857;
+  background: #ecfdf5;
+  color: #064e3b;
+}
+.press-row.press-neutral {
+  border-left-color: #2563eb;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+.press-arrow {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+}
+.press-detail {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.press-chip {
+  margin-top: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+  color: #7f1d1d;
+  font-size: 13px;
+  font-weight: 600;
+}
+.press-chip.press-chip-down { background: #ffedd5; border-left-color: #b45309; color: #7c2d12; }
+.press-chip.press-chip-up   { background: #ecfdf5; border-left-color: #047857; color: #064e3b; }

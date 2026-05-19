@@ -1,0 +1,15 @@
+/* v24 — Map label overlays + optional stop styling */
+.map-label {
+  font-family: system-ui, -apple-system, sans-serif;
+  user-select: none;
+}
+.map-label-mandatory {
+  color: #1f2937;
+}
+.map-label-optional {
+  color: #6b21a8;
+  font-style: italic;
+}
+.map-label-action {
+  color: #92400e;
+}

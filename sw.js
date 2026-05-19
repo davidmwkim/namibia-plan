@@ -1,4 +1,4 @@
-const CACHE = 'namibia-trip-v19';
+const CACHE = 'namibia-trip-v23';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,10 @@ const ASSETS = [
   './pwa-v15-demo-mode.css',
   './pwa-v16-print-extras.css',
   './pwa-v17-heather-route-coloring.css',
+  './pwa-v22-road-conditions.css',
+  './pwa-v23-weather.css',
+  './pwa-v24-optional-stops.css',
+  './pwa-v25-pressure-prominence.css',
   './app.js',
   './pwa-v8-segment-patch.js',
   './pwa-v9-map-route-draw.js',
@@ -27,8 +31,13 @@ const ASSETS = [
   './pwa-v19-multi-color-route.js',
   './pwa-v20-layout.js',
   './pwa-v21-autoload.js',
+  './pwa-v22-road-conditions.js',
+  './pwa-v23-weather.js',
+  './pwa-v24-optional-stops.js',
+  './pwa-v25-pressure-prominence.js',
   './lib/sun-times.js',
   './lib/driving-core.js',
+  './lib/weather.js',
   './data.js',
   './manifest.webmanifest',
   './icons/icon.svg'
@@ -39,7 +48,8 @@ const ASSETS = [
 // `tts://` URLs since they're not real network.
 const CROSS_ORIGIN_CACHE_PREFIXES = [
   'https://maps.googleapis.com/maps/api/staticmap',
-  'https://maps.googleapis.com/maps/api/streetview'
+  'https://maps.googleapis.com/maps/api/streetview',
+  'https://api.open-meteo.com/v1/forecast'
 ];
 
 self.addEventListener('install', event => {

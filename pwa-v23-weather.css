@@ -1,0 +1,15 @@
+/* v23 — Per-step weather block */
+.step-weather {
+  border-left-color: #3b82f6;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+.step-weather.step-weather-rain {
+  border-left-color: #1d4ed8;
+  background: #dbeafe;
+  font-weight: 500;
+}
+#refreshLive[disabled] {
+  cursor: progress;
+  opacity: 0.7;
+}

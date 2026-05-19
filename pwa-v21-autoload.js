@@ -7,13 +7,34 @@
 // Cached routes loaded from localStorage are already populating state, so the
 // map + dashboard work immediately. The user only re-renders on demand.
 (function () {
+  // Strip any stray surrounding quotes from a key (an earlier dev-primer wrote
+  // the .env value with embedded quotes; that yields `?key="AIza…"` which the
+  // Maps API rejects as InvalidKeyMapError).
+  function stripQuotes(s) {
+    if (!s) return s;
+    let v = String(s).trim();
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+    return v;
+  }
+  function normaliseStoredKey() {
+    const raw = localStorage.getItem('namibia_google_api_key');
+    if (!raw) return;
+    const fixed = stripQuotes(raw);
+    if (fixed !== raw) {
+      localStorage.setItem('namibia_google_api_key', fixed);
+      if (typeof state !== 'undefined' && state) state.apiKey = fixed;
+      if (typeof log === 'function') log('Stripped stray quotes from saved API key.');
+    }
+  }
+  normaliseStoredKey();
   function hasApiKey() {
-    return !!(state && state.apiKey && state.apiKey.length > 10);
+    return !!(state && state.apiKey && state.apiKey.length > 10 && !state.apiKey.startsWith('"'));
   }
   function alreadyLoaded() {
     return !!(window.google && window.google.maps && window.google.maps.Map);
   }
   function loadSdkOnly() {
+    normaliseStoredKey();
     if (alreadyLoaded() || !hasApiKey()) return;
     if (typeof setStatus === 'function') setStatus('googleStatus', 'Google: loading…');
     // Provide the callback Google calls when it finishes loading.

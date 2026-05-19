@@ -1,0 +1,34 @@
+/* v22 — Per-step road / rain / why blocks */
+.step-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 8px;
+}
+.step-detail {
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 3px solid #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.step-road-paved   { border-left-color: #1f2937; background: #f3f4f6; }
+.step-road-gravel  { border-left-color: #92400e; background: #fef3c7; }
+.step-road-unpaved { border-left-color: #92400e; background: #fef3c7; }
+.step-road-sand    { border-left-color: #b45309; background: #ffedd5; }
+.step-road-urban   { border-left-color: #1f2937; background: #f3f4f6; }
+.step-road-mixed   { border-left-color: #6b7280; background: #f9fafb; }
+
+.step-rain-paved   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
+.step-rain-gravel  { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
+.step-rain-unpaved { border-left-color: #b91c1c; background: #fee2e2; color: #7f1d1d; }
+.step-rain-sand    { border-left-color: #b91c1c; background: #fee2e2; color: #7f1d1d; }
+.step-rain-urban   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
+.step-rain-mixed   { border-left-color: #3b82f6; background: #eff6ff; color: #1e3a8a; }
+
+.step-why-yes   { border-left-color: #16a34a; background: #ecfdf5; color: #065f46; }
+.step-why-maybe { border-left-color: #f59e0b; background: #fffbeb; color: #92400e; }
+.step-why-no    { border-left-color: #dc2626; background: #fef2f2; color: #991b1b; }
