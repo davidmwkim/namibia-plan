@@ -1,7 +1,7 @@
 // Namibia PWA v9 patch: render selected day routes on the embedded Google Map.
 // Uses cached Google Directions overviewPath when available to avoid repeated billable Directions calls.
 (function () {
-  let activeRouteToken = 0;
+  let staleGeneration = 0;
   let routePolyline = null;
   let lastRenderedKey = null;
   const inFlightByDate = new Map();
@@ -65,21 +65,19 @@
   async function fetchAndCacheSelectedRoute(d, request) {
     if (inFlightByDate.has(d.date)) return inFlightByDate.get(d.date);
 
-    const token = ++activeRouteToken;
     const promise = state.directionsService.route(request)
       .then(result => {
-        if (token !== activeRouteToken || day().date !== d.date) return null;
         const route = result.routes?.[0];
         const overviewPath = (route?.overview_path || []).map(p => ({ lat: p.lat(), lng: p.lng() }));
         if (overviewPath.length >= 2) {
           state.renderedRoutes[d.date] = { ...(state.renderedRoutes[d.date] || {}), overviewPath };
           localStorage.setItem('namibia_routes_cache_v5', JSON.stringify(state.renderedRoutes));
-          drawCachedPath(d, overviewPath);
+          if (day().date === d.date) drawCachedPath(d, overviewPath);
         }
         return result;
       })
       .catch(err => {
-        if (token === activeRouteToken) console.warn('Failed to fetch selected Google route for map', err);
+        if (day().date === d.date) console.warn('Failed to fetch selected Google route for map', err);
         return null;
       })
       .finally(() => inFlightByDate.delete(d.date));
@@ -94,14 +92,13 @@
     const d = day();
     const request = selectedDayRouteRequest(d);
     if (!request) {
-      activeRouteToken += 1;
+      staleGeneration += 1;
       clearRouteOverlay();
       return;
     }
 
     const cachedPath = getCachedPath(d);
     if (cachedPath) {
-      activeRouteToken += 1;
       drawCachedPath(d, cachedPath);
       return;
     }
