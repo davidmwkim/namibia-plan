@@ -1,0 +1,15 @@
+{
+  "name": "Namibia Self-Drive Companion",
+  "short_name": "Namibia Trip",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fffaf2",
+  "theme_color": "#5a1738",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
