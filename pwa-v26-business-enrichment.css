@@ -136,6 +136,20 @@
   border-left: 3px solid #f59e0b;
 }
 
+/* Generic placeholder card for service / attraction stops that don't have
+   a Google Maps business page. Visually distinct from real biz-cards so
+   the user doesn't expect a photo / hours / phone. */
+.biz-card-generic {
+  background: var(--bg-muted, #f5f3ef);
+  border-style: dashed;
+  border-color: #d1d5db;
+  font-size: 12px;
+  color: var(--text-body, #374151);
+  grid-template-columns: 1fr !important;
+}
+.biz-card-generic .biz-meta { padding: 4px 2px; }
+.biz-card-generic strong { color: var(--text-strong, #111827); }
+
 .quota-banner {
   position: sticky; top: 0; z-index: 9999;
   padding: 12px 16px;

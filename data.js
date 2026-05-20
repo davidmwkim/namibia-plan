@@ -43,7 +43,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "24/7 — terminal open around the clock"
             ]
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "4:15 PM",
@@ -66,7 +67,8 @@ window.NAMIBIA_TRIP_DATA = {
             ],
             "closingDays": "Closed Sun + Mon (verify before booking)",
             "noteworthyDish": "Open-flame grilled Namibian beef"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "4:15 PM",
@@ -88,7 +90,8 @@ window.NAMIBIA_TRIP_DATA = {
             "menuUrl": "https://joesbeerhouse.com/lekker-menu/",
             "avgPriceUSD": 20,
             "noteworthyDish": "Kudu fillet, mixed game platter"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "5:15 PM",
@@ -109,7 +112,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Saturday: 07:00-19:00",
               "Sunday: 08:00-19:00"
             ]
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "6:30 PM",
@@ -125,7 +129,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
             "phone": "+264 61 209 0900",
             "website": "https://gondwana-collection.com/accommodation/the-weinberg"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -151,7 +156,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
             "phone": "+264 61 209 0900",
             "website": "https://gondwana-collection.com/accommodation/the-weinberg"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "8:15 AM",
@@ -165,7 +171,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Use any staffed station before leaving Windhoek; coordinate is a prompt, not a required exact station.",
           "pressure": "MANDATORY LOWER for gravel ahead. From 32 psi / 2.2 bar (tar) to 26 psi / 1.8 bar (gravel) before the C24 Spreetshoogte descent and onward to Sossusvlei.",
           "fuel": "Fill to 100%. Estimated tank at departure after fill: 80 L / 100%.",
-          "pressureAction": "down"
+          "pressureAction": "down",
+          "kind": "service",
+          "placeQuery": "Engen Klein Windhoek service station"
         },
         {
           "time": "11:30 AM",
@@ -187,7 +195,9 @@ window.NAMIBIA_TRIP_DATA = {
             ],
             "noteworthyDish": "Apple pie, fresh meat pies"
           },
-          "pressureAction": "check"
+          "pressureAction": "check",
+          "kind": "business",
+          "placeQuery": "Solitaire General Dealer"
         },
         {
           "time": "3:30 PM",
@@ -203,7 +213,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/desert-grace"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -229,7 +240,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/desert-grace"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "6:30 AM",
@@ -242,7 +254,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.7972,
           "notes": "Optional fuel/pressure service near gate; use if anything feels off.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
-          "pressureAction": "check"
+          "pressureAction": "check",
+          "kind": "business",
+          "placeQuery": "Sossus Oasis Engen service station Sesriem"
         },
         {
           "time": "6:50 AM",
@@ -253,7 +267,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.4815,
           "lng": 15.8016,
-          "notes": "Sesriem OUTER gate opens 06:45 in May (not 06:00). Inner gate opens ~1 hour before sunrise (~05:45) but only accessible to in-park lodges. Confirm with NWR/lodge."
+          "notes": "Sesriem OUTER gate opens 06:45 in May (not 06:00). Inner gate opens ~1 hour before sunrise (~05:45) but only accessible to in-park lodges. Confirm with NWR/lodge.",
+          "kind": "attraction"
         },
         {
           "time": "7:45 AM",
@@ -266,7 +281,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.353,
           "notes": "Decision point before final deep-sand section to Sossusvlei/Deadvlei parking.",
           "pressure": "MANDATORY LOWER to sand pressure: from ~26 psi / 1.8 bar (gravel) to ~17–22 psi / 1.2–1.5 bar for the 5 km deep-sand track to Deadvlei. Use the vehicle compressor at the 2x4 carpark. Max speed 30–50 km/h on sand.",
-          "pressureAction": "down"
+          "pressureAction": "down",
+          "kind": "attraction",
+          "placeQuery": "Sossusvlei 2x4 car park"
         },
         {
           "time": "8:00 AM",
@@ -277,7 +294,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.7371,
           "lng": 15.3341,
-          "notes": "Self-guided Sossusvlei and Deadvlei exploration."
+          "notes": "Self-guided Sossusvlei and Deadvlei exploration.",
+          "kind": "attraction",
+          "placeQuery": "Deadvlei parking area"
         },
         {
           "time": "11:00 AM",
@@ -288,7 +307,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -24.7275,
           "lng": 15.4717,
-          "notes": "Optional photo/hike stop on return; not forced into route."
+          "notes": "Optional photo/hike stop on return; not forced into route.",
+          "kind": "attraction"
         },
         {
           "time": "11:30 AM",
@@ -301,7 +321,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.353,
           "notes": "Reinflate before leaving the sand section and resuming faster gravel/park-road driving.",
           "pressure": "MANDATORY RAISE back to ~26 psi / 1.8 bar before the 60 km paved Sesriem road. Driving on tar at sand pressures (1.2 bar) builds dangerous heat in sidewalls.",
-          "pressureAction": "up"
+          "pressureAction": "up",
+          "kind": "attraction",
+          "placeQuery": "Sossusvlei 2x4 car park"
         },
         {
           "time": "12:15 PM",
@@ -312,7 +334,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -24.519,
           "lng": 15.8055,
-          "notes": "Sesriem Canyon excursion."
+          "notes": "Sesriem Canyon excursion.",
+          "kind": "attraction"
         },
         {
           "time": "2:00 PM",
@@ -328,7 +351,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/desert-grace"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -354,7 +378,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/desert-grace"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "6:00 AM",
@@ -375,7 +400,8 @@ window.NAMIBIA_TRIP_DATA = {
             ],
             "closingDays": "Closed Dec 25, Jan 1, and Jan 15–Feb 15",
             "avgPriceUSD": 545
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "10:00 AM",
@@ -388,7 +414,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 15.7972,
           "notes": "Optional check/reset if Day 3 pressure was not resolved.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
-          "pressureAction": "check"
+          "pressureAction": "check",
+          "kind": "business",
+          "placeQuery": "Sossus Oasis Engen service station Sesriem"
         },
         {
           "time": "10:00 AM",
@@ -404,7 +432,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's upscale 24-bungalow lodge 30 km south of Solitaire. Private plunge pools, solar power, guided Sossusvlei excursions.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/desert-grace"
-          }
+          },
+          "kind": "event"
         },
         {
           "time": "11:00 AM",
@@ -420,7 +449,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "66-room Gondwana Collection lodge at the foot of ancient fossilized dunes near Sossusvlei — homely atmosphere with direct dune access.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/namib-desert-lodge"
-          }
+          },
+          "kind": "event"
         },
         {
           "time": "4:00 PM",
@@ -436,7 +466,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Nine open-air cabins perched on ancient dune crests with retractable roofs for star-gazing. Luxury camping by Gondwana Collection near Sossusvlei.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/namib-dune-star-camp"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -462,7 +493,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Nine open-air cabins perched on ancient dune crests with retractable roofs for star-gazing. Luxury camping by Gondwana Collection near Sossusvlei.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/namib-dune-star-camp"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "10:00 AM est.",
@@ -484,7 +516,9 @@ window.NAMIBIA_TRIP_DATA = {
             ],
             "noteworthyDish": "Apple pie, fresh meat pies"
           },
-          "pressureAction": "check"
+          "pressureAction": "check",
+          "kind": "business",
+          "placeQuery": "Solitaire General Dealer"
         },
         {
           "time": "1:00 PM est.",
@@ -498,7 +532,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Use a convenient staffed station in Walvis Bay/Swakopmund; coordinate is a prompt.",
           "pressure": "MANDATORY RAISE to 32 psi / 2.2 bar (tar) after the C14 gravel run. B2 to Swakopmund is paved high-traffic highway; low-pressure tar driving risks blowout. Multiple Engen/Shell stations have air.",
           "fuel": "Optional top-up. Estimated after Solitaire → coast: ~48–52 L / 60–65%; enough to continue, but top up if gauge differs.",
-          "pressureAction": "up"
+          "pressureAction": "up",
+          "kind": "service",
+          "placeQuery": "Engen Walvis Bay"
         },
         {
           "time": "1:30 PM",
@@ -522,7 +558,8 @@ window.NAMIBIA_TRIP_DATA = {
             "closingDays": "Closed Mondays",
             "menuUrl": "https://lhg.na/jetty-1905-menu/",
             "noteworthyDish": "Kingklip, fresh Namibian sushi"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "1:30 PM",
@@ -546,7 +583,8 @@ window.NAMIBIA_TRIP_DATA = {
             "avgPriceUSD": 25,
             "noteworthyDish": "Namibian lobster, kingklip — note: Mon–Sat dinner only",
             "closingDays": "Lunch served Sunday only — for Saturday lunch use Jetty 1905"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "3:00 PM",
@@ -565,7 +603,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "Check-in: 14:00 | Check-out: 10:00"
             ]
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -594,7 +633,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "Check-in: 14:00 | Check-out: 10:00"
             ]
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "8:45 AM",
@@ -615,7 +655,8 @@ window.NAMIBIA_TRIP_DATA = {
             ],
             "avgPriceUSD": 75,
             "noteworthyDish": "Fresh oysters and sparkling wine on board"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "4:00 PM",
@@ -627,7 +668,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -22.9575,
           "lng": 14.5053,
           "notes": "Optional top-up/check; not forced into route.",
-          "fuel": "If no Walvis/Swakopmund top-up on May 27, estimated tank after today’s coastal round trip: ~39–44 L / 49–55%."
+          "fuel": "If no Walvis/Swakopmund top-up on May 27, estimated tank after today’s coastal round trip: ~39–44 L / 49–55%.",
+          "kind": "service",
+          "placeQuery": "Engen Walvis Bay"
         },
         {
           "time": "4:00 PM",
@@ -646,7 +689,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "Check-in: 14:00 | Check-out: 10:00"
             ]
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -675,7 +719,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "Check-in: 14:00 | Check-out: 10:00"
             ]
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "8:00 AM",
@@ -686,7 +731,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -22.9579,
           "lng": 14.4928,
-          "notes": "Kayaking with seals."
+          "notes": "Kayaking with seals.",
+          "kind": "attraction",
+          "placeQuery": "Walvis Bay Waterfront Angling Club"
         },
         {
           "time": "12:30 PM",
@@ -697,7 +744,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -22.9575,
           "lng": 14.5053,
-          "notes": "Lunch or packed lunch. Optional fuel before inland drive."
+          "notes": "Lunch or packed lunch. Optional fuel before inland drive.",
+          "kind": "business"
         },
         {
           "time": "3:00 PM est.",
@@ -711,7 +759,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Mandatory service point before Spitzkoppe access roads.",
           "pressure": "LOWER to 26 psi / 1.8 bar for the D1918 gravel to Spitzkoppe. Closest fuel + air to Spitzkoppe (no services at the lodge). Re-inflate on return.",
           "fuel": "Estimated arrival if last full fill was Solitaire May 27: ~13–20 L / 16–25%. Fill to 100%.",
-          "pressureAction": "down"
+          "pressureAction": "down",
+          "kind": "service",
+          "placeQuery": "Engen Usakos"
         },
         {
           "time": "4:30 PM",
@@ -727,7 +777,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
             "phone": "+264 81 143 5048",
             "website": "https://www.spitzkoppenlodge.com"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -755,7 +806,8 @@ window.NAMIBIA_TRIP_DATA = {
             "phone": "+264 81 143 5048",
             "website": "https://www.spitzkoppenlodge.com"
           },
-          "pressureAction": "check"
+          "pressureAction": "check",
+          "kind": "business"
         },
         {
           "time": "8:00 AM",
@@ -766,7 +818,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -21.826,
           "lng": 15.184,
-          "notes": "Local scenic exploration."
+          "notes": "Local scenic exploration.",
+          "kind": "attraction",
+          "placeQuery": "Spitzkoppe nature reserve"
         },
         {
           "time": "10:30 AM",
@@ -777,7 +831,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -21.8286,
           "lng": 15.1904,
-          "notes": "Optional photo/reference point."
+          "notes": "Optional photo/reference point.",
+          "kind": "attraction",
+          "placeQuery": "Spitzkoppe Rock Arch"
         },
         {
           "time": "7:00 PM",
@@ -793,7 +849,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
             "phone": "+264 81 143 5048",
             "website": "https://www.spitzkoppenlodge.com"
-          }
+          },
+          "kind": "event"
         }
       ]
     },
@@ -819,7 +876,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Tented and bungalow lodge at the base of Spitzkoppe's dramatic granite inselberg — premier climbing and stargazing. Rock art walks and sundowner drives on offer.",
             "phone": "+264 81 143 5048",
             "website": "https://www.spitzkoppenlodge.com"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "10:00 AM est.",
@@ -833,7 +891,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Use a staffed station in/near Omaruru if practical; coordinate is planning prompt.",
           "pressure": "RAISE to 32 psi / 2.2 bar (tar). B1 north through Otjiwarongo and Tsumeb is paved highway. Last staffed reset before the long north run.",
           "fuel": "Optional. Estimated arrival from Usakos fill after Spitzkoppe/local driving: ~47–55 L / 59–69%.",
-          "pressureAction": "up"
+          "pressureAction": "up",
+          "kind": "service",
+          "placeQuery": "Engen Omaruru"
         },
         {
           "time": "12:00 PM",
@@ -847,7 +907,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Major refuel/check point on northern route.",
           "pressure": "CONFIRM tar pressure 32 psi / 2.2 bar. Shell Otjiwarongo is the best-equipped staffed stop on the B1 — top up fuel + verify spare wheel pressure before continuing.",
           "fuel": "Estimated arrival if no Omaruru fuel: ~31–40 L / 39–50%. Fill to 100%.",
-          "pressureAction": "up"
+          "pressureAction": "up",
+          "kind": "service",
+          "placeQuery": "Shell Otjiwarongo service station"
         },
         {
           "time": "12:00 PM",
@@ -867,7 +929,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Mon-Sun: 07:00-late"
             ],
             "noteworthyDish": "Wood-fired pizza, house breads"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "4:30 PM est.",
@@ -880,7 +943,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 16.5815,
           "notes": "Final practical fuel before Etosha King Nehale approach.",
           "pressure": "CHECK: ask about lodge access-road condition.",
-          "fuel": "Estimated arrival from Otjiwarongo fill: ~35–42 L / 44–53%. Fill to 100% before lodge/return leg."
+          "fuel": "Estimated arrival from Otjiwarongo fill: ~35–42 L / 44–53%. Fill to 100% before lodge/return leg.",
+          "kind": "service",
+          "placeQuery": "Engen Omuthiya"
         },
         {
           "time": "5:00 PM",
@@ -896,7 +961,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -922,7 +988,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "6:00 AM",
@@ -933,7 +1000,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -18.5054,
           "lng": 16.7483,
-          "notes": "Route guide/wildlife-dependent."
+          "notes": "Route guide/wildlife-dependent.",
+          "kind": "event"
         },
         {
           "time": "2:00 PM",
@@ -944,7 +1012,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -18.5054,
           "lng": 16.7483,
-          "notes": "Confirm exact return time."
+          "notes": "Confirm exact return time.",
+          "kind": "event"
         },
         {
           "time": "After return",
@@ -960,7 +1029,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "event"
         }
       ]
     },
@@ -986,7 +1056,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "6:00 AM approx.",
@@ -997,7 +1068,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -18.5054,
           "lng": 16.7483,
-          "notes": "Confirm exact departure."
+          "notes": "Confirm exact departure.",
+          "kind": "event"
         },
         {
           "time": "2:00 PM approx.",
@@ -1008,7 +1080,8 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -18.5054,
           "lng": 16.7483,
-          "notes": "Confirm exact departure."
+          "notes": "Confirm exact departure.",
+          "kind": "event"
         },
         {
           "time": "After return",
@@ -1024,7 +1097,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "event"
         }
       ]
     },
@@ -1050,7 +1124,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection lodge 1 km from Etosha's King Nehale Gate on the Andoni plains. 40 chalets with game drives into the park's less-visited north.",
             "phone": "+264 61 427 200",
             "website": "https://gondwana-collection.com/accommodation/etosha-king-nehale"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "8:45 AM est.",
@@ -1061,7 +1136,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -18.3596,
           "lng": 16.5815,
-          "notes": "Optional top-up if gauge is not near full after May 31 fill."
+          "notes": "Optional top-up if gauge is not near full after May 31 fill.",
+          "kind": "service",
+          "placeQuery": "Engen Omuthiya"
         },
         {
           "time": "10:30 AM est.",
@@ -1072,7 +1149,9 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "optional",
           "lat": -19.2319,
           "lng": 17.7181,
-          "notes": "Optional fuel/check."
+          "notes": "Optional fuel/check.",
+          "kind": "service",
+          "placeQuery": "Engen Tsumeb"
         },
         {
           "time": "12:30 PM",
@@ -1086,7 +1165,9 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Major refuel/check point before final southbound section.",
           "pressure": "CONFIRM tar pressure 32 psi / 2.2 bar. Shell Otjiwarongo is the best-equipped staffed stop on the B1 — top up fuel + verify spare wheel pressure before continuing.",
           "fuel": "Estimated arrival if filled Omuthiya May 31 and did only lodge transfer/guided days: ~24–33 L / 30–41%. Fill to 100%.",
-          "pressureAction": "up"
+          "pressureAction": "up",
+          "kind": "service",
+          "placeQuery": "Shell Otjiwarongo service station"
         },
         {
           "time": "12:30 PM",
@@ -1106,7 +1187,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Mon-Sun: 07:00-late"
             ],
             "noteworthyDish": "Wood-fired pizza, house breads"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "5:00 PM",
@@ -1122,7 +1204,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
             "phone": "+264 61 209 0900",
             "website": "https://gondwana-collection.com/accommodation/the-weinberg"
-          }
+          },
+          "kind": "business"
         }
       ]
     },
@@ -1148,7 +1231,8 @@ window.NAMIBIA_TRIP_DATA = {
             "summary": "Gondwana Collection's Windhoek city hotel — old-world architecture wrapping a heritage estate on Jan Jonker Road, with garden grounds. Calm capital base.",
             "phone": "+264 61 209 0900",
             "website": "https://gondwana-collection.com/accommodation/the-weinberg"
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "9:00 AM",
@@ -1168,7 +1252,8 @@ window.NAMIBIA_TRIP_DATA = {
               "Saturday: 09:00-16:00",
               "Sunday: 09:00-13:30"
             ]
-          }
+          },
+          "kind": "business"
         },
         {
           "time": "10:45 AM",
@@ -1180,7 +1265,9 @@ window.NAMIBIA_TRIP_DATA = {
           "lat": -22.5641,
           "lng": 17.1185,
           "notes": "Use a convenient station before rental return.",
-          "fuel": "Estimated before final fuel from Otjiwarongo fill: ~50–57 L / 63–71%. Fill to 100% for rental return."
+          "fuel": "Estimated before final fuel from Otjiwarongo fill: ~50–57 L / 63–71%. Fill to 100% for rental return.",
+          "kind": "service",
+          "placeQuery": "Engen Hosea Kutako Airport service station"
         },
         {
           "time": "11:30 AM",
@@ -1198,7 +1285,8 @@ window.NAMIBIA_TRIP_DATA = {
             "hours": [
               "24/7 — terminal open around the clock"
             ]
-          }
+          },
+          "kind": "business"
         }
       ]
     }

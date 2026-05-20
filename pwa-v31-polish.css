@@ -103,7 +103,10 @@ h3 { font-size: var(--t-lg);  line-height: var(--lh-tight); }
   outline: none;
   box-shadow: var(--shadow-focus);
 }
-.hero-actions button {
+/* Hero-scoped: white on burgundy. Outside the hero, .hero-actions is also
+   reused for the dashboard's Waze + Google-route row, which sits on a
+   white card — so those get default button styling instead. */
+.hero .hero-actions button {
   border-radius: var(--r-md);
   padding: 8px 14px;
   font-size: var(--t-sm);
@@ -114,14 +117,35 @@ h3 { font-size: var(--t-lg);  line-height: var(--lh-tight); }
   transition: background var(--motion-fast) var(--ease-out),
               transform var(--motion-fast) var(--ease-out);
 }
-.hero-actions button.primary {
+.hero .hero-actions button.primary {
   background: #fff;
   color: var(--brand);
   border-color: #fff;
 }
-.hero-actions button:hover  { background: rgba(255,255,255,0.18); }
-.hero-actions button:active { transform: scale(0.98); }
-.hero-actions button.primary:hover { background: var(--brand-tint); }
+.hero .hero-actions button:hover  { background: rgba(255,255,255,0.18); }
+.hero .hero-actions button:active { transform: scale(0.98); }
+.hero .hero-actions button.primary:hover { background: var(--brand-tint); }
+
+/* Dashboard-scoped: dark text on white card. */
+.now-card .hero-actions button {
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text-strong);
+  transition: background var(--motion-fast) var(--ease-out),
+              transform var(--motion-fast) var(--ease-out);
+}
+.now-card .hero-actions button.primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.now-card .hero-actions button:hover  { background: var(--bg-muted); }
+.now-card .hero-actions button:active { transform: scale(0.97); }
+.now-card .hero-actions button.primary:hover { background: var(--brand-deep); }
 
 /* ---- Status bar (chips under hero) ------------------------------- */
 .statusbar {

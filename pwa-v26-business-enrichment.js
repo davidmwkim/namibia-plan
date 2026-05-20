@@ -128,6 +128,10 @@
 
   async function enrichOne(stop) {
     if (!stop?.name || typeof stop.lat !== 'number') return null;
+    // Event-kind stops are activity blocks (game drives, dinners, luggage
+    // pickups) that point at a different physical business. Skip them so
+    // we don't draw fake "business" cards on placeholder rows.
+    if (stop.kind === 'event') return null;
     const cached = loadCache(stop);
     if (cached) return cached;
     const found = await findPlaceFromQuery(stop);
@@ -193,8 +197,26 @@
       const stop = stops[i];
       if (!stop) return;
       if (cardEl.dataset.v26Done === '1') return;
+      // Don't render a biz-card for non-business stops at all — they were
+      // never meant to be enriched with a Places page.
+      if (stop.kind === 'event') return;
       const shaped = loadCache(stop);
-      if (!shaped) return;
+      if (!shaped) {
+        // For service / attraction stops without a Places match, render a
+        // minimal "any station near here" placeholder card so the user
+        // knows it's intentionally unenriched rather than missing data.
+        if (stop.kind === 'service' || stop.kind === 'attraction') {
+          const wrap = document.createElement('div');
+          wrap.className = 'biz-card biz-card-generic';
+          const label = stop.kind === 'service'
+            ? `<strong>Any nearby ${esc(stop.type || 'fuel/tyre station')}.</strong> Pull into the closest staffed station — see in-step notes for recommended brands.`
+            : `<strong>${esc(stop.name)}.</strong> Public landmark / geographic point — see Google Maps for navigation details.`;
+          wrap.innerHTML = `<div class="biz-meta">${label}${stop.lat ? ` <a class="biz-link" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank" rel="noopener">📍 Open by coordinate</a>` : ''}</div>`;
+          cardEl.appendChild(wrap);
+          cardEl.dataset.v26Done = '1';
+        }
+        return;
+      }
       cardEl.dataset.v26Done = '1';
 
       // Hand-authored stop.details (from data.js) take precedence over
