@@ -43,7 +43,8 @@ const ORDER = [
   'pwa-v27-version-and-menus.js',
   'pwa-v28-quota-detect.js',
   'pwa-v29-force-update.js',
-  'pwa-v30-gestures.js'
+  'pwa-v30-gestures.js',
+  'pwa-v31-polish.js'
 ];
 
 function inlineScripts(files) {
