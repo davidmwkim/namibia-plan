@@ -157,9 +157,36 @@
     }
   }
 
+  // Daily malaria-tablet reminders (course dates + per-day timing from v40).
+  function scheduleMalariaReminders() {
+    const V40 = window.NamibiaV40;
+    const MAL = window.NAMIBIA_TRIP_DATA?.meta?.malaria;
+    if (!V40 || !MAL || !MAL.medStartDate) return;
+    const end = new Date(MAL.medEndDate + 'T00:00:00');
+    for (let iso = MAL.medStartDate; ; ) {
+      const cur = new Date(iso + 'T00:00:00');
+      if (cur > end) break;
+      const info = V40.malariaForDate(iso);
+      const when = V40.reminderDateFor(iso);
+      if (when && when.getTime() > Date.now()) {
+        scheduleOrFire(when, {
+          title: info.zone ? '🦟💊 Malaria tablet — in the zone' : '💊 Malaria tablet',
+          body: `Take your tablet — ${V40.phaseText(iso, info)}. With food.`,
+          tag: 'malaria-' + iso,
+          dayDate: iso,
+          tabName: 'overview'
+        });
+      }
+      // advance one day
+      cur.setDate(cur.getDate() + 1);
+      iso = cur.toISOString().slice(0, 10);
+    }
+  }
+
   function scheduleAll() {
     if (!isEnabled() || permission() !== 'granted') return;
     scheduleMorningBriefs();
+    scheduleMalariaReminders();
     // Sunset warnings + fuel/pressure approach are checked LIVE from
     // onGpsUpdate (see hookGpsApproachAlerts below).
   }

@@ -51,7 +51,8 @@ const ORDER = [
   'pwa-v36-osm-step-maps.js',
   'pwa-v37-driving-mode.js',
   'pwa-v33-notifications.js',
-  'pwa-v38-ui.js'
+  'pwa-v38-ui.js',
+  'pwa-v40-malaria.js'
 ];
 
 function inlineScripts(files) {

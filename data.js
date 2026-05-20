@@ -3,6 +3,17 @@ window.NAMIBIA_TRIP_DATA = {
     "title": "Namibia Self-Drive Companion",
     "subtitle": "May 23 – June 4, 2026",
     "overviewDescription": "A 13-day self-drive loop from Windhoek: south into the Namib Desert for Sossusvlei, Deadvlei, Sesriem and a Dune Star sleep-out; west to the Atlantic at Swakopmund and Walvis Bay; inland to the granite inselberg of Spitzkoppe; north to Etosha's quiet King Nehale corner; then back to Windhoek. Roughly 2,700 km — a mix of fast paved B-roads and long, corrugated gravel C- and D-roads with remote no-fuel stretches that demand strict fuel and tyre-pressure discipline: drop pressure for gravel and sand, raise it again before tar, and never roll past Rehoboth, Solitaire, Sesriem, Usakos or Omuthiya without topping up (NWR fuel inside Etosha is unreliable in 2025–26 — carry a jerry can). Daylight is short in late May, so every day is timed to reach the night's lodge before sunset. Heather drives as relief on the easy paved sections — a target of about 20–40% of each self-drive day — while David keeps the mountain passes, deep sand and technical gravel.",
+    "malaria": {
+      "source": "CDC Traveler Health — Namibia (wwwnc.cdc.gov/travel/destinations/traveler/none/namibia)",
+      "regions": ["Otjozondjupa", "Oshikoto", "Kunene (northern Etosha / King Nehale)"],
+      "note": "Northern Etosha (King Nehale, Oshikoto) is a CDC malaria risk area; risk starts on the drive north into Otjozondjupa. Take your tablet daily with food — start 2 days before the zone, continue 7 days after leaving. Late May/early June is the tail of the season but risk is elevated in the 2026 outbreak year.",
+      "entryDate": "2026-05-31",
+      "exitDate": "2026-06-03",
+      "zoneDates": ["2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"],
+      "medStartDate": "2026-05-29",
+      "medEndDate": "2026-06-10",
+      "postTripReminderHour": 9
+    },
     "fuelAssumptions": {
       "vehicle": "Namibia2Go-style 4x4, assumed Toyota Hilux/Fortuner-type diesel",
       "tankLitres": 80,
