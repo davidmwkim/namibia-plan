@@ -17,16 +17,30 @@
   // Surface is shown on a SEPARATE channel (dash pattern) from Heather status
   // (line colour) so the two never clash: solid = paved, dashed = gravel,
   // dotted = sand/unpaved.
-  const SURFACE_DASH = { paved: null, urban: null, gravel: '10 8', mixed: '10 8', sand: '2 9', unpaved: '2 9' };
-  function dashForSurface(surface) { return surface ? (SURFACE_DASH[surface] || null) : null; }
-  // A thin white dashed/dotted line drawn ON TOP of the solid coloured route to
-  // indicate surface (gravel/sand) as a texture, without dimming the colour.
+  // Surface visuals come from the SHARED vocabulary in lib/driving-core
+  // (NamibiaDrivingCore.SURFACE_VIS) so the route maps and the Overview/driving
+  // summary bar stay in sync. Local fallback mirrors it if the engine is absent.
+  const SURFACE_VIS_FALLBACK = {
+    paved: { dash: null, color: null }, gravel: { dash: '9 7', color: '#e5e7eb' },
+    dirt: { dash: '10 5 2 5', color: '#d8b48c' }, unpaved: { dash: '10 5 2 5', color: '#d8b48c' },
+    sand: { dash: '2 8', color: '#f2d9a8' }, urban: { dash: '2 6', color: '#ffffff' },
+    mixed: { dash: '9 7', color: '#e5e7eb' }
+  };
+  function surfaceVis(surface) {
+    const V = (window.NamibiaDrivingCore && window.NamibiaDrivingCore.SURFACE_VIS) || SURFACE_VIS_FALLBACK;
+    return V[surface] || V.mixed || { dash: null, color: null };
+  }
+  function dashForSurface(surface) { return surface ? (surfaceVis(surface).dash || null) : null; }
+  // A thin TINTED dashed/dotted line drawn ON TOP of the solid Heather-coloured
+  // line to indicate surface — same vocabulary as the summary bar (paved = no
+  // overlay/solid, gravel = grey dashes, sand = tan dots, dirt = brown dash-dot,
+  // town = white dots).
   function addSurfaceOverlay(map, latlngs, surface, store) {
-    const dash = dashForSurface(surface);
-    if (!dash || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
+    const vis = surfaceVis(surface);
+    if (!vis.dash || !vis.color || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
     try {
       const ov = window.L.polyline(latlngs, {
-        color: '#ffffff', weight: 2.4, opacity: 0.92, dashArray: dash,
+        color: vis.color, weight: 2.6, opacity: 0.95, dashArray: vis.dash,
         lineCap: 'round', lineJoin: 'round', interactive: false
       }).addTo(map);
       if (Array.isArray(store)) store.push(ov);

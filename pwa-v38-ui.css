@@ -89,6 +89,8 @@
 .surf-dirt   { background-color: #8b5a2b; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 4px, transparent 4px 9px); }
 .surf-urban  { background-color: #cbd5e1; background-image: repeating-linear-gradient(90deg, #475569 0 4px, #cbd5e1 4px 8px); }
 .surf-mixed  { background-color: #b8a8c8; }
+.hbar-surflegend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 10.5px; color: var(--muted, #6f6368); margin: 5px 0 0 52px; }
+.hbar-surflegend .surf-line { width: 22px; height: 8px; }
 
 /* Compact bar inside the (dark) driving sticky header. */
 .drive-heather { margin: 6px 0 2px; }

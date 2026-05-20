@@ -158,16 +158,22 @@
       return `<span class="hbar-surf surf-${l.surface}" style="left:${left}%;width:${w}%" title="${surfLabel(l.surface)}"></span>`;
     }).join('');
     // Namibia-style speed-limit signs at each speed CHANGE along the route.
-    let speedMarks = '', prevSpd = null;
+    let speedMarks = '', prevSpd = null, lastLeft = -99;
     legs.forEach(l => {
       const spd = legSpeed(l.surface);
-      if (spd !== prevSpd){ speedMarks += `<span class="spd-mark" style="left:${(l.t0Frac * 100).toFixed(2)}%" title="≈ ${spd} km/h">${spd}</span>`; prevSpd = spd; }
+      if (spd === prevSpd) return;
+      prevSpd = spd;
+      let pos = Math.max(l.t0Frac * 100, lastLeft + 6); // nudge apart so signs don't overlap
+      pos = Math.min(98, pos);
+      lastLeft = pos;
+      speedMarks += `<span class="spd-mark" style="left:${pos.toFixed(2)}%" title="≈ ${spd} km/h">${spd}</span>`;
     });
     return `<div class="hbar${opts.compact ? ' hbar-compact' : ''}">
       <div class="hbar-row hbar-speedrow"><span class="hbar-rowlab"></span><div class="hbar-speedtrack">${speedMarks}</div></div>
       <div class="hbar-row"><span class="hbar-rowlab">drive</span><div class="hbar-track">${segs}</div></div>
       <div class="hbar-row hbar-stoprow"><span class="hbar-rowlab"></span><div class="hbar-stoptrack">${marks}${here}</div></div>
       <div class="hbar-row"><span class="hbar-rowlab">surface</span><div class="hbar-surftrack">${surfSegs}</div></div>
+      ${opts.compact ? '' : `<div class="hbar-surflegend"><span class="surf-line surf-paved"></span>paved <span class="surf-line surf-gravel"></span>gravel <span class="surf-line surf-sand"></span>sand <span class="surf-line surf-dirt"></span>dirt <span class="surf-line surf-urban"></span>town · same patterns appear on every route map</div>`}
     </div>`;
   }
 
