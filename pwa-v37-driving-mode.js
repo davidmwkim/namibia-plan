@@ -66,6 +66,7 @@
       <div class="df-bar">
         <span class="df-sun" id="dfSun"></span>
         <span class="df-actions">
+          <button class="df-btn df-demo" id="dfDemo" title="Replay this day at speed with voice guidance">▶ Demo</button>
           <button class="df-btn" id="dfMute" title="Mute / unmute voice">🔊</button>
           <button class="df-btn df-exit" id="dfExit" title="Exit driving mode">✕ Exit</button>
         </span>
@@ -75,6 +76,7 @@
       <div class="df-sv" id="dfSv"></div>`;
     document.body.appendChild(overlay);
     overlay.querySelector('#dfExit').onclick = exitFocus;
+    overlay.querySelector('#dfDemo').onclick = toggleDemo;
     overlay.querySelector('#dfMute').onclick = () => {
       try {
         if (window.NamibiaTTS) {
@@ -142,8 +144,35 @@
 
   function onKey(e) { if (e.key === 'Escape') exitFocus(); }
 
+  // Start/stop the high-speed demo from inside Driving mode. Unlocks audio on
+  // the user gesture (required for the first voice line on mobile) and fires a
+  // confirmation line, then the demo drives GPS/clock → turn, pressure, sunset
+  // and rain warnings all voice through v13's onGpsUpdate.
+  function toggleDemo() {
+    const Demo = window.NamibiaDemo;
+    if (!Demo) return;
+    if (Demo.isRunning && Demo.isRunning()) { Demo.stopDemo(); return; }
+    try {
+      if (window.NamibiaTTS) {
+        window.NamibiaTTS.unlockOnGesture && window.NamibiaTTS.unlockOnGesture();
+        window.NamibiaTTS.speak('demo_starting');
+      }
+    } catch (_) {}
+    const durEl = document.getElementById('demoDuration');
+    const dur = durEl ? Number(durEl.value) : 0;
+    Demo.startDemo(dur > 0 ? { durationMs: dur * 1000 } : {});
+  }
+
   function refreshFocus(force) {
     if (!overlay) return;
+    // Reflect demo running state on the button.
+    const demoBtn = overlay.querySelector('#dfDemo');
+    if (demoBtn) {
+      const running = window.NamibiaDemo && window.NamibiaDemo.isRunning && window.NamibiaDemo.isRunning();
+      const label = running ? '⏹ Stop' : '▶ Demo';
+      if (demoBtn.textContent !== label) demoBtn.textContent = label;
+      demoBtn.classList.toggle('df-demo-on', !!running);
+    }
     const { route, card, idx } = activeCard();
     // Keep the shared GPS dot current + drive the heading-up navigation camera:
     // follow the driver and rotate the map so travel direction is always "up".

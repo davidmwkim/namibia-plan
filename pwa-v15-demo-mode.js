@@ -165,8 +165,11 @@
     if (typeof state !== 'undefined' && state.driving) {
       state.driving.demoMode = true;
       state.driving.lastDemoActiveIdx = -1;
-      // Reset the announce frontier so every card voices from the start.
+      // Reset announce state so every warning (cards, sunset, rain) re-fires
+      // from the start of the playback.
       state.driving._lastAnnouncedIdx = -1;
+      state.driving._rainWarned = false;
+      state.driving.lastSunsetSeverity = 'safe';
     }
 
     const startTs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -321,6 +324,7 @@
   window.NamibiaDemo = {
     startDemo,
     stopDemo,
+    isRunning: isDemoRunning,
     interpPolyline,
     buildDrivePath,
     cardCursor,

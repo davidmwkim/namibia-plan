@@ -51,6 +51,8 @@
   cursor: pointer;
 }
 .df-btn.df-exit { background: #5a1738; font-weight: 600; }
+.df-btn.df-demo { background: #16a34a; font-weight: 600; }
+.df-btn.df-demo.df-demo-on { background: #b91c1c; }
 
 /* The map takes the largest share; card + street view get fixed-ish heights. */
 .df-map {

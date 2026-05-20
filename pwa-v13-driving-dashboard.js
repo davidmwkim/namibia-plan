@@ -145,6 +145,19 @@
     // Sunset risk.
     evaluateSunsetRisk(route);
 
+    // Rain warning: announce once when entering a stretch the forecast says is
+    // rainy (weather attached per-step by v23), reset when it clears so the
+    // next rainy run warns again.
+    const curStep = route.legs?.[state.driving.legIdx]?.steps?.[state.driving.stepIdx];
+    const rainyAhead = !state.driving.offRoute && !!(curStep && curStep.weatherAtEta && curStep.weatherAtEta.rainy);
+    if (rainyAhead && !state.driving._rainWarned) {
+      state.driving._rainWarned = true;
+      const tts = TTS();
+      if (tts) tts.speak('rain_warning', null, { force: true });
+    } else if (!rainyAhead && state.driving._rainWarned) {
+      state.driving._rainWarned = false;
+    }
+
     // Re-render the dashboard if it's active, and auto-scroll on card change.
     if (state.activeTab === 'street') {
       renderDashboardLive(route, prevActive !== state.driving.activeCardIndex);
@@ -165,7 +178,9 @@
       state.driving.lastSunsetSeverity = margin.severity;
       if (margin.severity === 'tight' || margin.severity === 'risk') {
         const tts = TTS();
-        if (tts) tts.speak(margin.severity === 'risk' ? 'sunset_risk_warning' : 'sunset_risk_tight');
+        // Force past the demo throttle — a "behind schedule for sunset" warning
+        // is safety-critical and must always be heard.
+        if (tts) tts.speak(margin.severity === 'risk' ? 'sunset_risk_warning' : 'sunset_risk_tight', null, { force: true });
       }
       state.driving.lastSunsetTransition = transition;
     }

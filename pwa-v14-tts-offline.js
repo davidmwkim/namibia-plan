@@ -22,6 +22,7 @@
     pressure_lower:      'Tyre pressure action coming up. Lower pressure before the next section.',
     pressure_raise:      'Tyre pressure action coming up. Raise pressure for the upcoming road.',
     fuel_stop:           'Fuel stop coming up. Top up before the next remote section.',
+    rain_warning:        'Rain is forecast on the road ahead. Slow down — gravel turns slippery and visibility drops.',
     demo_starting:       'Demo playback starting. Cards will scroll automatically as the simulated GPS moves along the route.'
   };
 
