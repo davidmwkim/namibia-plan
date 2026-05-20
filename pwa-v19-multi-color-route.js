@@ -17,11 +17,11 @@
 //    granted; on desktop it's a no-op.
 (function () {
   const COLORS = {
-    yes:   '#16a34a',
-    maybe: '#f59e0b',
+    yes:   '#15803d',
+    maybe: '#eab308',
     no:    '#dc2626'
   };
-  const STATIC_HEX = { yes: '0x16a34a', maybe: '0xf59e0b', no: '0xdc2626' };
+  const STATIC_HEX = { yes: '0x15803d', maybe: '0xeab308', no: '0xdc2626' };
 
   // Distance threshold (m): if a Heather segment's from/to is within this many
   // metres of a stop, we consider it a match.

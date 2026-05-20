@@ -19,8 +19,8 @@
 //   red    #dc2626
 (function () {
   const STATUS_META = {
-    yes:   { emoji: '🟢', color: '#16a34a', label: 'Heather OK leg' },
-    maybe: { emoji: '🟡', color: '#f59e0b', label: 'Heather maybe leg' },
+    yes:   { emoji: '🟢', color: '#15803d', label: 'Heather OK leg' },
+    maybe: { emoji: '🟡', color: '#eab308', label: 'Heather maybe leg' },
     no:    { emoji: '🔴', color: '#dc2626', label: 'David drives' },
     na:    { emoji: '⚪', color: '#9ca3af', label: 'Not self-drive' }
   };

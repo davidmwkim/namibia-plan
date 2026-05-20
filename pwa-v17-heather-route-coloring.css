@@ -20,8 +20,8 @@
   border-radius: 50%;
   border: 1px solid rgba(0,0,0,0.15);
 }
-.heather-leg-chip.heather-yes   { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
-.heather-leg-chip.heather-maybe { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+.heather-leg-chip.heather-yes   { background: #ecfdf5; color: #15803d; border-color: #86efac; }
+.heather-leg-chip.heather-maybe { background: #fefce8; color: #a16207; border-color: #fde047; }
 .heather-leg-chip.heather-no    { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
 .heather-leg-chip.heather-na    { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
 
@@ -70,8 +70,8 @@
   height: 100%;
   transition: width 200ms ease;
 }
-.heather-chip-gradient .heather-bar-yes   { background: #16a34a; }
-.heather-chip-gradient .heather-bar-maybe { background: #f59e0b; }
+.heather-chip-gradient .heather-bar-yes   { background: #15803d; }
+.heather-chip-gradient .heather-bar-maybe { background: #eab308; }
 .heather-chip-gradient .heather-bar-no    { background: #dc2626; }
 
 .heather-chip-gradient .heather-bar-text {
@@ -85,8 +85,8 @@
 }
 .heather-chip-gradient .heather-bar-text strong { font-size: 14px; line-height: 1; }
 .heather-chip-gradient .heather-bar-num { white-space: nowrap; }
-.heather-chip-gradient .heather-bar-num-yes   { color: #047857; }
-.heather-chip-gradient .heather-bar-num-maybe { color: #b45309; }
+.heather-chip-gradient .heather-bar-num-yes   { color: #15803d; }
+.heather-chip-gradient .heather-bar-num-maybe { color: #a16207; }
 .heather-chip-gradient .heather-bar-num-no    { color: #b91c1c; }
 
 /* On mobile, keep it compact. */

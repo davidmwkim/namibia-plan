@@ -13,7 +13,7 @@
 // device — unlike MapLibre GL 4.x which needs WebGL2. The dashboard (v32), the
 // Overview map (v35 takeover), and the per-step mini-maps all build on this.
 (function () {
-  const COLORS = { yes: '#16a34a', maybe: '#f59e0b', no: '#dc2626' };
+  const COLORS = { yes: '#15803d', maybe: '#eab308', no: '#dc2626' };
   // Surface is shown on a SEPARATE channel (dash pattern) from Heather status
   // (line colour) so the two never clash: solid = paved, dashed = gravel,
   // dotted = sand/unpaved.
