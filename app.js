@@ -291,7 +291,7 @@ function useGps(){
   if(!navigator.geolocation){ setStatus('gpsStatus','GPS unsupported'); return; }
   setStatus('gpsStatus','GPS: requesting…');
   navigator.geolocation.watchPosition(pos=>{
-    state.gps={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    state.gps={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};
     setStatus('gpsStatus',`GPS: ${Math.round(pos.coords.accuracy)}m`);
     render();
   },err=>{ setStatus('gpsStatus','GPS failed'); log('GPS error: '+err.message); },{enableHighAccuracy:true,maximumAge:30000,timeout:15000});

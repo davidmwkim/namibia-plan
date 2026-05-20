@@ -15,7 +15,6 @@
 // updateDriveMap in pwa-v13).
 (function () {
   let lMap = null;
-  let gpsMarker = null;
   let routeLayers = [];
   let ready = false;
   let boundHost = null;
@@ -32,29 +31,29 @@
     // Otherwise v13 rebuilt the dashboard and replaced the host div — tear
     // down the orphan and rebuild on the new element.
     if (lMap) {
+      if (window.NamibiaOSM) window.NamibiaOSM.unregisterMap(lMap);
       try { lMap.remove(); } catch (_) {}
-      lMap = null; gpsMarker = null; routeLayers = []; ready = false; lastDrawnDayKey = null;
+      lMap = null; routeLayers = []; ready = false; lastDrawnDayKey = null;
     }
     boundHost = host;
-    host.innerHTML = '';
     try {
-      lMap = window.L.map(host, {
-        zoomControl: true,
-        attributionControl: true,
-        // Touch-friendly; let the page scroll unless interacting with map.
-        scrollWheelZoom: true
-      }).setView([-22.5, 17.0], 6);
-      window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-        crossOrigin: true
-      }).addTo(lMap);
+      // Build via the shared OSM core when available so the map joins the
+      // shared GPS layer (blue dot + accuracy ring) used by every map.
+      const OSM = window.NamibiaOSM;
+      lMap = OSM
+        ? OSM.createMap(host, { center: [-22.5, 17.0], zoom: 6 })
+        : (function () {
+            host.innerHTML = '';
+            const m = window.L.map(host, { scrollWheelZoom: true }).setView([-22.5, 17.0], 6);
+            window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19, attribution: '&copy; OpenStreetMap contributors', crossOrigin: true
+            }).addTo(m);
+            return m;
+          })();
       ready = true;
-      // Leaflet needs invalidateSize() if the container's size settled after
-      // creation (e.g. tab just became visible).
-      setTimeout(() => { try { lMap.invalidateSize(); } catch (_) {} }, 60);
+      if (OSM) OSM.registerMap(lMap);
       drawRouteForCurrentDay();
-      updateGpsMarker();
+      if (OSM) OSM.updateAllGps();
     } catch (e) {
       if (typeof log === 'function') log('OSM (Leaflet) init failed: ' + (e?.message || e));
       lMap = null; ready = false;
@@ -110,21 +109,11 @@
     } catch (_) {}
   }
 
-  function updateGpsMarker() {
+  // The dashboard map recenters on the live GPS position (full-screen driving
+  // view), unlike the overview/per-step maps which stay framed on the route.
+  function recenterOnGps() {
     if (!lMap || !ready || !state.gps) return;
-    const ll = [Number(state.gps.lat), Number(state.gps.lng)];
-    if (!gpsMarker) {
-      const icon = window.L.divIcon({
-        className: 'ml-gps-icon',
-        html: '<div class="ml-gps-dot"></div>',
-        iconSize: [18, 18],
-        iconAnchor: [9, 9]
-      });
-      gpsMarker = window.L.marker(ll, { icon, zIndexOffset: 1000 }).addTo(lMap);
-    } else {
-      gpsMarker.setLatLng(ll);
-    }
-    try { lMap.panTo(ll, { animate: true, duration: 0.25 }); } catch (_) {}
+    try { lMap.panTo([Number(state.gps.lat), Number(state.gps.lng)], { animate: true, duration: 0.25 }); } catch (_) {}
   }
 
   // ---- Public hooks called from v13 ----
@@ -137,13 +126,15 @@
     initMap();
     if (!ready) return false;
     drawRouteForCurrentDay();
-    updateGpsMarker();
+    if (window.NamibiaOSM) window.NamibiaOSM.updateAllGps();
+    recenterOnGps();
     return true;
   }
   function teardown() {
     if (!lMap) return;
+    if (window.NamibiaOSM) window.NamibiaOSM.unregisterMap(lMap);
     try { lMap.remove(); } catch (_) {}
-    lMap = null; gpsMarker = null; routeLayers = []; ready = false; lastDrawnDayKey = null;
+    lMap = null; routeLayers = []; ready = false; lastDrawnDayKey = null;
   }
 
   window.NamibiaOsmMap = {

@@ -50,7 +50,7 @@
 
   // ---- GPS spoofing seam ----
   function pushGps(p) {
-    state.gps = { lat: Number(p.lat), lng: Number(p.lng) };
+    state.gps = { lat: Number(p.lat), lng: Number(p.lng), accuracy: Number(p.accuracy) || 30 };
     setStatus('gpsStatus', `GPS: spoofed (${p.lat.toFixed(4)}, ${p.lng.toFixed(4)})`);
     onGpsUpdate();
     if (typeof render === 'function') render();
@@ -58,7 +58,7 @@
   // Silent variant: update state + dashboard partial-render only. Used by
   // demo mode so we don't burn 20 full renderTab cascades per second.
   function pushGpsSilent(p) {
-    state.gps = { lat: Number(p.lat), lng: Number(p.lng) };
+    state.gps = { lat: Number(p.lat), lng: Number(p.lng), accuracy: Number(p.accuracy) || 30 };
     onGpsUpdate();
   }
   window.__namibiaSpoofGps = pushGps;
@@ -163,7 +163,7 @@
       if (!navigator.geolocation) { setStatus('gpsStatus', 'GPS unsupported'); return; }
       setStatus('gpsStatus', 'GPS: requesting…');
       navigator.geolocation.watchPosition(pos => {
-        state.gps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        state.gps = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
         setStatus('gpsStatus', `GPS: ${Math.round(pos.coords.accuracy)}m`);
         onGpsUpdate();
         if (typeof render === 'function') render();

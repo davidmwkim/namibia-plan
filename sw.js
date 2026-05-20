@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.27.4';
+const APP_VERSION = '1.28.0';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -56,6 +56,7 @@ const ASSETS = [
   './pwa-v30-gestures.css',
   './pwa-v31-polish.js',
   './pwa-v31-polish.css',
+  './pwa-v34-osm-core.js',
   './pwa-v32-osm-map.js',
   './pwa-v32-osm-map.css',
   './pwa-v33-notifications.js',

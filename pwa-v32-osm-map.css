@@ -42,3 +42,24 @@
   overflow: hidden;
   background: #aadaff;
 }
+
+/* Shared descriptive pins (v34) — used on every OSM map. */
+.ml-pin-icon { background: transparent; border: 0; }
+.ml-pin {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pin, #16a34a);
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  font-size: 12px;
+}
+.ml-pin > span { transform: rotate(45deg); line-height: 1; }
+.ml-pop { font-size: 13px; max-width: 230px; }
+.ml-pop-head { font-size: 14px; margin-bottom: 2px; }
+.ml-pop-time { color: #6b7280; font-size: 12px; }
+.ml-pop-sub { color: #6b7280; font-size: 12px; margin-bottom: 4px; }
+.ml-pop-row { margin: 3px 0; line-height: 1.35; }
+.ml-pop-links { margin-top: 6px; font-size: 12px; }
