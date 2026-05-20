@@ -17,6 +17,30 @@
   let refreshTimer = null;
   let lastCardKey = null;
 
+  // ---- Heading-up navigation camera ----
+  const NAV_ZOOM = 16;
+  let navHeading = 0;        // smoothed heading-of-travel (deg, 0 = north)
+  let navLastGps = null;     // previous fix, for bearing
+  let onResize = null;
+
+  // Shortest-arc angular interpolation (handles the 360°→0° wrap).
+  function lerpAngle(a, b, t) {
+    const diff = ((b - a + 540) % 360) - 180;
+    return (a + diff * t + 360) % 360;
+  }
+
+  // Size the oversized inner so it always covers the clip box under any rotation
+  // (a square of side = the box diagonal, centered).
+  function sizeNavInner(host, inner) {
+    const r = host.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const D = Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height)) + 4;
+    inner.style.width = D + 'px';
+    inner.style.height = D + 'px';
+    inner.style.left = Math.round((r.width - D) / 2) + 'px';
+    inner.style.top = Math.round((r.height - D) / 2) + 'px';
+  }
+
   function fmtM(m) {
     if (typeof m !== 'number' || !isFinite(m)) return '';
     const km = m / 1000, mi = m / 1609.34;
@@ -67,24 +91,47 @@
     buildOverlay();
     document.documentElement.classList.add('df-open');
     const host = overlay.querySelector('#dfMap');
-    focusMap = OSM().createMap(host, { center: [-22.5, 17.0], zoom: 13 });
-    if (focusMap) OSM().registerMap(focusMap);
-    // Draw the day's colored route once so there's context around the dot.
+    host.classList.add('df-map-nav');
+    // Oversized inner that holds the real map and gets CSS-rotated heading-up;
+    // #dfMap clips it. A fixed chevron puck sits on top (never rotates).
+    const inner = document.createElement('div');
+    inner.className = 'df-map-inner';
+    host.appendChild(inner);
+    const chev = document.createElement('div');
+    chev.className = 'df-chevron';
+    chev.innerHTML = '<div class="df-chevron-arrow"></div>';
+    host.appendChild(chev);
+    sizeNavInner(host, inner);
+    focusMap = OSM().createMap(inner, {
+      center: [-22.5, 17.0], zoom: NAV_ZOOM,
+      zoomControl: false, attributionControl: true,
+      scrollWheelZoom: false, dragging: false, tap: false
+    });
+    if (focusMap) {
+      // Pure follow camera — kill every interaction handler.
+      try { ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach(h => focusMap[h] && focusMap[h].disable()); } catch (_) {}
+      OSM().registerMap(focusMap);
+    }
+    // Draw the day's colored route once so there's context around the puck.
     const { route } = activeCard();
     if (focusMap && route?.overviewPath?.length > 1) {
       OSM().drawColoredRoute(focusMap, route.overviewPath, day(), []);
     }
     if (window.NamibiaTTS) overlay.querySelector('#dfMute').textContent = window.NamibiaTTS.isMuted() ? '🔇' : '🔊';
     lastCardKey = null;
+    navHeading = 0; navLastGps = null;
     refreshFocus(true);
-    refreshTimer = setInterval(() => refreshFocus(false), 400);
+    refreshTimer = setInterval(() => refreshFocus(false), 250);
     document.addEventListener('keydown', onKey);
+    onResize = () => { const h = overlay && overlay.querySelector('#dfMap'); const inr = h && h.querySelector('.df-map-inner'); if (h && inr) { sizeNavInner(h, inr); try { focusMap.invalidateSize(); } catch (_) {} } };
+    window.addEventListener('resize', onResize);
   }
 
   function exitFocus() {
     if (!overlay) return;
     if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
     document.removeEventListener('keydown', onKey);
+    if (onResize) { window.removeEventListener('resize', onResize); onResize = null; }
     if (focusMap && OSM()) OSM().unregisterMap(focusMap);
     try { if (focusMap) focusMap.remove(); } catch (_) {}
     focusMap = null;
@@ -98,10 +145,19 @@
   function refreshFocus(force) {
     if (!overlay) return;
     const { route, card, idx } = activeCard();
-    // Keep the shared GPS dot current + recenter on the driver.
+    // Keep the shared GPS dot current + drive the heading-up navigation camera:
+    // follow the driver and rotate the map so travel direction is always "up".
     if (OSM()) OSM().updateAllGps();
     if (focusMap && state.gps) {
-      try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: true, duration: 0.3 }); } catch (_) {}
+      // Heading from movement (smoothed); hold last heading when stationary.
+      if (navLastGps) {
+        const moved = DC.distMeters(navLastGps, state.gps);
+        if (moved > 3) navHeading = lerpAngle(navHeading, DC.bearing(navLastGps, state.gps), 0.35);
+      }
+      navLastGps = { lat: state.gps.lat, lng: state.gps.lng };
+      try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: true, duration: 0.25 }); } catch (_) {}
+      const inner = overlay.querySelector('.df-map-inner');
+      if (inner) inner.style.transform = `rotate(${(-navHeading).toFixed(1)}deg)`;
     }
     // Sun / ETA chip mirrors the dashboard's.
     const sunEl = overlay.querySelector('#dfSun');
