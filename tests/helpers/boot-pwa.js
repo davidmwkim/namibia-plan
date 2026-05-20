@@ -52,7 +52,8 @@ const ORDER = [
   'pwa-v37-driving-mode.js',
   'pwa-v33-notifications.js',
   'pwa-v38-ui.js',
-  'pwa-v40-malaria.js'
+  'pwa-v40-malaria.js',
+  'pwa-v41-packing.js'
 ];
 
 function inlineScripts(files) {
