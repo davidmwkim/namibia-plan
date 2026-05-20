@@ -30,10 +30,23 @@
   function applySv(svEl, card) {
     if (!svEl) return;
     const url = currentSvUrl(card);
-    if (url === lastSvUrl) return;
+    // Nothing new available on the route → LEAVE the current image up (don't
+    // blank it). Only swap once a genuinely new image has loaded.
+    if (!url || url === lastSvUrl) return;
     lastSvUrl = url;
-    if (url) { svEl.innerHTML = `<img src="${esc(url)}" alt="Street view" loading="eager">`; svEl.style.display = ''; }
-    else { svEl.innerHTML = ''; svEl.style.display = 'none'; }
+    const img = new Image();
+    img.alt = 'Street view';
+    img.loading = 'eager';
+    img.onload = () => {
+      if (lastSvUrl !== url) return;       // a newer position superseded this one
+      svEl.innerHTML = '';
+      svEl.appendChild(img);
+      svEl.style.display = '';
+    };
+    // On error (uncached/offline) keep whatever good image is showing — the
+    // next frame along the route will swap it in.
+    img.onerror = () => {};
+    img.src = url;
   }
   let chevMarker = null;     // the chevron lives ON the map (at the GPS) so it
                              // can never drift from the dot/route during panning
