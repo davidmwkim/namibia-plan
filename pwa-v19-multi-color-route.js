@@ -79,10 +79,24 @@
       const route = (typeof state !== 'undefined' && state.renderedRoutes && day) ? state.renderedRoutes[day.date] : null;
       if (DC && DC.heatherLegs && route && route.legs && route.legs.length && route.overviewPath === path) {
         const legs = DC.heatherLegs(route);
-        if (legs.length) return legs.map(l => ({
-          fromIdx: Math.min(l.fromIdx, l.toIdx), toIdx: Math.max(l.fromIdx, l.toIdx),
-          status: l.status, label: STATUS_WHO[l.status] || 'David', reason: ''
-        }));
+        if (legs.length) {
+          // Make the partitions CONTIGUOUS so the polyline has no gaps: each leg
+          // spans from its own start vertex to where the NEXT leg starts (and the
+          // first/last legs extend to the route ends). Without this, the stretch
+          // between one leg's last-step start and the next leg's first-step start
+          // — and the route start/end — go undrawn, splitting the line.
+          const sorted = legs
+            .map(l => ({ fromIdx: Math.min(l.fromIdx, l.toIdx), status: l.status }))
+            .sort((a, b) => a.fromIdx - b.fromIdx);
+          const out = [];
+          for (let i = 0; i < sorted.length; i++) {
+            const fromIdx = i === 0 ? 0 : sorted[i].fromIdx;
+            const toIdx = i === sorted.length - 1 ? (path.length - 1) : sorted[i + 1].fromIdx;
+            if (toIdx <= fromIdx && i !== sorted.length - 1) continue; // drop zero-length non-final
+            out.push({ fromIdx, toIdx, status: sorted[i].status, label: STATUS_WHO[sorted[i].status] || 'David', reason: '' });
+          }
+          if (out.length) return out;
+        }
       }
     } catch (_) {}
     const stops = (day.stops || []).filter(s => s.routeRole === 'mandatory');
@@ -132,11 +146,28 @@
     return out;
   }
 
-  // Convenience: which partition contains the given step?
+  // Which Heather status applies to a given step. Computed DIRECTLY from the
+  // rule engine with the same prevCtx carry as heatherLegs, so a step's status
+  // is exact — not a path-index lookup, which mis-assigns steps that land on a
+  // partition boundary vertex.
   function partitionForStep(route, day, legIdx, stepIdx) {
-    const path = route?.overviewPath;
     const step = route?.legs?.[legIdx]?.steps?.[stepIdx];
-    if (!path || !step) return null;
+    if (!step) return null;
+    const DC = window.NamibiaDrivingCore;
+    if (DC && DC.rateStep && route.legs) {
+      let prev = {};
+      for (let li = 0; li < route.legs.length; li++) {
+        const steps = route.legs[li].steps || [];
+        for (let si = 0; si < steps.length; si++) {
+          const r = DC.rateStep(steps[si], prev);
+          prev = { surface: r.surface, code: r.code };
+          if (li === legIdx && si === stepIdx) return { status: r.status, label: STATUS_WHO[r.status] || 'David', reason: '' };
+        }
+      }
+    }
+    // Fallback: path-index lookup against the authored partitions.
+    const path = route?.overviewPath;
+    if (!path) return null;
     const parts = partitionPath(path, day);
     const idx = nearestPathIdx(path, { lat: step.lat, lng: step.lng }).idx;
     return parts.find(p => idx >= p.fromIdx && idx <= p.toIdx) || null;
