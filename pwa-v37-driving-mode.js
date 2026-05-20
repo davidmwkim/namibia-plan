@@ -16,6 +16,25 @@
   let focusMap = null;
   let refreshTimer = null;
   let lastCardKey = null;
+  let lastSvUrl = null;
+  // Current Street-View image: prefer the pre-sampled 5 km grid frame nearest
+  // our GPS (updates every ~5 km, even within one long card), else the card's.
+  function currentSvUrl(card) {
+    try {
+      const route = activeCard().route;
+      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlForGps && window.NamibiaV12.svFrameUrlForGps(route, state.gps);
+      if (f) return f;
+    } catch (_) {}
+    return (card && card.streetViewUrl) || '';
+  }
+  function applySv(svEl, card) {
+    if (!svEl) return;
+    const url = currentSvUrl(card);
+    if (url === lastSvUrl) return;
+    lastSvUrl = url;
+    if (url) { svEl.innerHTML = `<img src="${esc(url)}" alt="Street view" loading="eager">`; svEl.style.display = ''; }
+    else { svEl.innerHTML = ''; svEl.style.display = 'none'; }
+  }
   let chevMarker = null;     // the chevron lives ON the map (at the GPS) so it
                              // can never drift from the dot/route during panning
   let programmaticMove = false; // true while WE pan/zoom, so our own moves don't
@@ -24,8 +43,9 @@
   // ---- Heading-up navigation camera ----
   const NAV_ZOOM = 16;       // street-level for both real driving AND the demo
                              // (the demo is slowed to a tile-friendly pace)
-  const NAV_TILT = 52;       // degrees of 3-D pitch (rotateX), Google-nav style
-  const NAV_PERSPECTIVE = 1000; // px; smaller = stronger perspective
+  const NAV_TILT = 62;       // degrees of 3-D pitch (rotateX); higher = more
+                             // "behind the chevron" (Google-nav driver's view)
+  const NAV_PERSPECTIVE = 900; // px; smaller = stronger perspective
   let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
   let navLastGps = null;     // previous fix, for movement bearing
   let navFollow = true;      // true = follow + heading-up + tilt; false = free look
@@ -94,7 +114,7 @@
 
   // The GPS sits this far down the map (0.5 = centre). Lower = more road ahead
   // visible above the puck, like Google nav.
-  const NAV_FOCUS_Y = 0.66;
+  const NAV_FOCUS_Y = 0.74;
 
   // Size the oversized inner so it always covers the clip box under rotation +
   // tilt (a square ~1.5× the diagonal), and position it so its CENTRE — where
@@ -103,7 +123,7 @@
   function sizeNavInner(host, inner) {
     const r = host.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    const D = Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height) * 1.5) + 4;
+    const D = Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height) * 1.7) + 4;
     inner.style.width = D + 'px';
     inner.style.height = D + 'px';
     inner.style.left = Math.round((r.width - D) / 2) + 'px';
@@ -347,18 +367,13 @@
         <div class="df-card-kind">${kindIcon} ${esc(card.kind)}</div>
         <div class="df-card-title">${esc(card.title || '')}</div>
         <div class="df-card-sub"><span class="df-dist" id="dfDist">${esc(fmtM(distLabel))}</span> ${card.body ? '· ' + esc(card.body) : ''}</div>`;
-      const sv = overlay.querySelector('#dfSv');
-      if (card.streetViewUrl) {
-        sv.innerHTML = `<img src="${esc(card.streetViewUrl)}" alt="Street view" loading="eager">`;
-        sv.style.display = '';
-      } else {
-        sv.innerHTML = '';
-        sv.style.display = 'none';
-      }
+      lastSvUrl = null; // force a refresh for the new card
+      applySv(overlay.querySelector('#dfSv'), card);
     } else {
-      // Same card — just refresh the live distance readout.
+      // Same card — refresh the live distance readout + the 5 km Street-View band.
       const distEl = overlay.querySelector('#dfDist');
       if (distEl) { const t = fmtM(distLabel); if (distEl.textContent !== t) distEl.textContent = t; }
+      applySv(overlay.querySelector('#dfSv'), card);
     }
   }
 

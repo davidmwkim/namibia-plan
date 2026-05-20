@@ -250,6 +250,15 @@
   // Compute a fresh Street View URL anchored at the current GPS position.
   function dynamicStreetViewUrl() {
     if (!state.gps || !state.apiKey) return null;
+    // Prefer the pre-sampled 5 km grid frame nearest our route progress, so the
+    // image is stable across a whole 5 km band (cacheable) instead of a fresh
+    // fetch every GPS tick.
+    try {
+      const d = (typeof day === 'function') ? day() : null;
+      const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
+      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlForGps && window.NamibiaV12.svFrameUrlForGps(route, state.gps);
+      if (f) return f;
+    } catch (_) {}
     const heading = state.driving?.heading ?? 0;
     const p = new URLSearchParams({
       size: '320x180',

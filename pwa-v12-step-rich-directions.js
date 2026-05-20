@@ -166,9 +166,21 @@
   }
 
   // Build cards array for a given day, ordered along the route.
-  function buildCards(d, legs) {
+  function buildCards(d, legs, overviewPath) {
     const cards = [];
     const date = d.date;
+    // Min distance from a point to the route polyline (sampled every other
+    // vertex). Used to drop off-route optional stops the route doesn't pass.
+    const distToPath = (ev) => {
+      if (!Array.isArray(overviewPath) || !overviewPath.length) return 0;
+      let min = Infinity;
+      for (let i = 0; i < overviewPath.length; i += 2) {
+        const dm = DC.distMeters(ev, overviewPath[i]);
+        if (dm < min) min = dm;
+        if (min < 3000) return min;
+      }
+      return min;
+    };
     legs.forEach((leg, li) => {
       leg.steps.forEach((step, si) => {
         cards.push({
@@ -185,33 +197,41 @@
         });
       });
     });
-    // Insert fuel/pressure cards near the closest mandatory stop with that note.
-    const stops = (d.stops || []).filter(s => s.routeRole === 'mandatory' || s.routeRole === 'mandatoryAction');
+    // Fuel/pressure cards for EVERY stop we pass that carries an action (not just
+    // mandatory ones). Optional fly-bys use softer "passing" wording + keys so
+    // the TTS calls them out without the urgency of a mandatory action. Off-route
+    // optional stops are dropped below by the >3 km nearest-step filter.
+    const stops = (d.stops || []).filter(s => s.pressure || s.fuel);
     stops.forEach(s => {
+      const optional = !(s.routeRole === 'mandatory' || s.routeRole === 'mandatoryAction');
       if (s.pressure) {
         const isLower = /lower|deflate|drop|sand|gravel/i.test(s.pressure);
         cards.push({
           kind: 'pressure',
-          stopName: s.name,
+          stopName: s.name, optional,
           lat: s.lat, lng: s.lng,
-          title: `${isLower ? 'Lower' : 'Raise'} tyre pressure — ${s.name}`,
+          title: `${optional ? 'Tyre check' : (isLower ? 'Lower' : 'Raise') + ' tyre pressure'} — ${s.name}`,
           body: s.pressure,
-          ttsKey: isLower ? 'pressure_lower' : 'pressure_raise',
-          ttsText: isLower
-            ? `Tyre pressure action coming up. Lower pressure before the next section.`
-            : `Tyre pressure action coming up. Raise pressure for the upcoming road.`,
+          ttsKey: optional ? 'pressure_check_passing' : (isLower ? 'pressure_lower' : 'pressure_raise'),
+          ttsText: optional
+            ? `Tyre service available at ${s.name} if you need it.`
+            : (isLower
+              ? `Tyre pressure action coming up. Lower pressure before the next section.`
+              : `Tyre pressure action coming up. Raise pressure for the upcoming road.`),
           triggerRadiusM: 1500
         });
       }
       if (s.fuel) {
         cards.push({
           kind: 'fuel',
-          stopName: s.name,
+          stopName: s.name, optional,
           lat: s.lat, lng: s.lng,
-          title: `Fuel stop — ${s.name}`,
+          title: `${optional ? 'Fuel option' : 'Fuel stop'} — ${s.name}`,
           body: s.fuel,
-          ttsKey: 'fuel_stop',
-          ttsText: `Fuel stop coming up. Top up at ${s.name}.`,
+          ttsKey: optional ? 'fuel_stop_passing' : 'fuel_stop',
+          ttsText: optional
+            ? `Passing a fuel station at ${s.name}. Top up if your gauge is low.`
+            : `Fuel stop coming up. Top up at ${s.name}.`,
           triggerRadiusM: 1500
         });
       }
@@ -228,12 +248,17 @@
         if (d2 < bestD) { bestD = d2; bestIdx = i; }
       });
       ev._insertAfter = bestIdx;
+      // Drop criterion: distance to the ROUTE POLYLINE (not the nearest turn —
+      // a stop mid-long-step can be >3 km from any turn yet right on the road).
+      ev._routeD = distToPath(ev);
     });
-    // Merge.
+    // Merge. Drop event cards > 3 km from the route — an off-route town stop the
+    // route doesn't actually pass. (When overviewPath is absent, distToPath
+    // returns 0, so nothing is dropped pre-render.)
     const merged = [];
     stepCards.forEach((sc, i) => {
       merged.push(sc);
-      eventCards.filter(ev => ev._insertAfter === i).forEach(ev => merged.push(ev));
+      eventCards.filter(ev => ev._insertAfter === i && ev._routeD <= 3000).forEach(ev => { delete ev._routeD; merged.push(ev); });
     });
     // Carry an index for stable identity.
     merged.forEach((c, i) => { c.cardId = `${date}:${i}`; delete c._insertAfter; });
@@ -327,7 +352,27 @@
     });
     // tag legs with their index for ttsKey uniqueness
     route.legs.forEach((leg, li) => { leg.__legIdx = li; });
-    route.cards = buildCards(d, route.legs);
+    route.cards = buildCards(d, route.legs, overviewPath);
+    // Task 2: pre-sample Street View every ~5 km along the route for the Driver
+    // view. The same frame is reused across a 5 km band (so the URL is stable
+    // and SW-cacheable) instead of a fresh per-GPS-tick fetch. Self-drive days
+    // only. We store lat/lng/heading; consumers rebuild the deterministic URL
+    // with the live key so it works offline once cached.
+    route.svFrames = [];
+    if (d.selfDrive && overviewPath.length >= 2) {
+      const STEP_M = 5000;
+      let acc = 0, nextAt = 0;
+      for (let i = 0; i < overviewPath.length; i++) {
+        if (i > 0) acc += DC.distMeters(overviewPath[i - 1], overviewPath[i]);
+        if (acc >= nextAt) {
+          const here = overviewPath[i];
+          const ahead = overviewPath[Math.min(overviewPath.length - 1, i + 2)] || here;
+          const heading = DC.bearingForStreetView(here, ahead);
+          route.svFrames.push({ distM: Math.round(acc), lat: here.lat, lng: here.lng, heading, url: stepStreetViewUrl(here.lat, here.lng, heading) });
+          nextAt = acc + STEP_M;
+        }
+      }
+    }
     route.sunTimes = computeSunTimes(d);
     route.schemaVersion = 8;
     return route;
@@ -569,9 +614,26 @@
   }
 
   // Expose helpers for tests and v13/v14.
+  // Nearest 5 km Street-View frame to the current GPS, by route progress (not
+  // Euclidean — avoids picking the wrong frame at hairpins). Returns a freshly
+  // built URL (deterministic params → SW-cache hit) or '' when unavailable.
+  function svFrameUrlForGps(route, gps) {
+    const frames = route && route.svFrames;
+    if (!frames || !frames.length || !gps) return '';
+    const path = route.overviewPath || [];
+    let progress = 0;
+    try { progress = DC.routeProgressM ? DC.routeProgressM(path, gps) : 0; } catch (_) { progress = 0; }
+    let best = frames[0], bestD = Infinity;
+    for (const f of frames) {
+      const dd = Math.abs(f.distM - progress);
+      if (dd < bestD) { bestD = dd; best = f; }
+    }
+    return stepStreetViewUrl(best.lat, best.lng, best.heading) || best.url || '';
+  }
+
   window.NamibiaV12 = {
     decorateRoute, buildCards, computeSunTimes,
-    encodePolyline, sampledPath, pathSlice,
+    encodePolyline, sampledPath, pathSlice, svFrameUrlForGps,
     stepStaticMapUrl, stepStreetViewUrl, ttsTextFor, openStepModal
   };
 
