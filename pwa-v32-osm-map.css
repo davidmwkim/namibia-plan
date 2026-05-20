@@ -43,6 +43,24 @@
   background: #aadaff;
 }
 
+/* Recenter button (v34 addHomeControl) — sits in the map's top-right corner. */
+.ml-recenter-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+  line-height: 1;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--brand, #5a1738);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ml-recenter-btn:hover { background: #f3eef1; }
+
 /* Shared descriptive pins (v34) — used on every OSM map. */
 .ml-pin-icon { background: transparent; border: 0; }
 .ml-pin {

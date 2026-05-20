@@ -16,6 +16,12 @@
   let overviewMap = null;
   let overviewLayers = [];
   let lastOverviewKey = null;
+  let homeBounds = null;
+  function applyOverviewHome() {
+    if (overviewMap && homeBounds && homeBounds.isValid()) {
+      try { overviewMap.fitBounds(homeBounds, { padding: [30, 30] }); } catch (_) {}
+    }
+  }
 
   function clearLayers() {
     overviewLayers.forEach(l => { try { overviewMap.removeLayer(l); } catch (_) {} });
@@ -41,6 +47,7 @@
       overviewMap = OSM.createMap(host, { center: [-22.3, 16.4], zoom: 6 });
       if (!overviewMap) return;
       OSM.registerMap(overviewMap);
+      if (OSM.addHomeControl) OSM.addHomeControl(overviewMap, applyOverviewHome);
     }
 
     // Only redraw route + pins (and re-fit) when the DAY changes — otherwise a
@@ -57,13 +64,12 @@
       }
       OSM.addStopPins(overviewMap, d, overviewLayers);
       try {
-        if (bounds && bounds.isValid()) {
-          overviewMap.fitBounds(bounds, { padding: [30, 30] });
-        } else {
-          const pts = (d.stops || []).filter(s => typeof s.lat === 'number')
-            .map(s => [s.lat, s.lng]);
-          if (pts.length) overviewMap.fitBounds(window.L.latLngBounds(pts), { padding: [30, 30] });
+        let fit = (bounds && bounds.isValid()) ? bounds : null;
+        if (!fit) {
+          const pts = (d.stops || []).filter(s => typeof s.lat === 'number').map(s => [s.lat, s.lng]);
+          if (pts.length) fit = window.L.latLngBounds(pts);
         }
+        if (fit && fit.isValid()) { homeBounds = fit; overviewMap.fitBounds(fit, { padding: [30, 30] }); }
       } catch (_) {}
     }
     OSM.updateAllGps();

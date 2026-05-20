@@ -19,6 +19,20 @@
   // dotted = sand/unpaved.
   const SURFACE_DASH = { paved: null, urban: null, gravel: '10 8', mixed: '10 8', sand: '2 9', unpaved: '2 9' };
   function dashForSurface(surface) { return surface ? (SURFACE_DASH[surface] || null) : null; }
+  // A thin white dashed/dotted line drawn ON TOP of the solid coloured route to
+  // indicate surface (gravel/sand) as a texture, without dimming the colour.
+  function addSurfaceOverlay(map, latlngs, surface, store) {
+    const dash = dashForSurface(surface);
+    if (!dash || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
+    try {
+      const ov = window.L.polyline(latlngs, {
+        color: '#ffffff', weight: 2.4, opacity: 0.92, dashArray: dash,
+        lineCap: 'round', lineJoin: 'round', interactive: false
+      }).addTo(map);
+      if (Array.isArray(store)) store.push(ov);
+      return ov;
+    } catch (_) { return null; }
+  }
   // Dominant road surface over a path index range, from the day's route steps.
   function surfaceForRange(day, fromIdx, toIdx) {
     try {
@@ -111,6 +125,30 @@
     for (const entry of registry) updateGpsFor(entry);
   }
 
+  // A small "recenter" button control that re-applies a home view (route
+  // bounds / GPS) after the user has panned or zoomed an interactive map.
+  function addHomeControl(map, applyHomeFn) {
+    if (!window.L || !map || map.__namibiaHome) return;
+    try {
+      const Ctl = window.L.Control.extend({
+        options: { position: 'topright' },
+        onAdd: function () {
+          const btn = window.L.DomUtil.create('button', 'ml-recenter-btn');
+          btn.type = 'button';
+          btn.title = 'Recenter map to the route';
+          btn.setAttribute('aria-label', 'Recenter map');
+          btn.innerHTML = '◎';
+          window.L.DomEvent.disableClickPropagation(btn);
+          window.L.DomEvent.on(btn, 'click', function (e) { window.L.DomEvent.stop(e); try { applyHomeFn(); } catch (_) {} });
+          return btn;
+        }
+      });
+      const c = new Ctl();
+      c.addTo(map);
+      map.__namibiaHome = c;
+    } catch (_) {}
+  }
+
   // ---- Map factory ----------------------------------------------------------
   function createMap(host, opts) {
     if (!hasLeaflet() || !host) return null;
@@ -147,14 +185,16 @@
       }
       if (latlngs.length < 2) continue;
       try {
-        const opts = {
+        // SOLID Heather-colored base (colour = who drives) — never dashed, so
+        // the colour coding is always fully readable.
+        const pl = window.L.polyline(latlngs, {
           color: COLORS[part.status] || COLORS.no,
           weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
-        };
-        const dash = dashForSurface(part.surface || surfaceForRange(day, part.fromIdx, part.toIdx));
-        if (dash) opts.dashArray = dash;
-        const pl = window.L.polyline(latlngs, opts).addTo(map);
+        }).addTo(map);
         if (Array.isArray(store)) store.push(pl);
+        // SURFACE on a second, thin white overlay (texture only) so it never
+        // obscures the colour underneath: gravel = dashes, sand = dots.
+        addSurfaceOverlay(map, latlngs, part.surface || surfaceForRange(day, part.fromIdx, part.toIdx), store);
       } catch (_) {}
     }
     try {
@@ -223,7 +263,7 @@
   window.NamibiaOSM = {
     hasLeaflet, createMap, drawColoredRoute, addStopPins,
     registerMap, unregisterMap, updateAllGps, updateGpsFor,
-    gpsDivIcon, pinStyle, COLORS, dashForSurface, surfaceForRange, TILE_URL, TILE_ATTR,
+    gpsDivIcon, pinStyle, COLORS, dashForSurface, surfaceForRange, addSurfaceOverlay, addHomeControl, TILE_URL, TILE_ATTR,
     _registry: registry
   };
 })();

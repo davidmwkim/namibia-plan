@@ -19,6 +19,7 @@
   let ready = false;
   let boundHost = null;
   let lastDrawnDayKey = null;
+  let lastRouteBounds = null;
 
   function hasLeaflet() { return typeof window.L !== 'undefined'; }
 
@@ -52,6 +53,10 @@
           })();
       ready = true;
       if (OSM) OSM.registerMap(lMap);
+      if (OSM && OSM.addHomeControl) OSM.addHomeControl(lMap, () => {
+        if (lastRouteBounds && lastRouteBounds.isValid()) { try { lMap.fitBounds(lastRouteBounds, { padding: [30, 30] }); } catch (_) {} }
+        else if (state.gps) { try { lMap.setView([Number(state.gps.lat), Number(state.gps.lng)], 14); } catch (_) {} }
+      });
       drawRouteForCurrentDay();
       if (OSM) OSM.updateAllGps();
     } catch (e) {
@@ -81,31 +86,20 @@
     lastDrawnDayKey = key;
     clearRouteLayers();
 
-    const partFn = window.NamibiaV19?.partitionPath;
-    const parts = partFn ? partFn(route.overviewPath, d)
-      : [{ fromIdx: 0, toIdx: route.overviewPath.length - 1, status: 'no' }];
-    const path = route.overviewPath;
-    const colors = { yes: '#16a34a', maybe: '#f59e0b', no: '#dc2626' };
-
-    for (const part of parts) {
-      const latlngs = [];
-      for (let i = part.fromIdx; i <= part.toIdx; i++) {
-        latlngs.push([Number(path[i].lat), Number(path[i].lng)]);
-      }
-      if (latlngs.length < 2) continue;
-      try {
-        const pl = window.L.polyline(latlngs, {
-          color: colors[part.status] || colors.no,
-          weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
-        }).addTo(lMap);
-        routeLayers.push(pl);
-      } catch (_) {}
+    // Draw via the shared core so the dashboard map gets the SAME Heather
+    // colouring + surface (dash/dot) overlay as every other map.
+    const OSM = window.NamibiaOSM;
+    let b = null;
+    if (OSM && OSM.drawColoredRoute) {
+      b = OSM.drawColoredRoute(lMap, route.overviewPath, d, routeLayers);
+    } else {
+      const latlngs = route.overviewPath.map(p => [Number(p.lat), Number(p.lng)]);
+      try { routeLayers.push(window.L.polyline(latlngs, { color: '#dc2626', weight: 5, opacity: 0.95 }).addTo(lMap)); } catch (_) {}
+      try { b = window.L.latLngBounds(latlngs); } catch (_) {}
     }
-
     // Fit bounds to the whole route on first draw for this day.
     try {
-      const b = window.L.latLngBounds(path.map(p => [Number(p.lat), Number(p.lng)]));
-      if (b.isValid()) lMap.fitBounds(b, { padding: [30, 30] });
+      if (b && b.isValid()) { lastRouteBounds = b; lMap.fitBounds(b, { padding: [30, 30] }); }
     } catch (_) {}
   }
 
