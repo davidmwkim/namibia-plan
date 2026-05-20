@@ -21,28 +21,31 @@
   // (NamibiaDrivingCore.SURFACE_VIS) so the route maps and the Overview/driving
   // summary bar stay in sync. Local fallback mirrors it if the engine is absent.
   const SURFACE_VIS_FALLBACK = {
-    paved: { dash: null, color: null }, gravel: { dash: '9 7', color: '#e5e7eb' },
-    dirt: { dash: '10 5 2 5', color: '#d8b48c' }, unpaved: { dash: '10 5 2 5', color: '#d8b48c' },
-    sand: { dash: '2 8', color: '#f2d9a8' }, urban: { dash: '2 6', color: '#ffffff' },
-    mixed: { dash: '9 7', color: '#e5e7eb' }
+    paved: { dash: null, mapColor: '#1f2937' }, gravel: { dash: '8 6', mapColor: '#6b7280' },
+    dirt: { dash: '11 5 2 5', mapColor: '#92400e' }, unpaved: { dash: '11 5 2 5', mapColor: '#92400e' },
+    sand: { dash: '2 8', mapColor: '#d4a017' }, urban: { dash: '2 5', mapColor: '#475569' },
+    mixed: { dash: '8 6', mapColor: '#6b7280' }
   };
   function surfaceVis(surface) {
     const V = (window.NamibiaDrivingCore && window.NamibiaDrivingCore.SURFACE_VIS) || SURFACE_VIS_FALLBACK;
-    return V[surface] || V.mixed || { dash: null, color: null };
+    return V[surface] || V.mixed || { dash: null, mapColor: null };
   }
   function dashForSurface(surface) { return surface ? (surfaceVis(surface).dash || null) : null; }
-  // A thin TINTED dashed/dotted line drawn ON TOP of the solid Heather-coloured
-  // line to indicate surface — same vocabulary as the summary bar (paved = no
-  // overlay/solid, gravel = grey dashes, sand = tan dots, dirt = brown dash-dot,
-  // town = white dots).
+  const SURF_OFFSET_PX = 5; // beside the weight-5 Heather line, not overlapping
+  // A thin surface-coloured line drawn OFFSET (parallel, beside) the Heather
+  // route line — so surface and who-drives sit side by side, not stacked. Needs
+  // the leaflet-polylineoffset plugin for the pixel offset; without it the
+  // `offset` option is ignored and the line falls back to running on the route.
   function addSurfaceOverlay(map, latlngs, surface, store) {
     const vis = surfaceVis(surface);
-    if (!vis.dash || !vis.color || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
+    if (!vis.mapColor || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
     try {
-      const ov = window.L.polyline(latlngs, {
-        color: vis.color, weight: 2.6, opacity: 0.95, dashArray: vis.dash,
+      const opts = {
+        color: vis.mapColor, weight: 3, opacity: 0.95, offset: SURF_OFFSET_PX,
         lineCap: 'round', lineJoin: 'round', interactive: false
-      }).addTo(map);
+      };
+      if (vis.dash) opts.dashArray = vis.dash;
+      const ov = window.L.polyline(latlngs, opts).addTo(map);
       if (Array.isArray(store)) store.push(ov);
       return ov;
     } catch (_) { return null; }

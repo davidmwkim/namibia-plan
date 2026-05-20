@@ -87,7 +87,8 @@
 .surf-gravel { background-color: #9ca3af; background-image: radial-gradient(circle, #4b5563 38%, transparent 42%); background-size: 8px 8px; background-position: center; }
 .surf-sand   { background-color: #e3c489; background-image: repeating-linear-gradient(45deg, rgba(120,72,20,.5) 0 2px, transparent 2px 5px); }
 .surf-dirt   { background-color: #8b5a2b; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 4px, transparent 4px 9px); }
-.surf-urban  { background-color: #cbd5e1; background-image: repeating-linear-gradient(90deg, #475569 0 4px, #cbd5e1 4px 8px); }
+/* town = checkerboard (built-up grid) — distinct from gravel/sand/dirt/paved */
+.surf-urban  { background-color: #cbd5e1; background-image: linear-gradient(45deg, #475569 25%, transparent 25%, transparent 75%, #475569 75%), linear-gradient(45deg, #475569 25%, transparent 25%, transparent 75%, #475569 75%); background-size: 7px 7px; background-position: 0 0, 3.5px 3.5px; }
 .surf-mixed  { background-color: #b8a8c8; }
 .hbar-surflegend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 10.5px; color: var(--muted, #6f6368); margin: 5px 0 0 52px; }
 .hbar-surflegend .surf-line { width: 22px; height: 8px; }
