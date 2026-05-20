@@ -1,5 +1,6 @@
-/* v32 — OSM map styling. Keeps MapLibre's required defaults + matches our
-   GPS-marker visual language to v18's Google blue dot. */
+/* v32 — OSM map styling (Leaflet). Matches our GPS-marker visual language to
+   v18's Google blue dot. Leaflet renders raster tiles via DOM/canvas — no
+   WebGL — so it works on devices without WebGL2. */
 .ml-gps-dot {
   width: 18px;
   height: 18px;
@@ -17,14 +18,27 @@
   50%      { box-shadow: 0 0 0 1px rgba(0,0,0,0.15), 0 0 0 12px rgba(66,133,244,0.05); }
 }
 
-#driveMapHost .maplibregl-ctrl-attrib {
+/* Leaflet's divIcon wrapper has its own background/border defaults — strip them
+   so only our .ml-gps-dot shows. */
+.leaflet-div-icon.ml-gps-icon,
+.ml-gps-icon {
+  background: transparent;
+  border: 0;
+}
+
+#driveMapHost .leaflet-control-attribution {
   font-size: 10px;
   background: rgba(255,255,255,0.85);
 }
 
-/* Reserve the same border-radius / shadow envelope so the OSM map slots
-   into our card vocabulary cleanly. */
-#driveMapHost.maplibregl-map {
+/* Leaflet requires an explicit height on its container, and we reserve the
+   same border-radius / shadow envelope so the OSM map slots into our card
+   vocabulary cleanly. */
+#driveMapHost {
+  min-height: 240px;
+}
+#driveMapHost.leaflet-container {
   border-radius: var(--r-lg, 14px);
   overflow: hidden;
+  background: #aadaff;
 }

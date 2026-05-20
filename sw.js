@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.27.1';
+const APP_VERSION = '1.27.2';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -82,9 +82,9 @@ const CROSS_ORIGIN_CACHE_PREFIXES = [
   'https://a.tile.openstreetmap.org/',
   'https://b.tile.openstreetmap.org/',
   'https://c.tile.openstreetmap.org/',
-  // MapLibre GL JS library + its glyphs (used for any labels we add later).
-  'https://unpkg.com/maplibre-gl',
-  'https://demotiles.maplibre.org/font/'
+  // Leaflet library + its CSS marker/control sprites (v32 renders raster tiles
+  // via DOM/canvas — no WebGL required, unlike MapLibre GL 4.x).
+  'https://unpkg.com/leaflet'
 ];
 
 self.addEventListener('install', event => {
