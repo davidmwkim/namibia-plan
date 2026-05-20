@@ -77,7 +77,9 @@
   }
 
   function injectButton() {
-    const toolbar = document.querySelector('.toolbar .toolbar-right') || document.querySelector('.toolbar');
+    // v38 moved config controls into the Settings tab; only inject into the
+    // Settings host, never the main toolbar.
+    const toolbar = document.getElementById('settingsControls');
     if (!toolbar || document.getElementById('forceUpdateBtn')) return;
     const btn = document.createElement('button');
     btn.id = 'forceUpdateBtn';

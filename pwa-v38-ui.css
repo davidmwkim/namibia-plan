@@ -75,3 +75,11 @@
 .settings-row input { flex: 1 1 220px; min-width: 0; padding: 9px 12px; border: 1px solid var(--line, #cdd5e0); border-radius: 12px; font: inherit; }
 .settings-meta p { margin: 0; color: var(--muted, #6f6368); font-size: 13px; }
 .settings-status { display: flex; flex-wrap: wrap; gap: 8px; }
+/* .chip was styled white-on-transparent for the dark hero; restyle for the
+   light Settings panel so the status text is readable. */
+.settings-status .chip {
+  color: var(--ink, #2b2230);
+  background: #f1ece8;
+  border: 1px solid var(--line, #ece3df);
+  backdrop-filter: none;
+}
