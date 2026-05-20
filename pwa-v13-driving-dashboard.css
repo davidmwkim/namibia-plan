@@ -171,3 +171,9 @@
   0%, 100% { box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2); }
   50%      { box-shadow: 0 0 0 6px rgba(66, 133, 244, 0.05); }
 }
+
+/* Route scrubber under the drive bar — drag to jump to the card + Street View at any point on the route. */
+.drive-scrub-row { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; }
+.drive-scrub { flex: 1; height: 18px; cursor: pointer; accent-color: #d98b42; }
+.drive-scrub-lbl { font-size: 11px; color: rgba(255,255,255,.85); white-space: nowrap; max-width: 46%; overflow: hidden; text-overflow: ellipsis; }
+.drive-card.card-scrubbed { outline: 2px solid #2563eb; outline-offset: 2px; border-radius: 12px; }

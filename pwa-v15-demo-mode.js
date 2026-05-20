@@ -292,17 +292,21 @@
     stop.onclick = stopDemo;
 
     const durLabel = document.createElement('label');
-    durLabel.className = 'demo-input';
-    durLabel.appendChild(document.createTextNode('duration '));
+    durLabel.className = 'demo-input demo-dur';
+    durLabel.appendChild(document.createTextNode('speed '));
     const durInput = document.createElement('input');
     durInput.id = 'demoDuration';
-    durInput.type = 'number';
-    durInput.min = '5';
-    durInput.max = '600';
+    durInput.type = 'range';        // drag to adjust how long the whole-day replay takes
+    durInput.min = '10';
+    durInput.max = '300';
     durInput.step = '5';
     durInput.value = String(defaults.durationMs / 1000);
+    const durVal = document.createElement('span');
+    durVal.className = 'demo-durval';
+    durVal.textContent = durInput.value + 's';
+    durInput.addEventListener('input', () => { durVal.textContent = durInput.value + 's'; });
     durLabel.appendChild(durInput);
-    durLabel.appendChild(document.createTextNode(' s'));
+    durLabel.appendChild(durVal);
 
     const noiseLabel = document.createElement('label');
     noiseLabel.className = 'demo-input';

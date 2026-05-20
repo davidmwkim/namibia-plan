@@ -231,8 +231,45 @@
     let bar = '';
     try { bar = V38.heatherBarHtml(route, { compact: true, showHere: true }); } catch (_) {}
     if (!chip && !bar) return '';
-    return `<div class="drive-heather">${chip}${bar}</div>`;
+    // Scrubber: drag to jump the card list (and its Street View) to any point
+    // along the route — the card nearest that position.
+    const scrub = `<div class="drive-scrub-row">`
+      + `<input type="range" class="drive-scrub" min="0" max="1000" value="0" aria-label="Scrub along the route to a card">`
+      + `<span class="drive-scrub-lbl"></span></div>`;
+    return `<div class="drive-heather">${chip}${bar}${scrub}</div>`;
   }
+
+  // Map a 0..1 route fraction to the nearest card and scroll the list to it.
+  let _scrubProg = null, _scrubKey = null;
+  function cardRouteFractions(route) {
+    const d = (typeof day === 'function') ? day() : null;
+    const key = (d ? d.date : '') + ':' + ((route.cards || []).length);
+    if (_scrubKey === key && _scrubProg) return _scrubProg;
+    const path = route.overviewPath || [];
+    const total = path.length ? (DC.routeProgressM(path, path[path.length - 1]) || 1) : 1;
+    _scrubProg = (route.cards || []).map(c =>
+      (typeof c.lat === 'number' && path.length) ? (DC.routeProgressM(path, { lat: c.lat, lng: c.lng }) / total) : null);
+    _scrubKey = key;
+    return _scrubProg;
+  }
+  function scrubTo(frac) {
+    const d = (typeof day === 'function') ? day() : null;
+    const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
+    if (!route || !route.cards) return;
+    const fr = cardRouteFractions(route);
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i < fr.length; i++) { if (fr[i] == null) continue; const dd = Math.abs(fr[i] - frac); if (dd < bestD) { bestD = dd; best = i; } }
+    if (best < 0) return;
+    const c = route.cards[best];
+    const el = document.querySelector(`.drive-card[data-card-index="${best}"]`);
+    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('card-scrubbed'); setTimeout(() => el.classList.remove('card-scrubbed'), 1200); }
+    const lbl = document.querySelector('.drive-scrub-lbl');
+    if (lbl && c) lbl.textContent = `${kindEmoji(c.kind)} ${c.title ? String(c.title).slice(0, 38) : c.kind}`;
+  }
+  document.addEventListener('input', e => {
+    const s = e.target && e.target.classList && e.target.classList.contains('drive-scrub') ? e.target : null;
+    if (s) scrubTo(Number(s.value) / 1000);
+  });
 
   function stickyInnerHtml(d, route) {
     const muted = TTS() ? TTS().isMuted() : true;

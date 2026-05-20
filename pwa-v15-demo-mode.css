@@ -31,3 +31,7 @@
 .demo-controls #demoStop {
   padding: 4px 8px;
 }
+
+/* Demo speed slider (drag to set how long the whole-day replay takes). */
+.demo-dur input[type=range] { width: 90px; vertical-align: middle; accent-color: #d98b42; }
+.demo-durval { font-size: 11px; min-width: 30px; display: inline-block; }
