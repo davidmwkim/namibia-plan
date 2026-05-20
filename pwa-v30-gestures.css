@@ -12,9 +12,10 @@
 #tabContent { touch-action: pan-y; will-change: transform, opacity; }
 .hero        { touch-action: pan-y; }
 
-/* The tab content slides horizontally during a swipe — keep the slide from
-   producing a page-level horizontal scrollbar. */
-.panel { overflow-x: clip; }
+/* The tab content slides horizontally during a swipe — clip ONLY the panel that
+   holds the tab content (not other panels, whose maps need popups to overflow),
+   and keep the slide from producing a page-level horizontal scrollbar. */
+.panel:has(> #tabContent) { overflow-x: clip; position: relative; }
 body { overflow-x: hidden; }
 
 /* Frozen clone used during a carousel slide. */
