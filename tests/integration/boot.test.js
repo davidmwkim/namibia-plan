@@ -27,21 +27,25 @@ describe('PWA boot in JSDOM', () => {
 });
 
 describe('Directions tab with v12 enrichment', () => {
-  it('renders step-map and step-streetview imgs under each step', async () => {
+  it('renders a per-step OSM map frame + street-view img under each step', async () => {
     const dom = await bootPwaWithRoute('2026-05-24', day2);
     const w = dom.window;
     // Switch tab
     w.state.activeTab = 'directions';
-    // The cached route already has stepMapUrl / streetViewUrl (data URLs in the fixture).
+    // The cached route already has streetViewUrl (data URL in the fixture); the
+    // per-step map is now a live OSM (Leaflet) frame placeholder div (v36).
     w.renderTab();
     const lis = w.document.querySelectorAll('.directions ol li');
     expect(lis.length).toBeGreaterThan(0);
     const firstLi = lis[0];
-    const map = firstLi.querySelector('img.step-map');
+    const mapFrame = firstLi.querySelector('.step-map-osm');
     const sv = firstLi.querySelector('img.step-streetview');
-    expect(map).toBeTruthy();
+    expect(mapFrame).toBeTruthy();
+    // The frame carries the data v36 needs to lazily build the Leaflet map.
+    expect(mapFrame.getAttribute('data-leg')).toBe('0');
+    expect(mapFrame.getAttribute('data-step')).toBe('0');
+    expect(mapFrame.getAttribute('data-status')).toBeTruthy();
     expect(sv).toBeTruthy();
-    expect(map.getAttribute('src')).toBeTruthy();
     expect(sv.getAttribute('src')).toBeTruthy();
     // Expand button present
     expect(firstLi.querySelector('.step-expand')).toBeTruthy();

@@ -69,6 +69,16 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   background: #f4ecdb;
 }
+/* Live per-step OSM frame (v36) — Leaflet needs an explicit height, so we give
+   it the same 16:10 footprint the old static map image used. */
+.step-map-osm {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: #aadaff;
+  overflow: hidden;
+}
 @media (max-width: 600px) {
   .step-media { grid-template-columns: 1fr; }
 }

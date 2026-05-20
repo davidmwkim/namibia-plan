@@ -535,8 +535,10 @@
         const dirEmoji = directionEmojiFor(step);
         const dirSpan = `<span class="step-dir" title="Direction of travel">${dirEmoji}</span> `;
         const expand = `<button class="step-expand" data-leg="${li}" data-step="${si}" aria-label="Expand step on map">🗺️</button>`;
+        // The per-step map is now a live OpenStreetMap frame (v36) instead of a
+        // Google static image — lazily initialised when scrolled into view.
         const media = `<div class="step-media">
-          ${step.stepMapUrl ? `<img class="step-map" loading="lazy" src="${esc(step.stepMapUrl)}" alt="Map of step ${si + 1}">` : ''}
+          ${typeof step.lat === 'number' ? `<div class="step-map-osm" data-leg="${li}" data-step="${si}" data-status="${hs}"></div>` : ''}
           ${step.streetViewUrl ? `<img class="step-streetview" loading="lazy" src="${esc(step.streetViewUrl)}" alt="Street view at step ${si + 1}">` : ''}
         </div>`;
 
