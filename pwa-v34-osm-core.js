@@ -14,6 +14,34 @@
 // Overview map (v35 takeover), and the per-step mini-maps all build on this.
 (function () {
   const COLORS = { yes: '#16a34a', maybe: '#f59e0b', no: '#dc2626' };
+  // Surface is shown on a SEPARATE channel (dash pattern) from Heather status
+  // (line colour) so the two never clash: solid = paved, dashed = gravel,
+  // dotted = sand/unpaved.
+  const SURFACE_DASH = { paved: null, urban: null, gravel: '10 8', mixed: '10 8', sand: '2 9', unpaved: '2 9' };
+  function dashForSurface(surface) { return surface ? (SURFACE_DASH[surface] || null) : null; }
+  // Dominant road surface over a path index range, from the day's route steps.
+  function surfaceForRange(day, fromIdx, toIdx) {
+    try {
+      const route = window.state && window.state.renderedRoutes && window.state.renderedRoutes[day.date];
+      const V19 = window.NamibiaV19, V22 = window.NamibiaV22;
+      if (!route || !route.legs || !V19 || !V19.nearestPathIdx) return null;
+      const path = route.overviewPath || [];
+      if (!path.length) return null;
+      const tally = {};
+      for (const leg of route.legs) {
+        for (const step of (leg.steps || [])) {
+          if (typeof step.lat !== 'number') continue;
+          const surf = step.surface || (V22 && V22.classifyRoad ? V22.classifyRoad(step.instruction, day).type : null);
+          if (!surf) continue;
+          const idx = V19.nearestPathIdx(path, { lat: step.lat, lng: step.lng }).idx;
+          if (idx >= fromIdx && idx <= toIdx) tally[surf] = (tally[surf] || 0) + 1;
+        }
+      }
+      let best = null, bestN = 0;
+      for (const k in tally) if (tally[k] > bestN) { bestN = tally[k]; best = k; }
+      return best;
+    } catch (_) { return null; }
+  }
   const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   const TILE_ATTR = '&copy; OpenStreetMap contributors';
 
@@ -119,10 +147,13 @@
       }
       if (latlngs.length < 2) continue;
       try {
-        const pl = window.L.polyline(latlngs, {
+        const opts = {
           color: COLORS[part.status] || COLORS.no,
           weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
-        }).addTo(map);
+        };
+        const dash = dashForSurface(part.surface || surfaceForRange(day, part.fromIdx, part.toIdx));
+        if (dash) opts.dashArray = dash;
+        const pl = window.L.polyline(latlngs, opts).addTo(map);
         if (Array.isArray(store)) store.push(pl);
       } catch (_) {}
     }
@@ -192,7 +223,7 @@
   window.NamibiaOSM = {
     hasLeaflet, createMap, drawColoredRoute, addStopPins,
     registerMap, unregisterMap, updateAllGps, updateGpsFor,
-    gpsDivIcon, pinStyle, COLORS, TILE_URL, TILE_ATTR,
+    gpsDivIcon, pinStyle, COLORS, dashForSurface, surfaceForRange, TILE_URL, TILE_ATTR,
     _registry: registry
   };
 })();

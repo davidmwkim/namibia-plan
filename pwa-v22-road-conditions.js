@@ -81,6 +81,7 @@
   function enhanceStepLi(liEl, step, leg, legIdx, stepIdx, route, day) {
     if (!liEl || liEl.querySelector('.step-road')) return;
     const road = classifyRoad(step.instruction, day);
+    step.surface = road.type; // persist so the route/step maps can dash by surface
     const part = window.NamibiaV19 ? window.NamibiaV19.partitionForStep(route, day, legIdx, stepIdx) : null;
     const status = part?.status || 'no';
     const segReason = part?.reason || '';
