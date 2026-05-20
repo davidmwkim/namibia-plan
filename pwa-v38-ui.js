@@ -165,11 +165,12 @@
     }).join('');
     // Namibia-style speed-limit signs at each speed CHANGE along the route.
     let speedMarks = '', prevSpd = null, lastLeft = -99;
+    const minSpeedGap = opts.compact ? 8 : 6;
     legs.forEach(l => {
       const spd = legSpeed(l.surface);
       if (spd === prevSpd) return;
       prevSpd = spd;
-      let pos = Math.max(l.t0Frac * 100, lastLeft + 6); // nudge apart so signs don't overlap
+      let pos = Math.max(l.t0Frac * 100, lastLeft + minSpeedGap); // nudge apart so signs don't overlap
       pos = Math.min(98, pos);
       lastLeft = pos;
       speedMarks += `<span class="spd-mark" style="left:${pos.toFixed(2)}%" title="≈ ${spd} km/h">${spd}</span>`;

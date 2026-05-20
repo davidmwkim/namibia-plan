@@ -120,6 +120,26 @@
 .hbar-compact .hbar-speedtrack { height: 20px; }
 .hbar-compact .hbar-stoptrack { height: 14px; }
 
+@media (max-width: 520px) {
+  .drive-heather .hbar-row { gap: 4px; }
+  .drive-heather .hbar-rowlab {
+    width: 36px;
+    font-size: 8px;
+  }
+  .drive-heather .hbar-stoptrack {
+    height: 12px;
+  }
+  .drive-heather .hbar-stop-time {
+    display: none;
+  }
+  .drive-heather .spd-mark {
+    width: 19px;
+    height: 19px;
+    font-size: 7.5px;
+    border-width: 1.5px;
+  }
+}
+
 /* ---- Trip-wide fuel/pressure list ---- */
 .trip-fp { margin: 18px 0; }
 .tfp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
