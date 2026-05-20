@@ -407,7 +407,9 @@
   }
 
   function injectRefreshButton() {
-    const toolbar = document.querySelector('.toolbar .toolbar-right') || document.querySelector('.toolbar');
+    // v38 moved all config controls into the Settings tab. Only inject into the
+    // Settings host (created on demand); never into the main toolbar.
+    const toolbar = document.getElementById('settingsControls');
     if (!toolbar || document.getElementById('refreshLive')) return;
     const btn = document.createElement('button');
     btn.id = 'refreshLive';

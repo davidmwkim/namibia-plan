@@ -1,0 +1,76 @@
+/* pwa-v38-ui.css — Settings tab, Overview now-card/description/segment plan,
+   Itinerary downtime, surface badges. */
+
+.hero-hint { color: var(--muted, #6f6368); font-size: 13px; }
+
+/* ---- Overview now-card (moved from the aside) ---- */
+.now-card-inline {
+  background: linear-gradient(135deg, rgba(90,23,56,.06), rgba(217,139,66,.06));
+  border: 1px solid var(--line, #ece3df);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 0 0 16px;
+}
+.now-card-inline .now-date { color: var(--muted, #6f6368); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.now-card-inline .now-title { font-size: 19px; font-weight: 700; margin: 2px 0 10px; color: var(--brand, #5a1738); }
+.now-card-inline .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 18px; }
+.now-card-inline .kv > div { display: flex; flex-direction: column; }
+.now-card-inline .kv strong { font-size: 11px; color: var(--muted, #6f6368); text-transform: uppercase; letter-spacing: .03em; }
+.now-card-inline .kv span { font-size: 14px; }
+
+/* ---- Trip description ---- */
+.trip-desc { margin: 16px 0; padding: 14px 16px; background: #f8f5f2; border: 1px solid var(--line, #ece3df); border-radius: 14px; }
+.trip-desc h3, .seg-plan h3, .trip-fp h3 { margin: 0 0 8px; color: var(--brand, #5a1738); font-size: 15px; }
+.trip-desc p { margin: 0; line-height: 1.55; color: #4a4045; }
+
+/* ---- Surface badges (shared with Task 12) ---- */
+.surface-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; }
+.surface-badge.sf-paved  { background: #eef2f7; color: #334155; border-color: #cbd5e1; }
+.surface-badge.sf-gravel { background: #fdf6ec; color: #92591b; border-color: #e8cfa6; }
+.surface-badge.sf-sand   { background: #fbeee2; color: #9a4f1c; border-color: #e6c4a0; }
+.surface-badge.sf-urban  { background: #eef0f4; color: #475569; border-color: #cdd5e0; }
+.surface-badge.sf-mixed  { background: #f1eef4; color: #5b4a6b; border-color: #d6cbe2; }
+
+/* ---- Drive + Heather plan ---- */
+.seg-plan { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line, #ece3df); border-radius: 14px; }
+.seg-plan .seg-summary { margin: 0 0 10px; color: #4a4045; }
+.seg-plan .seg-none { margin: 0; color: var(--muted, #6f6368); }
+.seg-share { font-size: 14px; margin: 0 0 10px; padding: 8px 10px; background: #f8f5f2; border-radius: 10px; }
+.seg-share .band-ok { color: #15803d; }
+.seg-share .band-low { color: #b45309; }
+.seg-share .band-high { color: #2563eb; }
+.seg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.seg-table td { padding: 5px 8px; vertical-align: top; }
+.seg-row { border-top: 1px solid var(--line, #ece3df); }
+.seg-row .seg-leg { font-weight: 600; }
+.seg-row .seg-km, .seg-row .seg-driver { white-space: nowrap; }
+.seg-note-row td { padding: 0 8px 6px; color: var(--muted, #6f6368); font-size: 12px; }
+.seg-heather .seg-leg { box-shadow: inset 3px 0 0 #16a34a; }
+.seg-david .seg-leg { box-shadow: inset 3px 0 0 #2563eb; }
+.seg-shared .seg-leg { box-shadow: inset 3px 0 0 #f59e0b; }
+.seg-legend { margin: 10px 0 0; font-size: 12px; color: var(--muted, #6f6368); }
+
+/* ---- Trip-wide fuel/pressure list ---- */
+.trip-fp { margin: 18px 0; }
+.tfp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tfp-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted, #6f6368); padding: 4px 8px; border-bottom: 1px solid var(--line, #ece3df); }
+.tfp-table td { padding: 5px 8px; border-bottom: 1px solid #f1ece8; }
+.tfp-row.tfp-pressure { background: rgba(220,38,38,.045); }
+.tfp-row.tfp-fuel { background: rgba(245,158,11,.05); }
+.tfp-act { text-transform: capitalize; color: #4a4045; }
+
+/* ---- Itinerary downtime ---- */
+.stop.downtime { opacity: .92; }
+.stop.downtime .stop-icon { filter: grayscale(.2); }
+.stop.downtime .stop-head h3 { color: #6b5b63; font-weight: 600; }
+.downtime-note { color: var(--muted, #6f6368); font-style: italic; margin: 4px 0 0; }
+
+/* ---- Settings tab ---- */
+.settings-panel { display: flex; flex-direction: column; gap: 18px; }
+.settings-group { border: 1px solid var(--line, #ece3df); border-radius: 14px; padding: 14px 16px; }
+.settings-group h3 { margin: 0 0 8px; color: var(--brand, #5a1738); font-size: 15px; }
+.settings-help { margin: 0 0 10px; color: var(--muted, #6f6368); font-size: 13px; }
+.settings-row { display: flex; gap: 10px; align-items: center; }
+.settings-row.wrap { flex-wrap: wrap; }
+.settings-row input { flex: 1 1 220px; min-width: 0; padding: 9px 12px; border: 1px solid var(--line, #cdd5e0); border-radius: 12px; font: inherit; }
+.settings-meta p { margin: 0; color: var(--muted, #6f6368); font-size: 13px; }

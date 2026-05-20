@@ -70,9 +70,7 @@ function init(){
             <div><h1>${esc(DATA.meta.title)}</h1><p>${esc(DATA.meta.subtitle)} · offline PWA / route companion</p></div>
           </div>
           <div class="hero-actions">
-            <input id="apiKey" type="password" placeholder="Google Maps API key" value="${esc(state.apiKey)}">
-            <button class="primary" id="loadGoogle">Save key + render all</button>
-            <button class="ghost" id="installBtn">Install</button>
+            <span class="hero-hint">Open <strong>Settings</strong> ⚙ to add your Google Maps key, prepare offline, and export.</span>
           </div>
         </div>
         <div class="statusbar">
@@ -89,16 +87,9 @@ function init(){
             <button id="todayBtn">Today</button>
             <button id="gpsBtn">Use GPS</button>
           </div>
-          <div class="toolbar-right">
-            <button class="primary" id="prepareOffline">Prepare everything for offline</button>
-            <button id="exportSelected">Export day KML</button>
-            <button id="exportAll">Export all KML ZIP</button>
-            <button class="warn" id="printPdf">PDF / print mode</button>
-          </div>
         </div>
         <div class="grid">
           <aside>
-            <section class="panel now-card" id="dashboard"></section>
             <section class="panel pad">
               <h2>Assumptions</h2>
               <div class="alerts">
@@ -111,10 +102,10 @@ function init(){
           <section class="panel">
             <div class="tabs">
               <button class="tab active" data-tab="overview">Overview</button>
-              <button class="tab" data-tab="stops">Stops</button>
+              <button class="tab" data-tab="stops">Itinerary</button>
               <button class="tab" data-tab="directions">Directions</button>
               <button class="tab" data-tab="street">Street View</button>
-              <button class="tab" data-tab="exports">Exports</button>
+              <button class="tab" data-tab="settings">Settings</button>
             </div>
             <div class="content" id="tabContent"></div>
           </section>
@@ -140,12 +131,6 @@ function bind(){
   $('daySelect').onchange=e=>{ state.dayIndex=+e.target.value; render(); };
   $('todayBtn').onclick=()=>chooseToday(true);
   $('gpsBtn').onclick=useGps;
-  $('loadGoogle').onclick=loadGoogleAndRenderAll;
-  $('apiKey').onkeydown=e=>{ if(e.key==='Enter') loadGoogleAndRenderAll(); };
-  $('prepareOffline').onclick=prepareOffline;
-  $('exportSelected').onclick=exportSelectedKml;
-  $('exportAll').onclick=exportAllKmlZip;
-  $('printPdf').onclick=printMode;
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ state.activeTab=t.dataset.tab; renderTab(); });
   window.addEventListener('online',()=>setStatus('offlineStatus','Online'));
   window.addEventListener('offline',()=>setStatus('offlineStatus','Offline'));
@@ -246,8 +231,9 @@ function registerSW(){
   } else setStatus('offlineStatus','Service worker unsupported');
 }
 function loadGoogleAndRenderAll(){
-  state.apiKey=$('apiKey').value.trim();
-  if(!state.apiKey){ alert('Enter your Google Maps API key.'); return; }
+  const inp=$('apiKey')||$('setApiKey');
+  if(inp) state.apiKey=inp.value.trim();
+  if(!state.apiKey){ alert('Enter your Google Maps API key in Settings.'); return; }
   localStorage.setItem('namibia_google_api_key', state.apiKey);
   if(window.google?.maps){ state.googleLoaded=true; initGoogleMap(); renderAllDays(); return; }
   setStatus('googleStatus','Google: loading…');

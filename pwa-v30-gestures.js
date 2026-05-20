@@ -13,7 +13,7 @@
 //     don't accidentally fire a swipe
 //   - require dt < 600 ms (a slow drag is a scroll, not a swipe)
 (function () {
-  const TAB_ORDER = ['overview', 'stops', 'directions', 'street', 'exports'];
+  const TAB_ORDER = ['overview', 'stops', 'directions', 'street', 'settings'];
 
   function changeTab(direction) {
     const cur = (typeof state !== 'undefined' && state.activeTab) || 'overview';
