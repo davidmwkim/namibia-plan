@@ -28,6 +28,7 @@
         ['Beanie + thin liner gloves', 'fingers chill gripping the basket rim before sunrise'],
         ['Snug hat, no loose brim', 'a floppy sun hat blows straight out of the basket'],
         ['Closed-toe shoes (no heels)', 'you walk over uneven desert ground to the launch site'],
+        ['Compact binoculars', 'spot oryx, ostrich and dune detail far below from the basket'],
         ['Camera on a strap + dust bag', 'wide landscapes from altitude; fine silica dust on the ground'],
       ]
     },
@@ -76,7 +77,8 @@
     },
     {
       key: 'spitzkoppe', icon: '🪨', label: 'Spitzkoppe granite + stargazing',
-      match: s => /spitzkoppe|spitzkoppen/i.test(s.name || ''),
+      // not on the morning you drive away (the Lodge as the day's start stop)
+      match: s => /spitzkoppe|spitzkoppen/i.test(s.name || '') && s.tripStopType !== 'start',
       gear: [
         ['Down / insulated jacket, beanie, gloves', 'granite nights drop to 2–5°C; stargazing is long and still'],
         ['Grippy hiking shoes', 'polished, steep granite — sandals slide'],
