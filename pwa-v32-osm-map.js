@@ -18,15 +18,26 @@
   let mlInitDone = false;
   let pendingDayKey = null;
   let lastDrawnDayKey = null;
+  let boundHost = null;  // the driveMapHost DIV the current mlMap is bound to
 
   function hasMapLibre() {
     return typeof window.maplibregl !== 'undefined';
   }
 
   function initMap() {
-    if (mlMap || !hasMapLibre()) return mlMap;
+    if (!hasMapLibre()) return null;
     const host = document.getElementById('driveMapHost');
     if (!host) return null;
+    // If we already have a map bound to the CURRENT host, reuse it.
+    if (mlMap && boundHost === host && document.contains(host)) return mlMap;
+    // Otherwise the host was re-created by v13's dashboard rebuild — tear the
+    // orphaned map down and build a fresh one on the new div. (Without this,
+    // markers + layers get added to a detached map and never appear.)
+    if (mlMap) {
+      try { mlMap.remove(); } catch (_) {}
+      mlMap = null; mlMarker = null; mlInitDone = false; lastDrawnDayKey = null;
+    }
+    boundHost = host;
     // Wipe anything Google had drawn there.
     host.innerHTML = '';
     host.style.position = 'relative';
@@ -56,11 +67,10 @@
     });
     mlMap.on('load', () => {
       mlInitDone = true;
-      // If a day was selected before init finished, draw its route now.
-      if (pendingDayKey) {
-        drawRouteForCurrentDay();
-        pendingDayKey = null;
-      }
+      // Draw whatever the current state needs as soon as the map is ready.
+      drawRouteForCurrentDay();
+      updateGpsMarker();
+      pendingDayKey = null;
     });
     mlMap.on('error', e => {
       if (typeof log === 'function') log('OSM map: ' + (e?.error?.message || 'error'));
@@ -150,7 +160,9 @@
   }
   function update() {
     if (!hasMapLibre()) return;
-    if (!mlMap) initMap();
+    // Always run initMap() — it cheaply returns the existing map when the
+    // host is unchanged, and rebuilds when v13 has replaced the host div.
+    initMap();
     if (!mlInitDone) {
       pendingDayKey = '__pending__';
       return;
