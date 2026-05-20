@@ -9,8 +9,28 @@
 }
 
 /* Hint cursor on desktop so it's clear the tab content + hero are draggable. */
-#tabContent { touch-action: pan-y; }
+#tabContent { touch-action: pan-y; will-change: transform, opacity; }
 .hero        { touch-action: pan-y; }
+
+/* The tab content slides horizontally during a swipe — keep the slide from
+   producing a page-level horizontal scrollbar. */
+.panel { overflow-x: clip; }
+body { overflow-x: hidden; }
+
+/* Sliding indicator under the active tab. */
+.tabs { position: relative; }
+.tab-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand, #5a1738);
+  opacity: 0;
+  pointer-events: none;
+  transition: left .22s ease, width .22s ease, opacity .2s ease;
+}
 
 /* A subtle once-per-session hint banner at the bottom of the page. */
 .swipe-hint {

@@ -45,6 +45,87 @@
     setTimeout(() => el.classList.remove('swipe-flash'), 380);
   }
 
+  // ---- Animated panel swipe: the content follows the finger, then slides out
+  // and the new tab slides in (carousel). Falls back gracefully if transforms
+  // aren't supported.
+  function attachAnimatedSwipe(el) {
+    let startX = 0, startY = 0, t0 = 0, active = false, dragging = false, animating = false;
+    const reset = () => { el.style.transition = 'transform .18s ease, opacity .18s ease'; el.style.transform = ''; el.style.opacity = ''; };
+    const onStart = (x, y) => { if (animating) return; startX = x; startY = y; t0 = Date.now(); active = true; dragging = false; el.style.transition = 'none'; };
+    const onMove = (x, y) => {
+      if (!active) return;
+      const dx = x - startX, dy = y - startY;
+      if (!dragging) {
+        if (Math.abs(dx) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) { active = false; reset(); return; }
+        dragging = true;
+      }
+      el.style.transform = `translateX(${(dx * 0.6).toFixed(1)}px)`;
+      el.style.opacity = String(Math.max(0.45, 1 - Math.abs(dx) / 620));
+    };
+    const onEnd = (x, y) => {
+      if (!active) return;
+      active = false;
+      const dx = x - startX, dy = y - startY, dt = Date.now() - t0;
+      if (!dragging) { reset(); return; }
+      const horiz = Math.abs(dx) > Math.abs(dy) * 0.7;
+      if (dt < 800 && horiz && Math.abs(dx) >= 60) commitSwipe(el, dx < 0 ? 1 : -1);
+      else reset();
+    };
+    const commitSwipe = (node, dir) => {
+      const cur = (typeof state !== 'undefined' && state.activeTab) || 'overview';
+      const idx = TAB_ORDER.indexOf(cur);
+      const nextIdx = idx + dir;
+      if (idx < 0 || nextIdx < 0 || nextIdx >= TAB_ORDER.length) { reset(); return; }
+      animating = true;
+      node.style.transition = 'transform .16s ease, opacity .16s ease';
+      node.style.transform = `translateX(${dir > 0 ? '-' : ''}55%)`;
+      node.style.opacity = '0';
+      setTimeout(() => {
+        changeTab(dir);                       // sets activeTab + renderTab() (rebuilds content)
+        node.style.transition = 'none';
+        node.style.transform = `translateX(${dir > 0 ? '' : '-'}55%)`;
+        node.style.opacity = '0';
+        void node.offsetWidth;                // reflow so the incoming slide animates
+        node.style.transition = 'transform .2s ease, opacity .2s ease';
+        node.style.transform = '';
+        node.style.opacity = '';
+        setTimeout(() => { animating = false; }, 220);
+      }, 150);
+    };
+    el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; const t = e.touches[0]; const w = window.innerWidth; if (t.clientX < 20 || t.clientX > w - 20) return; onStart(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchmove', e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchend', e => { const t = e.changedTouches[0]; if (t) onEnd(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => { if (active) onMove(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', e => { if (active) onEnd(e.clientX, e.clientY); });
+  }
+
+  // ---- Sliding indicator under the tab bar ----
+  function ensureTabIndicator() {
+    const tabs = document.querySelector('.tabs');
+    if (!tabs) return;
+    try { if (getComputedStyle(tabs).position === 'static') tabs.style.position = 'relative'; } catch (_) {}
+    if (!tabs.querySelector('.tab-underline')) {
+      const u = document.createElement('div');
+      u.className = 'tab-underline';
+      tabs.appendChild(u);
+    }
+  }
+  function updateTabIndicator() {
+    const tabs = document.querySelector('.tabs');
+    if (!tabs) return;
+    const u = tabs.querySelector('.tab-underline');
+    if (!u) return;
+    const active = tabs.querySelector('.tab.active');
+    if (!active) { u.style.opacity = '0'; return; }
+    const tr = tabs.getBoundingClientRect(), ar = active.getBoundingClientRect();
+    if (!ar.width) { u.style.opacity = '0'; return; }
+    u.style.opacity = '1';
+    u.style.left = (ar.left - tr.left + (tabs.scrollLeft || 0)) + 'px';
+    u.style.width = ar.width + 'px';
+  }
+
   function attachSwipe(el, onLeft, onRight) {
     if (!el) return;
     let startX = 0, startY = 0, t0 = 0, active = false;
@@ -94,14 +175,28 @@
     const tc = document.getElementById('tabContent');
     if (tc && !tc.dataset.v30Swipe) {
       tc.dataset.v30Swipe = '1';
-      attachSwipe(tc, () => changeTab(1), () => changeTab(-1));
+      attachAnimatedSwipe(tc);
     }
     const hero = document.querySelector('.hero');
     if (hero && !hero.dataset.v30Swipe) {
       hero.dataset.v30Swipe = '1';
       attachSwipe(hero, () => changeDay(1), () => changeDay(-1));
     }
+    ensureTabIndicator();
+    updateTabIndicator();
   }
+
+  // Keep the sliding indicator in sync on every tab change (tab clicks call
+  // renderTab directly, not render, so wrap renderTab too).
+  if (typeof renderTab === 'function') {
+    const baseRT = renderTab;
+    renderTab = function patchedRenderTabV30() {
+      const r = baseRT.apply(this, arguments);
+      try { ensureTabIndicator(); updateTabIndicator(); } catch (_) {}
+      return r;
+    };
+  }
+  window.addEventListener('resize', () => { try { updateTabIndicator(); } catch (_) {} });
 
   if (typeof render === 'function') {
     const base = render;
