@@ -37,7 +37,65 @@
     12:[{status:'can_drive',label:'Heather: substantial B1 south stretches',from:'B1 south paved sections',to:'Windhoek approach outskirts',reason:'Long ~600 km B1 paved highway day. Recommend sharing in 2-hour blocks with breaks. David handles fuel timing decisions and any unexpected detours.'}],
     13:[{status:'can_drive',label:'Heather: B6 airport drive end-to-end',from:'Windhoek',to:'Hosea Kutako International Airport',reason:'B6 fully paved, ~45 km, very light early-morning traffic. Simplest driving day. David handles only final rental-return logistics at the airport.'}]
   };
-  for (const d of DATA.days) { d.driveExperience = DRIVE[d.day] || {summary:'',expect:[],hazards:[]}; delete d.heatherDrive; d.heatherDriveSegments = HEATHER[d.day] || []; }
+  // Per-day drive segmentation for the Overview drive analysis + Heather relief
+  // plan. km are planning approximations from route research; `driver` is the
+  // recommended wheel: 'heather' (easy paved relief), 'david' (technical), or
+  // 'shared'. v38 renders these, draws a surface badge, and computes Heather's
+  // share of the day's distance (David's target rest is ~20–40% to Heather).
+  const SEG = {
+    1:[
+      {from:'Hosea Kutako Airport',to:'Windhoek (B6 freeway)',surface:'paved',km:45,driver:'heather',note:'Fully paved B6 freeway, light traffic — an ideal first-drive warm-up.'},
+      {from:'Windhoek errands',to:'The Weinberg hotel',surface:'urban',km:20,driver:'david',note:'City turns, parking, grocery + food stops and the hotel approach.'}
+    ],
+    2:[
+      {from:'Windhoek',to:'Rehoboth',surface:'paved',km:90,driver:'heather',note:'B1 trunk highway — a comfortable relief leg before the gravel begins.'},
+      {from:'Rehoboth',to:'Solitaire',surface:'gravel',km:200,driver:'david',note:'C24 gravel + Spreetshoogte Pass (14% gradient, no guardrails) — David only.'},
+      {from:'Solitaire',to:'The Desert Grace',surface:'gravel',km:30,driver:'david',note:'Short graded gravel to the lodge.'}
+    ],
+    3:[
+      {from:'The Desert Grace',to:'Sesriem gate',surface:'gravel',km:70,driver:'david',note:'Pre-dawn graded gravel in low light.'},
+      {from:'Sesriem gate',to:'2x4 car park',surface:'paved',km:60,driver:'heather',note:'Tarred straight park road, 60 km/h limit — Heather’s best opportunity of the trip.'},
+      {from:'2x4 car park',to:'Deadvlei & back',surface:'sand',km:10,driver:'david',note:'Deep-sand 4x4 track — David (or take the park shuttle).'},
+      {from:'2x4 car park',to:'Sesriem gate',surface:'paved',km:60,driver:'heather',note:'Return on the paved park road.'},
+      {from:'Sesriem gate',to:'The Desert Grace',surface:'gravel',km:70,driver:'david',note:'Gravel back to the lodge.'}
+    ],
+    4:[
+      {from:'The Desert Grace',to:'Namib Sky (Farm Geluk)',surface:'gravel',km:50,driver:'david',note:'Pre-dawn gravel to the balloon meeting point — David.'},
+      {from:'Balloon / lodge logistics',to:'Namib Dune Star Camp',surface:'gravel',km:30,driver:'david',note:'Short low-light logistics hops around Sesriem.'}
+    ],
+    5:[
+      {from:'Namib Dune Star',to:'Solitaire',surface:'gravel',km:70,driver:'david',note:'Graded gravel north to Solitaire.'},
+      {from:'Solitaire',to:'Walvis Bay',surface:'gravel',km:232,driver:'david',note:'C14 corrugated desert crossing, gorge edges, no fuel — David only.'},
+      {from:'Walvis Bay',to:'Swakopmund',surface:'paved',km:30,driver:'heather',note:'Paved B2 coastal road once tyres are back to tar pressure.'}
+    ],
+    6:[
+      {from:'Swakopmund',to:'Walvis Bay',surface:'paved',km:30,driver:'david',note:'Flat paved B2 to the Mola Mola tour.'},
+      {from:'Walvis Bay',to:'Swakopmund',surface:'paved',km:30,driver:'heather',note:'Easy paved return — good seat time for Heather.'}
+    ],
+    7:[
+      {from:'Swakopmund',to:'Walvis Bay',surface:'paved',km:30,driver:'david',note:'Paved B2 to the kayaking meeting point.'},
+      {from:'Walvis Bay',to:'Usakos (B2, first ~80 km)',surface:'paved',km:80,driver:'heather',note:'Long straight paved B2 — a solid Heather relief block.'},
+      {from:'B2',to:'Usakos',surface:'paved',km:70,driver:'david',note:'Remainder of the B2 into Usakos.'},
+      {from:'Usakos',to:'Spitzkoppen Lodge',surface:'gravel',km:30,driver:'david',note:'D1918 gravel + rough lodge access — David.'}
+    ],
+    9:[
+      {from:'Spitzkoppen Lodge',to:'Usakos',surface:'gravel',km:30,driver:'david',note:'Gravel out to the B2.'},
+      {from:'Usakos / Omaruru',to:'Otjiwarongo (paved blocks)',surface:'paved',km:210,driver:'heather',note:'Paved B-road bulk — share in ~2-hour Heather blocks with breaks.'},
+      {from:'Otjiwarongo',to:'Omuthiya (B1)',surface:'paved',km:330,driver:'david',note:'Long paved B1 north; David anchors fuel timing + late-arrival risk.'},
+      {from:'Omuthiya',to:'King Nehale Gate',surface:'gravel',km:35,driver:'david',note:'Final gravel spur to the lodge.'}
+    ],
+    12:[
+      {from:'King Nehale Gate',to:'Omuthiya',surface:'gravel',km:35,driver:'david',note:'Gravel spur back to the B1.'},
+      {from:'Omuthiya',to:'Otjiwarongo (B1)',surface:'paved',km:340,driver:'david',note:'Long paved B1 south; David handles fuel discipline.'},
+      {from:'Otjiwarongo',to:'Okahandja (paved blocks)',surface:'paved',km:220,driver:'heather',note:'Paved B1 bulk — Heather relief in ~2-hour blocks.'},
+      {from:'Okahandja',to:'Windhoek',surface:'paved',km:70,driver:'david',note:'Final paved run into the city.'}
+    ],
+    13:[
+      {from:'The Weinberg',to:'Hosea Kutako Airport (B6)',surface:'paved',km:45,driver:'heather',note:'Fully paved B6 — the simplest drive of the trip.'},
+      {from:'Airport',to:'Rental return',surface:'urban',km:5,driver:'david',note:'Final rental-return logistics.'}
+    ]
+  };
+  for (const d of DATA.days) { d.driveExperience = DRIVE[d.day] || {summary:'',expect:[],hazards:[]}; delete d.heatherDrive; d.heatherDriveSegments = HEATHER[d.day] || []; d.driveSegments = SEG[d.day] || []; }
 
   function heatherSummary(d){ const s=d.heatherDriveSegments||[]; if(!s.length) return 'David drives'; return s.some(x=>x.status==='can_drive')?'Heather OK segment':'Heather maybe segment'; }
   function heatherBadge(d){ const s=d.heatherDriveSegments||[]; if(!s.length) return ''; return `<div class="heather-segments">${s.map(seg=>{const icon=seg.status==='can_drive'?'✅':'⚠️';return `<div class="heather-segment ${seg.status}"><div class="heather-badge ${seg.status}">${icon} ${esc(seg.label)}</div><div class="heather-note"><strong>${esc(seg.from)} → ${esc(seg.to)}</strong><br>${esc(seg.reason)}</div></div>`}).join('')}</div>`; }

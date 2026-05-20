@@ -2,6 +2,7 @@ window.NAMIBIA_TRIP_DATA = {
   "meta": {
     "title": "Namibia Self-Drive Companion",
     "subtitle": "May 23 – June 4, 2026",
+    "overviewDescription": "A 13-day self-drive loop from Windhoek: south into the Namib Desert for Sossusvlei, Deadvlei, Sesriem and a Dune Star sleep-out; west to the Atlantic at Swakopmund and Walvis Bay; inland to the granite inselberg of Spitzkoppe; north to Etosha's quiet King Nehale corner; then back to Windhoek. Roughly 2,700 km — a mix of fast paved B-roads and long, corrugated gravel C- and D-roads with remote no-fuel stretches that demand strict fuel and tyre-pressure discipline: drop pressure for gravel and sand, raise it again before tar, and never roll past Rehoboth, Solitaire, Sesriem, Usakos or Omuthiya without topping up (NWR fuel inside Etosha is unreliable in 2025–26 — carry a jerry can). Daylight is short in late May, so every day is timed to reach the night's lodge before sunset. Heather drives as relief on the easy paved sections — a target of about 20–40% of each self-drive day — while David keeps the mountain passes, deep sand and technical gravel.",
     "fuelAssumptions": {
       "vehicle": "Namibia2Go-style 4x4, assumed Toyota Hilux/Fortuner-type diesel",
       "tankLitres": 80,
@@ -176,14 +177,28 @@ window.NAMIBIA_TRIP_DATA = {
           "placeQuery": "Engen Klein Windhoek service station"
         },
         {
+          "time": "9:30 AM",
+          "name": "Rehoboth fuel stop (Shell)",
+          "emoji": "⛽",
+          "type": "fuel / last reliable before gravel",
+          "tripStopType": "intermediate",
+          "routeRole": "mandatory",
+          "lat": -23.317,
+          "lng": 17.087,
+          "notes": "Last reliable fuel and shop before the C24 Spreetshoogte gravel. After Rehoboth there is roughly 200 km of gravel with NO fuel until Solitaire — top up here even if the gauge still looks fine.",
+          "fuel": "Fill to 100% before leaving the B1. No fuel between Rehoboth and Solitaire (~200 km of C24/D-road gravel).",
+          "kind": "service",
+          "placeQuery": "Shell Rehoboth"
+        },
+        {
           "time": "11:30 AM",
           "name": "Solitaire Fuel Station / McGregor's Bakery",
           "emoji": "⛽",
           "type": "fuel / food / tyre check",
           "tripStopType": "intermediate",
           "routeRole": "mandatory",
-          "lat": -23.8927,
-          "lng": 15.9941,
+          "lat": -23.883,
+          "lng": 16.0,
           "notes": "Fuel, bathroom, coffee, apple pie.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Solitaire Service Station is the ONLY tyre/fuel stop between Sossusvlei and Swakopmund — top up fuel for the long C14 run.",
           "fuel": "Estimated arrival if filled in Windhoek: ~46–50 L / 58–63%. Last prudent fill before Sesriem area: fill to 100%.",
@@ -250,8 +265,8 @@ window.NAMIBIA_TRIP_DATA = {
           "type": "fuel / tyre check option",
           "tripStopType": "intermediate",
           "routeRole": "optional",
-          "lat": -24.4877,
-          "lng": 15.7972,
+          "lat": -24.4908,
+          "lng": 15.8032,
           "notes": "Optional fuel/pressure service near gate; use if anything feels off.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
           "pressureAction": "check",
@@ -383,6 +398,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "6:00 AM",
+          "endTime": "9:00 AM",
           "name": "Namib Sky Balloon Safaris",
           "emoji": "🎈",
           "type": "activity",
@@ -410,8 +426,8 @@ window.NAMIBIA_TRIP_DATA = {
           "type": "fuel / tyre check option",
           "tripStopType": "intermediate",
           "routeRole": "optional",
-          "lat": -24.4877,
-          "lng": 15.7972,
+          "lat": -24.4908,
+          "lng": 15.8032,
           "notes": "Optional check/reset if Day 3 pressure was not resolved.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Sossus Oasis Engen is the last full tyre workshop before the sand. The 60 km park road to the 2x4 carpark is paved — DO NOT drop to sand pressures yet.",
           "pressureAction": "check",
@@ -420,6 +436,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "10:00 AM",
+          "endTime": "10:30 AM",
           "name": "The Desert Grace luggage pickup",
           "emoji": "🏨",
           "type": "lodge / luggage",
@@ -437,6 +454,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "11:00 AM",
+          "endTime": "12:00 PM",
           "name": "Namib Desert Lodge / Dune Star logistics",
           "emoji": "🏨",
           "type": "camp logistics",
@@ -503,11 +521,11 @@ window.NAMIBIA_TRIP_DATA = {
           "type": "fuel / tyre check",
           "tripStopType": "intermediate",
           "routeRole": "mandatory",
-          "lat": -23.8927,
-          "lng": 15.9941,
+          "lat": -23.883,
+          "lng": 16.0,
           "notes": "Critical refuel before the long C14 coast crossing.",
           "pressure": "CHECK gravel pressure (~26 psi / 1.8 bar). Solitaire Service Station is the ONLY tyre/fuel stop between Sossusvlei and Swakopmund — top up fuel for the long C14 run.",
-          "fuel": "Estimated arrival since May 24 fill, including Sossusvlei/balloon/local driving: ~18–26 L / 23–33%. Fill to 100%.",
+          "fuel": "Estimated arrival since May 24 fill, including Sossusvlei/balloon/local driving: ~18–26 L / 23–33%. Fill to 100%. Solitaire is the ONLY fuel for the ~232 km C14 run to Walvis Bay — fill to the brim, never skip it.",
           "details": {
             "summary": "Legendary desert pit-stop at the Solitaire crossroads — Moose McGregor's famous German-recipe apple pie has been feeding Namib travellers for decades. Also the only fuel for many miles.",
             "website": "https://www.solitairenamibia.com",
@@ -638,6 +656,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "8:45 AM",
+          "endTime": "3:30 PM",
           "name": "Mola Mola Walvis Bay Waterfront Office",
           "emoji": "🎟️",
           "type": "activity",
@@ -724,6 +743,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "8:00 AM",
+          "endTime": "12:00 PM",
           "name": "Seal kayaking meeting point — Angling Club / Dolphins Coffee Shop",
           "emoji": "🛶",
           "type": "activity",
@@ -756,7 +776,7 @@ window.NAMIBIA_TRIP_DATA = {
           "routeRole": "mandatory",
           "lat": -21.9961,
           "lng": 15.5891,
-          "notes": "Mandatory service point before Spitzkoppe access roads.",
+          "notes": "Mandatory service point before Spitzkoppe access roads. No dedicated tyre-fitment centre in Usakos — make sure you have a sound full-size spare (ideally two) before the D1918 gravel; nearest real tyre shops are Swakopmund (TrenTyre / Supa Quick) or Karibib.",
           "pressure": "LOWER to 26 psi / 1.8 bar for the D1918 gravel to Spitzkoppe. Closest fuel + air to Spitzkoppe (no services at the lodge). Re-inflate on return.",
           "fuel": "Estimated arrival if last full fill was Solitaire May 27: ~13–20 L / 16–25%. Fill to 100%.",
           "pressureAction": "down",
@@ -837,6 +857,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "7:00 PM",
+          "endTime": "9:00 PM",
           "name": "Spitzkoppen Lodge dinner",
           "emoji": "🏨",
           "type": "lodge",
@@ -933,15 +954,29 @@ window.NAMIBIA_TRIP_DATA = {
           "kind": "business"
         },
         {
+          "time": "1:15 PM est.",
+          "name": "Otavi fuel option (Shell)",
+          "emoji": "⛽",
+          "type": "fuel option",
+          "tripStopType": "intermediate",
+          "routeRole": "optional",
+          "lat": -19.655,
+          "lng": 17.338,
+          "notes": "Optional B1 top-up between Otjiwarongo and the Etosha corridor.",
+          "fuel": "Optional splash-and-go if you skipped Otjiwarongo or want extra buffer before the NWR fuel-shortage zone.",
+          "kind": "service",
+          "placeQuery": "Otavi Shell service station"
+        },
+        {
           "time": "4:30 PM est.",
           "name": "Omuthiya / Oshivelo corridor final fuel option",
           "emoji": "⛽",
           "type": "fuel / tyre check",
           "tripStopType": "intermediate",
           "routeRole": "mandatory",
-          "lat": -18.3596,
-          "lng": 16.5815,
-          "notes": "Final practical fuel before Etosha King Nehale approach.",
+          "lat": -18.3561,
+          "lng": 16.5752,
+          "notes": "Final practical fuel before Etosha King Nehale approach. NWR camp fuel inside Etosha (Okaukuejo / Halali / Namutoni) has been unreliable or unavailable through 2025–26 — do NOT count on it. Fill fully here and carry a 5–10 L jerry can.",
           "pressure": "CHECK: ask about lodge access-road condition.",
           "fuel": "Estimated arrival from Otjiwarongo fill: ~35–42 L / 44–53%. Fill to 100% before lodge/return leg.",
           "kind": "service",
@@ -993,6 +1028,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "6:00 AM",
+          "endTime": "9:30 AM",
           "name": "Morning Guided Game Drive",
           "emoji": "🦁",
           "type": "guided activity",
@@ -1005,6 +1041,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "2:00 PM",
+          "endTime": "5:30 PM",
           "name": "Afternoon Guided Game Drive",
           "emoji": "🦁",
           "type": "guided activity",
@@ -1061,6 +1098,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "6:00 AM approx.",
+          "endTime": "9:30 AM",
           "name": "Morning Guided Game Drive",
           "emoji": "🦁",
           "type": "guided activity",
@@ -1073,6 +1111,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "2:00 PM approx.",
+          "endTime": "5:30 PM",
           "name": "Afternoon Guided Game Drive",
           "emoji": "🦁",
           "type": "guided activity",
@@ -1134,9 +1173,9 @@ window.NAMIBIA_TRIP_DATA = {
           "type": "fuel option",
           "tripStopType": "intermediate",
           "routeRole": "optional",
-          "lat": -18.3596,
-          "lng": 16.5815,
-          "notes": "Optional top-up if gauge is not near full after May 31 fill.",
+          "lat": -18.3561,
+          "lng": 16.5752,
+          "notes": "Optional top-up if gauge is not near full after May 31 fill. Remember NWR camp fuel inside Etosha is unreliable (2025–26) — if you didn't fill at Omuthiya northbound, do it now.",
           "kind": "service",
           "placeQuery": "Engen Omuthiya"
         },
@@ -1152,6 +1191,20 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Optional fuel/check.",
           "kind": "service",
           "placeQuery": "Engen Tsumeb"
+        },
+        {
+          "time": "11:30 AM est.",
+          "name": "Otavi fuel option (Shell)",
+          "emoji": "⛽",
+          "type": "fuel option",
+          "tripStopType": "intermediate",
+          "routeRole": "optional",
+          "lat": -19.655,
+          "lng": 17.338,
+          "notes": "Optional B1 top-up between Tsumeb and Otjiwarongo.",
+          "fuel": "Optional. Only needed if the gauge is low after the Etosha corridor.",
+          "kind": "service",
+          "placeQuery": "Otavi Shell service station"
         },
         {
           "time": "12:30 PM",
@@ -1189,6 +1242,20 @@ window.NAMIBIA_TRIP_DATA = {
             "noteworthyDish": "Wood-fired pizza, house breads"
           },
           "kind": "business"
+        },
+        {
+          "time": "3:30 PM est.",
+          "name": "Okahandja fuel option (Engen 1 Stop / Wimpy)",
+          "emoji": "⛽",
+          "type": "fuel option",
+          "tripStopType": "intermediate",
+          "routeRole": "optional",
+          "lat": -21.995,
+          "lng": 16.92,
+          "notes": "Optional last B1 stop before Windhoek; 24-hour Engen with a Wimpy for a late lunch or leg-stretch.",
+          "fuel": "Optional. Top up here to return the rental near-full without the Day 13 airport-road scramble.",
+          "kind": "service",
+          "placeQuery": "Engen 1 Stop Okahandja"
         },
         {
           "time": "5:00 PM",
