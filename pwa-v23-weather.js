@@ -180,6 +180,74 @@
     }
   }
 
+  // ---- Per-STOP arrival weather (Stops tab) ----
+  // The route legs run between consecutive mandatory stops (verified:
+  // legs.length === mandatoryStops.length - 1). Arrival ETA at mandatory stop N
+  // = day-start anchor + Σ legs[0..N-1].duration. Each mandatory stop has its
+  // own lat/lng, so we use its OWN forecast (the desert trip spans big spatial
+  // temperature gradients — coast vs inland — so a single day-centroid would be
+  // misleading). Falls back to the day centroid forecast if the per-stop one
+  // isn't cached yet.
+  function attachWeatherToStops() {
+    const days = window.NAMIBIA_TRIP_DATA?.days || [];
+    for (const d of days) {
+      const route = state.renderedRoutes?.[d.date];
+      if (!route?.legs || !ST) continue;
+      const startMs = dayStartMs(d, route);
+      const dayFc = getCachedForDay(d);
+      let mi = 0;                  // mandatory-waypoint index (== outgoing-leg index)
+      let cumMin = 0;              // cumulative driving minutes to the NEXT waypoint
+      let lastWaypointCumMin = 0;  // arrival minutes at the most recent waypoint
+      for (const s of (d.stops || [])) {
+        // Only `mandatory` stops are Google route waypoints (one leg between
+        // each pair). `optional` / `mandatoryAction` stops sit ALONG the
+        // current leg, so we time them at the most recent waypoint's arrival
+        // (honest approximation — we don't know their position along the leg).
+        let etaMin;
+        if (s.routeRole === 'mandatory') {
+          etaMin = cumMin;
+          lastWaypointCumMin = cumMin;
+          cumMin += ST.parseDurationToMinutes(route.legs[mi]?.duration);
+          mi++;
+        } else {
+          etaMin = lastWaypointCumMin;
+        }
+        const localPlus = new Date(startMs + etaMin * 60000 + NAMIBIA_TZ_OFFSET_MIN * 60000);
+        const iso = localPlus.toISOString().slice(0, 13) + ':00';
+        const hasCoords = typeof s.lat === 'number' && typeof s.lng === 'number';
+        const fc = (hasCoords && loadCached(d.date, s.lat, s.lng)) || dayFc;
+        let w = fc ? W.weatherAtLocalIso(fc, iso) : null;
+        if (!w && fc) w = W.weatherNearestToLocalHour(fc, Date.parse(iso + ':00Z'));
+        s._weatherAtEta = w || null;
+        s._etaIso = iso;
+      }
+    }
+  }
+
+  // Fetch a forecast for each mandatory stop's own coordinates (sequential per
+  // day, parallel across stops within a day to keep it quick). Cached 12h.
+  async function loadStopWeather(opts) {
+    opts = opts || {};
+    const days = window.NAMIBIA_TRIP_DATA?.days || [];
+    let fetched = 0, hit = 0, errors = 0;
+    for (const d of days) {
+      if (!d.selfDrive) continue;
+      const mand = (d.stops || []).filter(s => s.routeRole === 'mandatory'
+        && typeof s.lat === 'number' && typeof s.lng === 'number');
+      await Promise.all(mand.map(async s => {
+        if (!opts.force && loadCached(d.date, s.lat, s.lng)) { hit++; return; }
+        try {
+          const fc = await fetchDayWeather(d.date, s.lat, s.lng);
+          saveCached(d.date, s.lat, s.lng, fc);
+          fetched++;
+        } catch (e) {
+          if (!String(e?.message || e).startsWith('SKIP:')) errors++;
+        }
+      }));
+    }
+    return { fetched, hit, errors };
+  }
+
   // ---- Unit helpers (metric + imperial side-by-side) ----
   function cToF(c) { return c * 9 / 5 + 32; }
   function kmhToMph(k) { return k / 1.60934; }
@@ -245,6 +313,39 @@
     });
   }
 
+  function stopWeatherBlockHtml(w, etaIso) {
+    if (!w) return '';
+    const hour = etaIso ? etaIso.slice(11, 16) : (w.isoLocal ? w.isoLocal.slice(11, 16) : '');
+    const rainCls = w.rainy ? 'step-weather-rain' : '';
+    const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<div class="step-detail step-weather stop-weather ${rainCls}"><strong>Weather on arrival${hour ? ' (~' + hour + ')' : ''}:</strong> ${esc(w.emoji)} ${esc(w.label)} · ${fmtTemp(w.tempC)} · 💨${fmtWind(w.windKmh)}${fmtPrecip(w.precipMm)}</div>`;
+  }
+
+  function renderWeatherIntoStops() {
+    if (state.activeTab !== 'stops') return;
+    const tc = document.getElementById('tabContent');
+    if (!tc) return;
+    const d = day();
+    const route = state.renderedRoutes?.[d.date];
+    if (!route?.legs) return;
+    const stopEls = tc.querySelectorAll('.stop-list > .stop');
+    const stops = d.stops || [];
+    stopEls.forEach((el, i) => {
+      const s = stops[i];
+      if (!s) return;
+      const html = stopWeatherBlockHtml(s._weatherAtEta, s._etaIso);
+      const existing = el.querySelector('.stop-weather');
+      if (!html) { if (existing) existing.remove(); return; }
+      if (existing) { existing.outerHTML = html; return; }
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const node = tmp.firstElementChild;
+      // Insert into the text column (2nd child of .stop), before the biz-card.
+      const textCol = el.children[1] || el;
+      textCol.appendChild(node);
+    });
+  }
+
   // ---- Refresh button ----
   async function refreshAll() {
     const btn = document.getElementById('refreshLive');
@@ -269,7 +370,9 @@
         await new Promise(r => setTimeout(r, 1000));
       }
       await loadAllWeather({ force: true });
+      await loadStopWeather({ force: true });
       attachWeatherToSteps();
+      attachWeatherToStops();
       if (typeof render === 'function') render();
       if (typeof log === 'function') log('Refresh complete: routes + weather + caches reloaded.');
     } catch (e) {
@@ -296,9 +399,11 @@
     const base = renderTab;
     renderTab = function patchedRenderTabV23() {
       const r = base();
-      // Make sure weather is attached to each step before we render.
+      // Make sure weather is attached to each step + stop before we render.
       attachWeatherToSteps();
+      attachWeatherToStops();
       renderWeatherIntoDirections();
+      renderWeatherIntoStops();
       injectRefreshButton();
       return r;
     };
@@ -310,6 +415,12 @@
     loadAllWeather({ force: false }).then(() => {
       attachWeatherToSteps();
       if (state.activeTab === 'directions') renderWeatherIntoDirections();
+    }).catch(() => {});
+    // Per-stop forecasts run as a separate background pass (more fetches, lower
+    // priority than the per-day centroid the Passenger tab needs first).
+    loadStopWeather({ force: false }).then(() => {
+      attachWeatherToStops();
+      if (state.activeTab === 'stops') renderWeatherIntoStops();
     }).catch(() => {});
   }, 1500);
 
@@ -331,9 +442,14 @@
     if (!any) return;
     const ageMs = Date.now() - oldestMs;
     if (ageMs < 60 * 60 * 1000) return; // < 1h: still fresh
-    loadAllWeather({ force: true }).then(() => {
+    Promise.all([
+      loadAllWeather({ force: true }),
+      loadStopWeather({ force: true })
+    ]).then(() => {
       attachWeatherToSteps();
+      attachWeatherToStops();
       if (state.activeTab === 'directions') renderWeatherIntoDirections();
+      if (state.activeTab === 'stops') renderWeatherIntoStops();
       if (typeof log === 'function') log('Weather auto-refreshed (cache > 1h old).');
     }).catch(() => {});
   }
@@ -343,6 +459,7 @@
 
   window.NamibiaV23 = {
     loadAllWeather, refreshAll, attachWeatherToSteps, etaIsoLocalForStep,
+    attachWeatherToStops, loadStopWeather, renderWeatherIntoStops,
     centroidOf, getCachedForDay, invalidateAllWeather,
     fetchDayWeather, // exposed for tests
     _loadCached: loadCached,

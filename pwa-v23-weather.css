@@ -9,6 +9,15 @@
   background: #dbeafe;
   font-weight: 500;
 }
+/* Stops tab: arrival weather block sits in the stop's text column. */
+.stop-weather {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-left: 3px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
 #refreshLive[disabled] {
   cursor: progress;
   opacity: 0.7;
