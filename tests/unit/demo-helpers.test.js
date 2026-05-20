@@ -73,33 +73,37 @@ describe('NamibiaDemo.sampleNoise', () => {
   });
 });
 
-describe('NamibiaDemo.cardCursor', () => {
-  const cards = Array.from({ length: 6 }, (_, i) => ({ lat: i, lng: 0 }));
-  it('is monotonic and visits EVERY card index across the demo', () => {
+describe('NamibiaDemo.cardProgressFractions + activeCardAtT', () => {
+  // A straight south→north path; cards spaced along it.
+  const path = Array.from({ length: 11 }, (_, i) => ({ lat: i * 0.1, lng: 0 }));
+  const cards = [
+    { lat: 0.0, lng: 0 }, { lat: 0.25, lng: 0 }, { lat: 0.5, lng: 0 },
+    { lat: 0.75, lng: 0 }, { lat: 1.0, lng: 0 }
+  ];
+  it('returns strictly-increasing fractions in [0,1]', () => {
+    const fr = Demo.cardProgressFractions(path, cards);
+    expect(fr.length).toBe(cards.length);
+    for (let i = 1; i < fr.length; i++) expect(fr[i]).toBeGreaterThan(fr[i - 1]);
+    expect(fr[0]).toBeGreaterThanOrEqual(0);
+    expect(fr[fr.length - 1]).toBeLessThanOrEqual(1);
+  });
+  it('active card advances monotonically and visits every card across t', () => {
+    const fr = Demo.cardProgressFractions(path, cards);
     const visited = new Set();
     let last = -1, monotonic = true;
     for (let i = 0; i <= 600; i++) {
-      const c = Demo.cardCursor(cards, i / 600);
-      visited.add(c.idx);
-      if (c.idx < last) monotonic = false;
-      last = c.idx;
+      const a = Demo.activeCardAtT(fr, i / 600);
+      visited.add(a);
+      if (a < last) monotonic = false;
+      last = a;
     }
     expect(monotonic).toBe(true);
-    expect(visited.size).toBe(cards.length); // no skipped turns
-    expect(Math.max(...visited)).toBe(cards.length - 1);
+    expect(visited.size).toBe(cards.length);
   });
-  it('starts at the first card and ends at the last', () => {
-    expect(Demo.cardCursor(cards, 0).idx).toBe(0);
-    expect(Demo.cardCursor(cards, 1).idx).toBe(cards.length - 1);
-  });
-  it('places the GPS pin between the active card and the next', () => {
-    const c = Demo.cardCursor(cards, 0.5); // mid-demo
-    expect(c.pos).not.toBe(null);
-    expect(c.pos.lat).toBeGreaterThanOrEqual(0);
-    expect(c.pos.lat).toBeLessThanOrEqual(cards.length - 1);
-  });
-  it('handles empty card list', () => {
-    expect(Demo.cardCursor([], 0.5)).toEqual({ idx: -1, pos: null });
+  it('starts at card 0 and ends at the last card', () => {
+    const fr = Demo.cardProgressFractions(path, cards);
+    expect(Demo.activeCardAtT(fr, 0)).toBe(0);
+    expect(Demo.activeCardAtT(fr, 1)).toBe(cards.length - 1);
   });
 });
 

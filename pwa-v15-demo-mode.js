@@ -55,25 +55,35 @@
     return pts.length >= 2 ? pts : ((route && route.overviewPath) || []);
   }
 
-  // Demo progress t (0..1) → which card is active + where the GPS pin sits.
-  // The demo gives EVERY card an equal slice of time and places the pin between
-  // the active card and the next, so the highlight + pin stay aligned and no
-  // turn (or pressure/fuel stop) is ever skipped — the core "missing turns" fix.
-  function cardCursor(cards, t) {
-    const N = (cards || []).length;
-    if (!N) return { idx: -1, pos: null };
-    const f = Math.max(0, Math.min(1, t)) * (N - 1);
-    const idx = Math.min(N - 1, Math.floor(f + 1e-9));
-    const segT = Math.min(1, Math.max(0, f - idx));
-    const c0 = cards[idx];
-    const c1 = cards[Math.min(N - 1, idx + 1)] || c0;
-    let pos = null;
-    if (c0 && typeof c0.lat === 'number') {
-      const la1 = (c1 && typeof c1.lat === 'number') ? c1.lat : c0.lat;
-      const lo1 = (c1 && typeof c1.lng === 'number') ? c1.lng : c0.lng;
-      pos = { lat: c0.lat + (la1 - c0.lat) * segT, lng: c0.lng + (lo1 - c0.lng) * segT };
+  // Each card's position as a fraction (0..1) ALONG the route polyline, made
+  // strictly increasing by array order. The demo drives the GPS along that same
+  // polyline (interpPolyline below), so card fraction == GPS fraction == demo t:
+  // the active card always matches where the chevron is, and the GPS follows the
+  // real road instead of cutting straight lines between turns.
+  function cardProgressFractions(path, cards) {
+    const n = (cards || []).length;
+    if (!Array.isArray(path) || path.length < 2 || !n) {
+      return (cards || []).map((_, i) => i / Math.max(1, n - 1));
     }
-    return { idx, pos };
+    const cum = [0];
+    for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + DC.distMeters(path[i - 1], path[i]));
+    const total = cum[cum.length - 1] || 1;
+    const fr = cards.map(c => {
+      if (typeof c.lat !== 'number' || typeof c.lng !== 'number') return 0;
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < path.length; i++) { const d = DC.distMeters(c, path[i]); if (d < bd) { bd = d; bi = i; } }
+      return cum[bi] / total;
+    });
+    for (let i = 1; i < fr.length; i++) { if (!(fr[i] > fr[i - 1])) fr[i] = Math.min(1, fr[i - 1] + 1e-4); }
+    return fr;
+  }
+
+  // Active card at demo progress t = the last card whose fraction has been
+  // reached. Strictly-increasing fractions ⇒ every card is reached in turn.
+  function activeCardAtT(cardFr, t) {
+    let act = 0;
+    for (let i = 0; i < cardFr.length; i++) { if (cardFr[i] <= t + 1e-6) act = i; else break; }
+    return act;
   }
 
   function interpPolyline(path, t) {
@@ -139,13 +149,14 @@
     }
     const baseStartMs = Date.parse(d.date + 'T' + opts.startLocal + '+02:00');
     const realDriveMinutes = totalRouteMinutes(route) || 60;
-    // Drive the STEP path (one vertex per turn), not the decimated overviewPath.
-    // The overview path collapses short city turns to a single vertex, so the
-    // demo would sail past several turns without findCurrentStep ever resolving
-    // them. Driving through each step's start guarantees every turn (and the
-    // pressure/fuel cards near them) is visited + announced.
-    const path = buildDrivePath(route);
+    // Drive the GPS along the real road geometry (overviewPath) so it follows
+    // the route accurately instead of cutting straight lines between turns. The
+    // active card is keyed off the SAME polyline fraction (cardProgressFractions
+    // below), so the highlighted card always matches where the chevron is, and
+    // every card is still reached in order.
+    const path = route.overviewPath;
     const cards = route.cards || [];
+    const cardFr = cardProgressFractions(path, cards);
     const noise = generateNoiseSeries(24, opts.noiseHours);
 
     // Ensure the Driving Dashboard is visible so the user sees the cards scroll.
@@ -176,13 +187,12 @@
     demoTimer = setInterval(() => {
       const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
       const t = Math.min(1, (now - startTs) / opts.durationMs);
-      const cursor = cardCursor(cards, t);
-      const pos = cursor.pos || interpPolyline(path, t);
+      const pos = interpPolyline(path, t);
       const noiseMin = sampleNoise(noise, t);
       const simMs = baseStartMs + (realDriveMinutes * t + noiseMin) * 60000;
-      // Demo dictates the active card monotonically (so v13 doesn't reverse-map
-      // GPS→card, which skips clustered turns + off-road pressure/fuel stops).
-      if (state.driving) state.driving.demoActiveIdx = cursor.idx;
+      // Active card from the same route fraction the GPS is at → highlight stays
+      // aligned with the chevron, and every card is reached in order.
+      if (state.driving) state.driving.demoActiveIdx = activeCardAtT(cardFr, t);
       try {
         // Prefer the silent variants so the demo doesn't trigger a full
         // renderTab cascade (~20 patches) on every 100ms tick. The silent
@@ -327,7 +337,8 @@
     isRunning: isDemoRunning,
     interpPolyline,
     buildDrivePath,
-    cardCursor,
+    cardProgressFractions,
+    activeCardAtT,
     totalRouteMinutes,
     generateNoiseSeries,
     sampleNoise,

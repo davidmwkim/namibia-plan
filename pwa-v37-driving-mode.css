@@ -104,20 +104,21 @@
 }
 .df-recenter.df-recenter-on { display: inline-flex; }
 
-/* Fixed directional puck — sits at the clip-box centre, always pointing up
-   (the map rotates beneath it). */
-.df-chevron {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 600;
-  pointer-events: none;
+/* Directional chevron puck — a Leaflet marker pinned to the GPS (so it never
+   drifts from the dot) and rotated to the heading; it tilts with the map and
+   lies on the road, Google-nav style. The Leaflet icon wrapper positions it;
+   .df-chev-rot carries the heading rotation; .df-chev-tri is the arrow. */
+.df-chev-icon { background: transparent; border: 0; overflow: visible; }
+.df-chev-rot {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  transform-origin: 50% 50%;
 }
-.df-chevron-arrow {
+.df-chev-tri {
   width: 0; height: 0;
-  border-left: 13px solid transparent;
-  border-right: 13px solid transparent;
-  border-bottom: 28px solid #4285f4;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 26px solid #4285f4;
   filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 2px rgba(0,0,0,0.45));
 }
 

@@ -16,9 +16,15 @@
   let focusMap = null;
   let refreshTimer = null;
   let lastCardKey = null;
+  let chevMarker = null;     // the chevron lives ON the map (at the GPS) so it
+                             // can never drift from the dot/route during panning
+  let programmaticMove = false; // true while WE pan/zoom, so our own moves don't
+                                // get mistaken for the user grabbing the map
 
   // ---- Heading-up navigation camera ----
-  const NAV_ZOOM = 16;
+  const NAV_ZOOM = 16;       // real driving: close, street-level
+  const NAV_DEMO_ZOOM = 13;  // demo flyover: zoomed out so raster tiles can keep
+                             // up with the 200×-speed playback (otherwise blank)
   const NAV_TILT = 52;       // degrees of 3-D pitch (rotateX), Google-nav style
   const NAV_PERSPECTIVE = 1000; // px; smaller = stronger perspective
   let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
@@ -87,16 +93,22 @@
     return (a + diff * t + 360) % 360;
   }
 
-  // Size the oversized inner so it always covers the clip box under any rotation
-  // (a square of side = the box diagonal, centered).
+  // The GPS sits this far down the map (0.5 = centre). Lower = more road ahead
+  // visible above the puck, like Google nav.
+  const NAV_FOCUS_Y = 0.66;
+
+  // Size the oversized inner so it always covers the clip box under rotation +
+  // tilt (a square ~1.5× the diagonal), and position it so its CENTRE — where
+  // the GPS is panned to and the rotation/tilt origin sits — lands at
+  // NAV_FOCUS_Y down the box (lookahead).
   function sizeNavInner(host, inner) {
     const r = host.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    const D = Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height)) + 4;
+    const D = Math.ceil(Math.sqrt(r.width * r.width + r.height * r.height) * 1.5) + 4;
     inner.style.width = D + 'px';
     inner.style.height = D + 'px';
     inner.style.left = Math.round((r.width - D) / 2) + 'px';
-    inner.style.top = Math.round((r.height - D) / 2) + 'px';
+    inner.style.top = Math.round(r.height * NAV_FOCUS_Y - D / 2) + 'px';
   }
 
   function fmtM(m) {
@@ -160,10 +172,6 @@
     const inner = document.createElement('div');
     inner.className = 'df-map-inner';
     host.appendChild(inner);
-    const chev = document.createElement('div');
-    chev.className = 'df-chevron';
-    chev.innerHTML = '<div class="df-chevron-arrow"></div>';
-    host.appendChild(chev);
     sizeNavInner(host, inner);
     // Interactive live map — the user can pan/zoom to look around (a "Re-center"
     // button returns to the follow camera). zoomControl off (we keep the view
@@ -203,6 +211,7 @@
     if (focusMap && OSM()) OSM().unregisterMap(focusMap);
     try { if (focusMap) focusMap.remove(); } catch (_) {}
     focusMap = null;
+    chevMarker = null;
     overlay.remove();
     overlay = null;
     document.documentElement.classList.remove('df-open');
@@ -213,7 +222,7 @@
   // User grabbed the map → free-look mode: flatten to a plain north-up map (so
   // panning/zooming is intuitive, not rotated/tilted) and reveal "Re-center".
   function onUserMove() {
-    if (!navFollow) return;
+    if (programmaticMove || !navFollow) return;
     navFollow = false;
     const inner = overlay && overlay.querySelector('.df-map-inner');
     if (inner) inner.style.transform = 'none';
@@ -226,8 +235,7 @@
     navFollow = true;
     const btn = overlay && overlay.querySelector('#dfRecenter');
     if (btn) btn.classList.remove('df-recenter-on');
-    if (focusMap) { try { focusMap.setZoom(NAV_ZOOM, { animate: false }); } catch (_) {} }
-    refreshFocus(true);
+    refreshFocus(true); // re-applies the right zoom (demo vs real) + follow camera
   }
 
   // Start/stop the high-speed demo from inside Driving mode. Unlocks audio on
@@ -263,27 +271,49 @@
     // Keep the shared GPS dot current + drive the heading-up navigation camera:
     // follow the driver and rotate the map so travel direction is always "up".
     if (OSM()) OSM().updateAllGps();
-    // Drive the follow camera only when following — in free-look the user owns
-    // the view (we leave it flat + wherever they panned, with "Re-center" up).
-    if (focusMap && state.gps && navFollow) {
-      // Heading source: the phone compass (which way the phone points) when
-      // available for real driving; the simulated movement bearing during the
-      // demo (no real compass) or when no compass is present.
-      if (compassActive && compassHeading != null && !state.driving.demoMode) {
-        navHeading = lerpAngle(navHeading, compassHeading, 0.5);
-      } else if (navLastGps) {
-        const moved = DC.distMeters(navLastGps, state.gps);
-        if (moved > 3) navHeading = lerpAngle(navHeading, DC.bearing(navLastGps, state.gps), 0.35);
+    if (focusMap && state.gps) {
+      // Heading: phone compass (real driving) else the smoothed movement bearing
+      // (demo / no compass). Heavier smoothing + a small move threshold keep the
+      // map from spinning erratically.
+      if (navFollow) {
+        if (compassActive && compassHeading != null && !state.driving.demoMode) {
+          navHeading = lerpAngle(navHeading, compassHeading, 0.4);
+        } else if (navLastGps) {
+          const moved = DC.distMeters(navLastGps, state.gps);
+          if (moved > 6) navHeading = lerpAngle(navHeading, DC.bearing(navLastGps, state.gps), 0.22);
+        }
+        navLastGps = { lat: state.gps.lat, lng: state.gps.lng };
       }
-      navLastGps = { lat: state.gps.lat, lng: state.gps.lng };
-      // Instant recenter — an animated pan never settles at the demo's tick
-      // rate, leaving the map perpetually mid-animation (blank tiles) while the
-      // route + GPS circle slide under the fixed chevron ("flies off the route").
-      // Snapping keeps the GPS exactly under the puck; rotation/tilt is eased via
-      // a CSS transition on the inner instead.
-      try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: false }); } catch (_) {}
-      const inner = overlay.querySelector('.df-map-inner');
-      if (inner) inner.style.transform = followTransform();
+      // The chevron is a marker ON the map at the GPS, so it can never drift
+      // from the dot/route. Its triangle is rotated to the heading; the tilted
+      // map then makes it lie on the road pointing forward (Google-nav style).
+      if (!chevMarker) {
+        const icon = window.L.divIcon({
+          className: 'df-chev-icon',
+          html: '<div class="df-chev-rot"><div class="df-chev-tri"></div></div>',
+          iconSize: [30, 30], iconAnchor: [15, 15]
+        });
+        chevMarker = window.L.marker([state.gps.lat, state.gps.lng], { icon, interactive: false, zIndexOffset: 2000 }).addTo(focusMap);
+      } else {
+        chevMarker.setLatLng([state.gps.lat, state.gps.lng]);
+      }
+      const el = chevMarker.getElement && chevMarker.getElement();
+      const rotEl = el && el.querySelector('.df-chev-rot');
+      if (rotEl) rotEl.style.transform = `rotate(${navHeading.toFixed(1)}deg)`;
+
+      // Drive the follow camera only when following — in free-look the user owns
+      // the view (flat north-up, wherever they panned, with "Re-center" up).
+      if (navFollow) {
+        // Zoom out for the fast demo flyover so tiles render; close for real
+        // driving. Guard our own pan/zoom so they don't trip onUserMove.
+        const wantZoom = (state.driving && state.driving.demoMode) ? NAV_DEMO_ZOOM : NAV_ZOOM;
+        programmaticMove = true;
+        try { if (focusMap.getZoom() !== wantZoom) focusMap.setZoom(wantZoom, { animate: false }); } catch (_) {}
+        try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: false }); } catch (_) {}
+        programmaticMove = false;
+        const inner = overlay.querySelector('.df-map-inner');
+        if (inner) inner.style.transform = followTransform();
+      }
     }
     // Sun / ETA chip mirrors the dashboard's.
     const sunEl = overlay.querySelector('#dfSun');
