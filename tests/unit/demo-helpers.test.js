@@ -107,6 +107,22 @@ describe('NamibiaDemo.cardProgressFractions + activeCardAtT', () => {
   });
 });
 
+describe('NamibiaDemo.autoDurationMs', () => {
+  it('scales with route length and clamps to [60s, 360s]', () => {
+    // ~0 km route → clamped to the 60s floor.
+    const tiny = { overviewPath: [{ lat: 0, lng: 0 }, { lat: 0.0001, lng: 0 }] };
+    expect(Demo.autoDurationMs(tiny)).toBe(60000);
+    // A huge route → clamped to the 360s ceiling.
+    const huge = { overviewPath: [{ lat: 0, lng: 0 }, { lat: 5, lng: 0 }] };
+    expect(Demo.autoDurationMs(huge)).toBe(360000);
+    // Mid route lands strictly between the bounds.
+    const mid = { overviewPath: [{ lat: 0, lng: 0 }, { lat: 1, lng: 0 }] }; // ~111 km
+    const d = Demo.autoDurationMs(mid);
+    expect(d).toBeGreaterThan(60000);
+    expect(d).toBeLessThan(360000);
+  });
+});
+
 describe('NamibiaDemo.buildDrivePath', () => {
   it('builds one vertex per step plus the final destination', () => {
     const route = {

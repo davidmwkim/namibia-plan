@@ -136,10 +136,23 @@
     return series[lo] * (1 - frac) + series[hi] * frac;
   }
 
+  // Pick a demo duration proportional to route length so the playback moves at a
+  // tile-friendly ~700 m/s at street zoom (otherwise raster tiles can't keep up
+  // and the map goes blank). Clamped so short days aren't blink-fast and long
+  // days aren't endless.
+  const DEMO_TARGET_MPS = 700;
+  function autoDurationMs(route) {
+    const path = (route && route.overviewPath) || [];
+    let m = 0;
+    for (let i = 1; i < path.length; i++) m += DC.distMeters(path[i - 1], path[i]);
+    return Math.max(60000, Math.min(360000, Math.round(m / DEMO_TARGET_MPS * 1000)));
+  }
+
   // ---- Driver ----
   function startDemo(overrides) {
     stopDemo();
-    const opts = Object.assign({}, defaults, overrides || {});
+    overrides = overrides || {};
+    const opts = Object.assign({}, defaults, overrides);
     if (typeof state === 'undefined' || !state) return null;
     const d = day();
     const route = state.renderedRoutes && state.renderedRoutes[d.date];
@@ -158,6 +171,8 @@
     const cards = route.cards || [];
     const cardFr = cardProgressFractions(path, cards);
     const noise = generateNoiseSeries(24, opts.noiseHours);
+    // Adaptive, route-length-proportional pace unless a duration was passed in.
+    if (overrides.durationMs == null) opts.durationMs = autoDurationMs(route);
 
     // Ensure the Driving Dashboard is visible so the user sees the cards scroll.
     if (state.activeTab !== 'street') {
@@ -339,6 +354,7 @@
     buildDrivePath,
     cardProgressFractions,
     activeCardAtT,
+    autoDurationMs,
     totalRouteMinutes,
     generateNoiseSeries,
     sampleNoise,

@@ -22,9 +22,8 @@
                                 // get mistaken for the user grabbing the map
 
   // ---- Heading-up navigation camera ----
-  const NAV_ZOOM = 16;       // real driving: close, street-level
-  const NAV_DEMO_ZOOM = 13;  // demo flyover: zoomed out so raster tiles can keep
-                             // up with the 200×-speed playback (otherwise blank)
+  const NAV_ZOOM = 16;       // street-level for both real driving AND the demo
+                             // (the demo is slowed to a tile-friendly pace)
   const NAV_TILT = 52;       // degrees of 3-D pitch (rotateX), Google-nav style
   const NAV_PERSPECTIVE = 1000; // px; smaller = stronger perspective
   let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
@@ -252,9 +251,9 @@
         window.NamibiaTTS.speak('demo_starting');
       }
     } catch (_) {}
-    const durEl = document.getElementById('demoDuration');
-    const dur = durEl ? Number(durEl.value) : 0;
-    Demo.startDemo(dur > 0 ? { durationMs: dur * 1000 } : {});
+    // No explicit duration → the demo picks a route-length-proportional pace
+    // that's slow enough for street-level tiles to keep up.
+    Demo.startDemo({});
   }
 
   function refreshFocus(force) {
@@ -304,11 +303,10 @@
       // Drive the follow camera only when following — in free-look the user owns
       // the view (flat north-up, wherever they panned, with "Re-center" up).
       if (navFollow) {
-        // Zoom out for the fast demo flyover so tiles render; close for real
-        // driving. Guard our own pan/zoom so they don't trip onUserMove.
-        const wantZoom = (state.driving && state.driving.demoMode) ? NAV_DEMO_ZOOM : NAV_ZOOM;
+        // Always street-level (the demo is paced slow enough for tiles to keep
+        // up). Guard our own pan/zoom so they don't trip onUserMove.
         programmaticMove = true;
-        try { if (focusMap.getZoom() !== wantZoom) focusMap.setZoom(wantZoom, { animate: false }); } catch (_) {}
+        try { if (focusMap.getZoom() !== NAV_ZOOM) focusMap.setZoom(NAV_ZOOM, { animate: false }); } catch (_) {}
         try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: false }); } catch (_) {}
         programmaticMove = false;
         const inner = overlay.querySelector('.df-map-inner');
