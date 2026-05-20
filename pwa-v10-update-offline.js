@@ -129,7 +129,12 @@
   }
 
   async function cacheStreetViewImages() {
-    const urls = [...new Set(Object.values(state.renderedRoutes || {}).flatMap(r => r.street || []).map(s => s.url).filter(Boolean))];
+    // Pre-cache legacy street snapshots AND the 5 km Driver-view svFrames so
+    // driving works offline through cellular dead zones before they're visited.
+    const urls = [...new Set(Object.values(state.renderedRoutes || {}).flatMap(r => [
+      ...((r.street || []).map(s => s.url)),
+      ...((r.svFrames || []).map(f => f.url))
+    ]).filter(Boolean))];
     if (!urls.length || !('caches' in window)) return { done: 0, total: urls.length };
     const cache = await caches.open(RUNTIME_CACHE);
     let done = 0;

@@ -70,7 +70,7 @@ function init(){
             <div><h1>${esc(DATA.meta.title)}</h1><p>${esc(DATA.meta.subtitle)} · offline PWA / route companion</p></div>
           </div>
           <div class="hero-actions">
-            <span class="hero-hint">Open <strong>Settings</strong> ⚙ to add your Google Maps key, prepare offline, and export.</span>
+            <span class="hero-hint">Open the <strong>Settings</strong> tab to add your Google Maps key, prepare offline, and export.</span>
           </div>
         </div>
         <div class="statusbar">
