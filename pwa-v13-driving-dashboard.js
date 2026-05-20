@@ -354,7 +354,8 @@
     const map = OSM.createMap(inner, {
       center: [lat, lng], zoom: 14,
       zoomControl: false, attributionControl: false,
-      scrollWheelZoom: false, dragging: false, tap: false
+      scrollWheelZoom: false, dragging: false, tap: false,
+      zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false
     });
     if (!map) return null;
     try { map.doubleClickZoom.disable(); map.boxZoom.disable(); map.keyboard.disable(); } catch (_) {}

@@ -148,7 +148,8 @@ function render(){
     const nearest=d.stops.map(s=>({s, m:distMeters(state.gps,s)})).sort((a,b)=>a.m-b.m)[0];
     gpsLine = nearest ? `Nearest stop: ${nearest.s.emoji} ${nearest.s.name} (${Math.round(nearest.m)}m)` : 'GPS enabled.';
   }
-  $('dashboard').innerHTML = `
+  const dashboard = $('dashboard');
+  if (dashboard) dashboard.innerHTML = `
     <div class="now-date">Day ${d.day} · ${d.date}</div>
     <div class="now-title">${esc(d.title)}</div>
     <div class="kv">

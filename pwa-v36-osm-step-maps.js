@@ -51,7 +51,8 @@
     const map = OSM.createMap(host, {
       center: [a.lat, a.lng], zoom: 14,
       zoomControl: false, attributionControl: false,
-      scrollWheelZoom: false, dragging: false, tap: false
+      scrollWheelZoom: false, dragging: false, tap: false,
+      zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false
     });
     if (!map) { delete host.dataset.osmInit; return; }
     // Static frame — kill the remaining interaction handlers too.

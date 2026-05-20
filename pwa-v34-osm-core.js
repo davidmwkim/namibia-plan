@@ -209,7 +209,10 @@
       attributionControl: opts.attributionControl !== false,
       scrollWheelZoom: opts.scrollWheelZoom !== false,
       dragging: opts.dragging !== false,
-      tap: opts.tap !== false
+      tap: opts.tap !== false,
+      zoomAnimation: opts.zoomAnimation === true,
+      fadeAnimation: opts.fadeAnimation === true,
+      markerZoomAnimation: opts.markerZoomAnimation === true
     }).setView(opts.center || [-22.5, 17.0], opts.zoom || 6);
     window.L.tileLayer(TILE_URL, {
       maxZoom: opts.maxZoom || 19,

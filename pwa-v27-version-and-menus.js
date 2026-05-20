@@ -66,11 +66,18 @@ window.NAMIBIA_APP_VERSION = null;
     if (chip) chip.textContent = '⚙ ' + v;
   }
 
+  function versionChipHost() {
+    return document.querySelector('.statusbar')
+      || document.querySelector('.toolbar-left')
+      || document.querySelector('.hero-actions');
+  }
+
   function injectVersionChip() {
-    const bar = document.querySelector('.statusbar');
+    const bar = versionChipHost();
     if (!bar || document.getElementById('appVersionChip')) return;
     const chip = document.createElement('span');
-    chip.className = 'chip';
+    const darkHost = !bar.classList.contains('statusbar') && !bar.closest('.hero');
+    chip.className = darkHost ? 'chip dark' : 'chip';
     chip.id = 'appVersionChip';
     chip.title = 'PWA build version — single-sourced from sw.js. Useful when verifying that the SW has activated the latest code.';
     chip.textContent = '⚙ ' + (window.NAMIBIA_APP_VERSION || 'loading…');
