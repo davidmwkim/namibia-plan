@@ -78,43 +78,143 @@
     paved:   { label: 'Paved',   cls: 'sf-paved'  },
     gravel:  { label: 'Gravel',  cls: 'sf-gravel' },
     sand:    { label: 'Sand',    cls: 'sf-sand'   },
+    dirt:    { label: 'Dirt',    cls: 'sf-sand'   },
     unpaved: { label: 'Unpaved', cls: 'sf-sand'   },
     urban:   { label: 'Urban',   cls: 'sf-urban'  },
     mixed:   { label: 'Mixed',   cls: 'sf-mixed'  }
   };
   function surfaceBadge(surface){ const m = SURFACE_META[surface] || SURFACE_META.mixed; return `<span class="surface-badge ${m.cls}">${m.label}</span>`; }
 
-  // ============================================================ Task 13: drive + Heather plan
+  // ============================================================ Task 13 + Heather redesign: drive plan + sequential time bar
+  const STATUS_BAR = {
+    yes:   { emoji: '🟢', who: 'Heather' },
+    maybe: { emoji: '🟡', who: 'Caution' },
+    no:    { emoji: '🔴', who: 'David' }
+  };
+  function surfLabel(s){ return ({ paved:'paved', gravel:'gravel', dirt:'dirt', sand:'sand', urban:'town', mixed:'mixed' })[s] || s || 'paved'; }
+  // Approximate driving speed (km/h) by surface — shown as a Namibia-style
+  // round speed-limit sign. Tar 120, gravel 80, dirt 60, town 60, sand 40.
+  function legSpeed(surface){ return ({ paved:120, gravel:80, dirt:60, sand:40, urban:60, mixed:80 })[surface] || 80; }
+  // Curated, research-grounded specifics layered onto a leg by its road code.
+  const CODE_BLURB = {
+    C24: 'C24 + Spreetshoogte Pass — ~17% grade, ~1,000 m drop over 4 km of switchbacks, trucks banned.',
+    C14: 'C14 desert crossing — Kuiseb & Gaub passes (steep, drop-offs, no guardrails), heavy corrugations, very remote.',
+    C19: 'C19 — badly corrugated gravel, remote.',
+    D1918: 'D1918 — gravel to Spitzkoppe, last ~10 km corrugated.',
+    B1: 'B1 — fast trucks + livestock; Okahandja–Otjiwarongo is one of Namibia’s deadliest stretches. Watch for overtakers.',
+    B2: 'B2 tar — but towns (Usakos / Karibib / Okahandja), port trucks near Walvis Bay, and the Usakos–Karibib roadworks.',
+    B6: 'B6 airport freeway — open tar that merges into Windhoek’s ring roads.'
+  };
+  function legBlurb(l){
+    for (const c of (l.codes || [])) if (CODE_BLURB[c]) return CODE_BLURB[c];
+    if (l.status === 'no' && l.surface === 'sand') return 'Deep sand — 4x4 only; use the park shuttle otherwise.';
+    if (l.status === 'no' && (l.surface === 'gravel' || l.surface === 'dirt')) return 'Loose gravel/dirt — Heather doesn’t drive these; expect corrugations, dust, 60–80 km/h.';
+    if (l.status === 'no') return 'Busy town driving — frequent turns, junctions and traffic; David.';
+    if (l.status === 'yes') return 'Open paved, low traffic — a good Heather stretch.';
+    return 'Paved, but with merges / junctions / town-throughs or livestock — Heather on the open parts, David for the tricky bits.';
+  }
+  function legName(l){
+    const codes = (l.codes || []).filter(c => c && c !== 'urban' && c !== 'hwy' && c !== 'sand');
+    if (codes.length) return codes.slice(0, 3).join(' / ');
+    if (l.surface === 'urban') return 'town streets';
+    return 'local roads';
+  }
+
+  // ---- Sequential time bar (legs in route order, width ∝ Google drive time) ----
+  function nearestPathIdx(path, p){ let bi = 0, bd = Infinity; for (let i = 0; i < path.length; i++){ const dd = (window.NamibiaDrivingCore.distMeters(p, path[i])); if (dd < bd){ bd = dd; bi = i; } } return bi; }
+  function stopTimeFrac(route, legs, p){
+    const path = route.overviewPath || [];
+    if (!path.length || !legs.length) return 0;
+    const idx = nearestPathIdx(path, p);
+    for (const l of legs){
+      const lo = Math.min(l.fromIdx, l.toIdx), hi = Math.max(l.fromIdx, l.toIdx);
+      if (idx >= lo && idx <= hi){ const f = hi > lo ? (idx - lo) / (hi - lo) : 0; return l.t0Frac + f * (l.t1Frac - l.t0Frac); }
+    }
+    return idx < legs[0].fromIdx ? 0 : 1;
+  }
+  function heatherBarHtml(route, opts){
+    opts = opts || {};
+    const DC = window.NamibiaDrivingCore;
+    if (!DC || !DC.heatherSummary) return '';
+    const sum = DC.heatherSummary(route);
+    const legs = sum.legs;
+    if (!legs.length) return '';
+    const segs = legs.map(l => {
+      const left = (l.t0Frac * 100).toFixed(2), w = ((l.t1Frac - l.t0Frac) * 100).toFixed(2);
+      return `<span class="hbar-seg hbar-${l.status}" style="left:${left}%;width:${w}%" title="${STATUS_BAR[l.status].emoji} ${E(legName(l))} · ${surfLabel(l.surface)} · ${fmtDur(l.durMin)}"></span>`;
+    }).join('');
+    const d = day();
+    const marks = (d.stops || []).filter(s => typeof s.lat === 'number').map(s => {
+      const f = stopTimeFrac(route, legs, s);
+      return `<span class="hbar-stop" style="left:${(f * 100).toFixed(2)}%" title="${E(s.time || '')} ${E(s.name)}"><i class="hbar-stop-dot"></i><i class="hbar-stop-time">${E((s.time || '').replace(/\s*(est\.|approx\.)$/i, ''))}</i></span>`;
+    }).join('');
+    let here = '';
+    if (opts.showHere && state.gps){ here = `<span class="hbar-here" style="left:${(stopTimeFrac(route, legs, state.gps) * 100).toFixed(2)}%" title="You are here">▲</span>`; }
+    // Parallel SURFACE track (separate vocabulary from Heather colour): paved =
+    // black + yellow centre dashes, gravel = grey beads, sand = hashed sand,
+    // dirt = brown, urban = its own pattern. Same widths, directly below.
+    const surfSegs = legs.map(l => {
+      const left = (l.t0Frac * 100).toFixed(2), w = ((l.t1Frac - l.t0Frac) * 100).toFixed(2);
+      return `<span class="hbar-surf surf-${l.surface}" style="left:${left}%;width:${w}%" title="${surfLabel(l.surface)}"></span>`;
+    }).join('');
+    // Namibia-style speed-limit signs at each speed CHANGE along the route.
+    let speedMarks = '', prevSpd = null;
+    legs.forEach(l => {
+      const spd = legSpeed(l.surface);
+      if (spd !== prevSpd){ speedMarks += `<span class="spd-mark" style="left:${(l.t0Frac * 100).toFixed(2)}%" title="≈ ${spd} km/h">${spd}</span>`; prevSpd = spd; }
+    });
+    return `<div class="hbar${opts.compact ? ' hbar-compact' : ''}">
+      <div class="hbar-row hbar-speedrow"><span class="hbar-rowlab"></span><div class="hbar-speedtrack">${speedMarks}</div></div>
+      <div class="hbar-row"><span class="hbar-rowlab">drive</span><div class="hbar-track">${segs}</div></div>
+      <div class="hbar-row hbar-stoprow"><span class="hbar-rowlab"></span><div class="hbar-stoptrack">${marks}${here}</div></div>
+      <div class="hbar-row"><span class="hbar-rowlab">surface</span><div class="hbar-surftrack">${surfSegs}</div></div>
+    </div>`;
+  }
+
+  // Pre-render fallback: the authored SEG table (works before routes are fetched).
+  function authoredSegPlanHtml(d){
+    const segs = d.driveSegments || [];
+    if (!segs.length) return `<div class="seg-plan"><h3>Today's drive &amp; Heather relief plan</h3><p class="seg-none">Render routes (Settings → Save key) to see today's green/yellow/red split with times.</p></div>`;
+    const rows = segs.map(s => {
+      const drv = s.driver === 'heather' ? '🟢 Heather' : (s.driver === 'shared' ? '🟡 Caution' : '🔴 David');
+      return `<tr class="seg-row seg-${s.driver}"><td class="seg-leg">${E(s.from)} → ${E(s.to)}</td><td class="seg-surface">${surfaceBadge(s.surface)}</td><td class="seg-km">${s.km ? `${s.km} km` : ''}</td><td class="seg-driver">${drv}</td></tr>${s.note ? `<tr class="seg-note-row"><td colspan="4">${E(s.note)}</td></tr>` : ''}`;
+    }).join('');
+    return `<div class="seg-plan"><h3>Today's drive &amp; Heather relief plan</h3><p class="seg-summary">${E(d.driveExperience && d.driveExperience.summary || '')}</p><p class="seg-legend">Planned split (render routes for live times + the sequence bar).</p><table class="seg-table"><tbody>${rows}</tbody></table></div>`;
+  }
+
   function heatherPlanHtml(d){
     if (!d.selfDrive){
       return `<div class="seg-plan"><h3>Today's drive</h3><p class="seg-none">No self-drive route today — guided or local day. Heather and David both ride along.</p></div>`;
     }
-    const segs = d.driveSegments || [];
-    if (!segs.length) return '';
-    const total = segs.reduce((a,s)=>a+(s.km||0), 0) || 1;
-    const heatherKm = segs.reduce((a,s)=> a + (s.driver==='heather' ? (s.km||0) : (s.driver==='shared' ? (s.km||0)/2 : 0)), 0);
-    const pct = Math.round(heatherKm/total*100);
-    const inBand = pct >= 20 && pct <= 40;
+    const route = state.renderedRoutes && state.renderedRoutes[d.date];
+    const DC = window.NamibiaDrivingCore;
+    if (!route || !route.legs || !route.legs.length || !DC || !DC.heatherSummary) return authoredSegPlanHtml(d);
+    const sum = DC.heatherSummary(route);
+    if (!sum.legs.length) return authoredSegPlanHtml(d);
+    const g = sum.pctYesByTime, y = sum.pctMaybeByTime, r = sum.pctNoByTime;
+    const relief = g + Math.round(y / 2); // Heather solo (green) + half the caution (yellow)
+    const inBand = relief >= 20 && relief <= 40;
     const bandNote = inBand
-      ? `<span class="band-ok">✓ within the 20–40% relief target</span>`
-      : (pct < 20
-          ? `<span class="band-low">below target — mostly technical terrain for David today</span>`
-          : `<span class="band-high">above target — an easy day, so extra rest for David</span>`);
-    const rows = segs.map(s => {
-      const drv = s.driver==='heather' ? '🟢 Heather' : (s.driver==='shared' ? '🟡 Shared' : '🔵 David');
-      return `<tr class="seg-row seg-${s.driver}">
-        <td class="seg-leg">${E(s.from)} → ${E(s.to)}</td>
-        <td class="seg-surface">${surfaceBadge(s.surface)}</td>
-        <td class="seg-km">${s.km ? `${s.km} km` : ''}</td>
-        <td class="seg-driver">${drv}</td>
-      </tr>${s.note ? `<tr class="seg-note-row"><td colspan="4">${E(s.note)}</td></tr>` : ''}`;
+      ? `<span class="band-ok">✓ ≈ within the 20–40% relief target</span>`
+      : (relief < 20
+          ? `<span class="band-low">below target — gravel/loose terrain dominates; David drives most</span>`
+          : `<span class="band-high">above target — extra rest for David</span>`);
+    const rows = sum.legs.map(l => {
+      const st = STATUS_BAR[l.status];
+      return `<tr class="seg-row seg-${l.status}">
+        <td class="seg-leg">${E(legName(l))}</td>
+        <td class="seg-surface"><span class="surf-line surf-${l.surface}" title="${surfLabel(l.surface)}"></span> <span class="surf-lbl">${surfLabel(l.surface)}</span> <span class="spd-sign" title="≈ road speed">${legSpeed(l.surface)}</span></td>
+        <td class="seg-km">${fmtDur(l.durMin)}</td>
+        <td class="seg-driver">${st.emoji} ${st.who}</td>
+      </tr><tr class="seg-note-row"><td colspan="4">${E(legBlurb(l))}</td></tr>`;
     }).join('');
     return `<div class="seg-plan">
       <h3>Today's drive &amp; Heather relief plan</h3>
       <p class="seg-summary">${E(d.driveExperience && d.driveExperience.summary || '')}</p>
-      <div class="seg-share">Heather drives ≈ <strong>${pct}%</strong> (${Math.round(heatherKm)} of ${total} km) · ${bandNote}</div>
+      ${heatherBarHtml(route, {})}
+      <div class="seg-share">🟢 ${g}% easy · 🟡 ${y}% caution · 🔴 ${r}% David — Heather could take ≈ <strong>${relief}%</strong> of drive time · ${bandNote}</div>
       <table class="seg-table"><tbody>${rows}</tbody></table>
-      <p class="seg-legend">Surface: ${surfaceBadge('paved')} ${surfaceBadge('gravel')} ${surfaceBadge('sand')} — on the route maps, line <em>colour</em> shows who drives, line <em>dash</em> shows the surface.</p>
+      <p class="seg-legend">Bar = share of Google drive time, in route order; ticks are stops. 🟢 easy paved · 🟡 caution (merges / towns / livestock / fast trucks) · 🔴 gravel, sand or busy city.</p>
     </div>`;
   }
 
@@ -309,6 +409,7 @@
 
   window.NamibiaV38 = {
     nowCardHtml, heatherPlanHtml, tripFuelPressureHtml, synthDowntime,
-    surfaceBadge, renderSettings, SURFACE_META, fmtClock, fmtDur
+    surfaceBadge, renderSettings, SURFACE_META, fmtClock, fmtDur,
+    heatherBarHtml, legName, legBlurb, surfLabel, STATUS_BAR
   };
 })();

@@ -55,23 +55,29 @@
     return { type: 'mixed', code: 'mixed', detail: ROAD_DETAIL.mixed };
   }
 
-  // Compose the "why this Heather rating" sentence.
+  // Curated, research-grounded specifics by road code (Heather context).
+  const CODE_WHY = {
+    C24: 'Spreetshoogte Pass — ~17% grade, ~1,000 m drop over 4 km of switchbacks, no guardrails.',
+    C14: 'Kuiseb & Gaub passes — steep, drop-offs, no guardrails, heavy corrugations, very remote.',
+    C19: 'badly corrugated gravel, remote.',
+    D1918: 'corrugated gravel to Spitzkoppe (last ~10 km rough).',
+    B1: 'fast trucks + livestock; the Okahandja–Otjiwarongo stretch is one of Namibia’s deadliest.',
+    B2: 'town-throughs (Usakos / Karibib / Okahandja), port trucks near Walvis, Usakos–Karibib roadworks.',
+    B6: 'merges into Windhoek’s ring roads.'
+  };
+  // Compose the "why this Heather rating" sentence from the rule status + the
+  // road's surface/code, grounded in the route research.
   function heatherWhy(status, road, segReason) {
-    const reasonTail = segReason ? ` (Source note: ${segReason})` : '';
-    if (status === 'yes') {
-      if (road.type === 'paved' || road.type === 'urban') return `Heather OK — ${road.code} is a paved / low-complexity section, well within her comfort zone.${reasonTail}`;
-      return `Heather OK — this segment is rated drivable for her based on the trip-plan notes.${reasonTail}`;
+    const code = (road && road.code && /^[A-Z]\d/.test(road.code)) ? road.code : '';
+    const extra = CODE_WHY[code] ? ' ' + CODE_WHY[code] : '';
+    if (status === 'no') {
+      if (road.type === 'sand') return `🔴 David — deep sand needs deflation + 4x4 technique Heather hasn’t built up.${extra}`;
+      if (road.type === 'gravel' || road.type === 'unpaved') return `🔴 David — Heather doesn’t drive loose gravel/dirt; expect corrugations, dust, ~60–80 km/h.${extra}`;
+      return `🔴 David — busy town driving: frequent turns, junctions and traffic.${extra}`;
     }
-    if (status === 'maybe') {
-      if (road.type === 'paved' || road.type === 'urban') return `Heather maybe — surface is paved, but conditional on traffic/signage clarity and that she feels rested. David should take over if anything feels off.${reasonTail}`;
-      if (road.type === 'gravel') return `Heather maybe — gravel surface; she can manage short calm stretches but should hand back before corrugations or sharp turns.${reasonTail}`;
-      return `Heather maybe — conditional on conditions matching the plan; David should monitor and be ready to swap.${reasonTail}`;
-    }
-    // status === 'no'
-    if (road.type === 'sand') return `David drives — soft sand requires deflation, 4x4 technique, and recovery experience that Heather hasn't built up yet.${reasonTail}`;
-    if (road.type === 'unpaved') return `David drives — district/unpaved roads can include washouts, sand patches, and embedded rock that demand off-road judgement.${reasonTail}`;
-    if (road.type === 'gravel') return `David drives — gravel corrugations and the risk of oversteer on loose surface make this a David leg.${reasonTail}`;
-    return `David drives — route complexity, fatigue management, or unfamiliar intersections make this a David leg.${reasonTail}`;
+    if (status === 'yes') return `🟢 Heather — open, low-traffic tar; one of her easy stretches.${extra}`;
+    // status === 'maybe' (yellow)
+    return `🟡 Heather, with caution — it’s paved, but ${code ? code + ' has ' : 'expect '}merges, junctions, town-throughs or livestock; David should be ready to take over.${extra}`;
   }
 
   function esc(s) {

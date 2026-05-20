@@ -130,32 +130,11 @@
     });
   }
 
-  // ---- 2. Overview tab — add gradient chip after the day title ----
-  function injectOverviewChip() {
-    const tc = document.getElementById('tabContent');
-    if (!tc) return;
-    const title = tc.querySelector('.panel-title h2');
-    if (!title) return;
-    const d = window.day && window.day();
-    if (!d) return;
-    const html = heatherChipHtmlWithGradient(d);
-    const existing = title.querySelector('.heather-leg-chip');
-    // Always replace so distribution updates as new routes are cached.
-    if (existing) existing.outerHTML = html;
-    else title.insertAdjacentHTML('beforeend', ' ' + html);
-  }
-
-  // ---- 3. Driving Dashboard sticky header — add a chip next to the GPS chip ----
-  function injectDriveDashboardChip() {
-    const controls = document.querySelector('.drive-controls');
-    if (!controls || controls.querySelector('.heather-leg-chip')) return;
-    const d = window.day && window.day();
-    if (!d) return;
-    const gpsChip = controls.querySelector('.gps-chip');
-    const html = heatherChipHtml(d);
-    if (gpsChip) gpsChip.insertAdjacentHTML('afterend', html);
-    else controls.insertAdjacentHTML('beforeend', html);
-  }
+  // ---- 2/3. Overview + Driving chips — SUPERSEDED by the v38 sequential time
+  // bar (Overview) and the v13 Heather strip (driving). Kept as no-ops so the
+  // render hooks below don't error. The day-select emoji + print banner stay. ----
+  function injectOverviewChip() { /* superseded by v38 heatherBarHtml */ }
+  function injectDriveDashboardChip() { /* superseded by v13 Heather strip */ }
 
   // ---- 4. Print mode — banner in each print-day ----
   function injectPrintBanners() {

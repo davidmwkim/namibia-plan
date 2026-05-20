@@ -215,6 +215,25 @@
     if (passBtn && passBtn.textContent !== 'Passenger') passBtn.textContent = 'Passenger';
   }
 
+  // Current-leg Heather chip + compact sequential bar with "you are here".
+  function heatherStripHtml(route) {
+    const V38 = window.NamibiaV38, DC = window.NamibiaDrivingCore;
+    if (!V38 || !V38.heatherBarHtml || !route || !route.legs || !route.legs.length) return '';
+    let chip = '';
+    try {
+      const leg = DC.legAtProgress(route, state.gps);
+      if (leg) {
+        const col = { yes: '#15803d', maybe: '#eab308', no: '#dc2626' }[leg.status] || '#6b7280';
+        const st = (V38.STATUS_BAR && V38.STATUS_BAR[leg.status]) || { emoji: '', who: '' };
+        chip = `<span class="heather-leg-chip heather-${leg.status}"><span class="heather-leg-dot" style="background:${col}"></span>${st.emoji} ${st.who} · ${V38.surfLabel(leg.surface)}</span>`;
+      }
+    } catch (_) {}
+    let bar = '';
+    try { bar = V38.heatherBarHtml(route, { compact: true, showHere: true }); } catch (_) {}
+    if (!chip && !bar) return '';
+    return `<div class="drive-heather">${chip}${bar}</div>`;
+  }
+
   function stickyInnerHtml(d, route) {
     const muted = TTS() ? TTS().isMuted() : true;
     const margin = state.driving.sunsetMargin;
@@ -242,6 +261,7 @@
         <button id="centerCurrent" class="ghost" title="Scroll back to the current step">📍 Center</button>
       </div>
       ${sunChip}
+      ${heatherStripHtml(route)}
       ${lastSpoken ? `<div class="tts-indicator">🔊 ${esc(lastSpoken.slice(0, 100))}</div>` : ''}`;
   }
 
@@ -484,6 +504,14 @@
         && isFinite(state.driving.distToNextTurnM)) {
       return state.driving.distToNextTurnM;
     }
+    // Route-distance (monotonic along the road), not straight-line.
+    try {
+      const route = state.renderedRoutes && state.renderedRoutes[day().date];
+      if (route && DC.distAlongRouteToCard) {
+        const along = DC.distAlongRouteToCard(route, state.gps, c);
+        if (isFinite(along)) return along;
+      }
+    } catch (_) {}
     return DC.distMeters(state.gps, c);
   }
 

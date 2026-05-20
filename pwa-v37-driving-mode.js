@@ -352,7 +352,10 @@
     // Only rebuild the card/street-view DOM when the active card changes (cheap
     // panning + dot updates run every tick).
     const key = card.cardId || (card.title + ':' + card.lat);
-    const distM = (state.gps && typeof card.lat === 'number') ? DC.distMeters(state.gps, card) : null;
+    // Route-distance (monotonic along the road) to the card, not straight-line.
+    const distM = (state.gps && typeof card.lat === 'number')
+      ? ((route && DC.distAlongRouteToCard) ? DC.distAlongRouteToCard(route, state.gps, card) : DC.distMeters(state.gps, card))
+      : null;
     // For the active turn while on-route, count down to the actual turn point;
     // otherwise use straight-line distance to the card. Guard with isFinite —
     // findCurrentStep yields NaN distToNextTurnM when off-route.
@@ -363,8 +366,18 @@
     if (key !== lastCardKey || force) {
       lastCardKey = key;
       const kindIcon = { turn: '🧭', arrival: '🏁', pressure: '🛞', fuel: '⛽', sunset_risk: '🌅' }[card.kind] || '🧭';
+      let legPill = '';
+      try {
+        const leg = DC.legAtProgress && DC.legAtProgress(route, state.gps);
+        const V38 = window.NamibiaV38;
+        if (leg && V38 && V38.STATUS_BAR) {
+          const col = { yes: '#15803d', maybe: '#eab308', no: '#dc2626' }[leg.status] || '#6b7280';
+          const st = V38.STATUS_BAR[leg.status] || { emoji: '', who: '' };
+          legPill = `<span class="df-leg-pill" style="background:${col}">${st.emoji} ${esc(st.who)} · ${esc(V38.surfLabel(leg.surface))}</span>`;
+        }
+      } catch (_) {}
       overlay.querySelector('#dfCard').innerHTML = `
-        <div class="df-card-kind">${kindIcon} ${esc(card.kind)}</div>
+        <div class="df-card-kind">${kindIcon} ${esc(card.kind)} ${legPill}</div>
         <div class="df-card-title">${esc(card.title || '')}</div>
         <div class="df-card-sub"><span class="df-dist" id="dfDist">${esc(fmtM(distLabel))}</span> ${card.body ? '· ' + esc(card.body) : ''}</div>`;
       lastSvUrl = null; // force a refresh for the new card

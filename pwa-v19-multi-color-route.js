@@ -22,6 +22,7 @@
     no:    '#dc2626'
   };
   const STATIC_HEX = { yes: '0x15803d', maybe: '0xeab308', no: '0xdc2626' };
+  const STATUS_WHO = { yes: 'Heather', maybe: 'Caution', no: 'David' };
 
   // Distance threshold (m): if a Heather segment's from/to is within this many
   // metres of a stop, we consider it a match.
@@ -70,6 +71,20 @@
   // Heather segment default to 'no' (David drives).
   function partitionPath(path, day) {
     if (!path || path.length < 2) return [];
+    // Prefer the computed, rule-based Heather legs so the map colouring matches
+    // the Overview/driving sequence bar exactly. Falls back to the authored
+    // heatherDriveSegments below when the engine/route isn't available.
+    try {
+      const DC = window.NamibiaDrivingCore;
+      const route = (typeof state !== 'undefined' && state.renderedRoutes && day) ? state.renderedRoutes[day.date] : null;
+      if (DC && DC.heatherLegs && route && route.legs && route.legs.length && route.overviewPath === path) {
+        const legs = DC.heatherLegs(route);
+        if (legs.length) return legs.map(l => ({
+          fromIdx: Math.min(l.fromIdx, l.toIdx), toIdx: Math.max(l.fromIdx, l.toIdx),
+          status: l.status, label: STATUS_WHO[l.status] || 'David', reason: ''
+        }));
+      }
+    } catch (_) {}
     const stops = (day.stops || []).filter(s => s.routeRole === 'mandatory');
     const segments = (day.heatherDriveSegments || []).map(seg => {
       const { fromStop, toStop } = anchorSegment(seg, stops);

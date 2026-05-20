@@ -30,21 +30,23 @@ describe('v22 classifyRoad', () => {
 });
 
 describe('v22 heatherWhy', () => {
-  it('yes + paved produces a comfort-zone explanation', () => {
-    const r = V22.heatherWhy('yes', { type: 'paved', code: 'B1' }, 'paved test');
-    expect(r).toMatch(/Heather OK/);
-    expect(r).toMatch(/paved/i);
+  it('yes + paved produces a Heather-OK (green) explanation', () => {
+    const r = V22.heatherWhy('yes', { type: 'paved', code: 'B6' }, '');
+    expect(r).toMatch(/🟢/);
+    expect(r).toMatch(/Heather/);
+    expect(r).toMatch(/tar|paved/i);
   });
-  it('no + sand produces a 4x4-technique explanation', () => {
+  it('no + sand produces a David (red) 4x4 explanation', () => {
     const r = V22.heatherWhy('no', { type: 'sand', code: 'sand' }, '');
-    expect(r).toMatch(/David drives/);
+    expect(r).toMatch(/🔴/);
+    expect(r).toMatch(/David/);
     expect(r).toMatch(/sand|4x4/i);
   });
-  it('maybe + gravel produces a conditional explanation', () => {
-    const r = V22.heatherWhy('maybe', { type: 'gravel', code: 'C14' }, 'some reason');
-    expect(r).toMatch(/maybe/);
-    expect(r).toMatch(/gravel|short calm/i);
-    expect(r).toMatch(/Source note: some reason/);
+  it('maybe + gravel-coded leg produces a caution (yellow) explanation with the road specifics', () => {
+    const r = V22.heatherWhy('maybe', { type: 'gravel', code: 'C14' }, '');
+    expect(r).toMatch(/🟡/);
+    expect(r).toMatch(/caution/i);
+    expect(r).toMatch(/Kuiseb|pass|corrugat/i); // research blurb for C14
   });
 });
 

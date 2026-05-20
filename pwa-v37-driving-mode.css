@@ -148,3 +148,6 @@
   .df-card-title { font-size: 18px; }
   .df-sv { height: 22dvh; }
 }
+
+/* Current-leg Heather pill on the driving card. */
+.df-leg-pill { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; padding: 1px 8px; border-radius: 999px; vertical-align: middle; margin-left: 4px; }

@@ -45,10 +45,59 @@
 .seg-row .seg-leg { font-weight: 600; }
 .seg-row .seg-km, .seg-row .seg-driver { white-space: nowrap; }
 .seg-note-row td { padding: 0 8px 6px; color: var(--muted, #6f6368); font-size: 12px; }
-.seg-heather .seg-leg { box-shadow: inset 3px 0 0 #16a34a; }
-.seg-david .seg-leg { box-shadow: inset 3px 0 0 #2563eb; }
-.seg-shared .seg-leg { box-shadow: inset 3px 0 0 #f59e0b; }
+.seg-yes .seg-leg    { box-shadow: inset 3px 0 0 #15803d; }
+.seg-maybe .seg-leg  { box-shadow: inset 3px 0 0 #eab308; }
+.seg-no .seg-leg     { box-shadow: inset 3px 0 0 #dc2626; }
+.seg-heather .seg-leg { box-shadow: inset 3px 0 0 #15803d; } /* authored fallback */
+.seg-shared .seg-leg  { box-shadow: inset 3px 0 0 #eab308; }
+.seg-david .seg-leg   { box-shadow: inset 3px 0 0 #dc2626; }
 .seg-legend { margin: 10px 0 0; font-size: 12px; color: var(--muted, #6f6368); }
+.seg-share .band-high { color: #b45309; }
+.surf-lbl { font-size: 11px; color: #4a4045; text-transform: capitalize; }
+
+/* ---- Heather sequential time bar (drive + surface + speed signs) ---- */
+.hbar { margin: 12px 0 4px; }
+.hbar-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.hbar-rowlab { width: 46px; flex: none; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted, #6f6368); text-align: right; }
+.hbar-track, .hbar-surftrack { position: relative; flex: 1; height: 13px; border-radius: 7px; overflow: hidden; background: #f1ece8; border: 1px solid rgba(0,0,0,.08); }
+.hbar-seg { position: absolute; top: 0; height: 100%; }
+.hbar-seg.hbar-yes   { background: #15803d; }
+.hbar-seg.hbar-maybe { background: #eab308; }
+.hbar-seg.hbar-no    { background: #dc2626; }
+.hbar-surf { position: absolute; top: 0; height: 100%; }
+.hbar-stoprow { margin-top: 0; }
+.hbar-stoptrack { position: relative; flex: 1; height: 18px; }
+.hbar-stop { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.hbar-stop-dot { width: 6px; height: 6px; border-radius: 50%; background: #1f2937; border: 1px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
+.hbar-stop-time { font-size: 8px; color: #4a4045; white-space: nowrap; margin-top: 1px; transform: rotate(0deg); }
+.hbar-here { position: absolute; top: -2px; transform: translateX(-50%); color: #2563eb; font-size: 13px; line-height: 1; }
+.hbar-speedrow { margin-bottom: -2px; }
+.hbar-speedtrack { position: relative; flex: 1; height: 22px; }
+
+/* Namibia round speed-limit sign: white disc, red ring, black number. */
+.spd-sign, .spd-mark { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; background: #fff; border: 2px solid #dc2626; color: #111; font-weight: 800; border-radius: 50%; }
+.spd-sign { width: 19px; height: 19px; font-size: 8.5px; vertical-align: middle; margin-left: 2px; }
+.spd-mark { position: absolute; top: 0; transform: translateX(-50%); width: 22px; height: 22px; font-size: 9px; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+
+/* ---- Road-surface line vocabulary (separate from Heather colour) ----
+   paved = black + yellow centre dashes · gravel = grey beads · sand = hashed
+   sand · dirt = brown · urban = its own block pattern. */
+.surf-line { display: inline-block; width: 34px; height: 9px; border-radius: 2px; vertical-align: middle; border: 1px solid rgba(0,0,0,.18); }
+.surf-paved  { background-color: #1f2937; background-image: repeating-linear-gradient(90deg, #f5c518 0 7px, transparent 7px 15px); background-repeat: no-repeat; background-position: center; background-size: 100% 2px; }
+.surf-gravel { background-color: #9ca3af; background-image: radial-gradient(circle, #4b5563 38%, transparent 42%); background-size: 8px 8px; background-position: center; }
+.surf-sand   { background-color: #e3c489; background-image: repeating-linear-gradient(45deg, rgba(120,72,20,.5) 0 2px, transparent 2px 5px); }
+.surf-dirt   { background-color: #8b5a2b; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 4px, transparent 4px 9px); }
+.surf-urban  { background-color: #cbd5e1; background-image: repeating-linear-gradient(90deg, #475569 0 4px, #cbd5e1 4px 8px); }
+.surf-mixed  { background-color: #b8a8c8; }
+
+/* Compact bar inside the (dark) driving sticky header. */
+.drive-heather { margin: 6px 0 2px; }
+.drive-heather .hbar { margin: 4px 0; }
+.drive-heather .hbar-rowlab { color: rgba(255,255,255,.7); }
+.drive-heather .heather-leg-chip { margin-left: 0; }
+.hbar-compact .hbar-track, .hbar-compact .hbar-surftrack { height: 10px; }
+.hbar-compact .hbar-speedtrack { height: 20px; }
+.hbar-compact .hbar-stoptrack { height: 14px; }
 
 /* ---- Trip-wide fuel/pressure list ---- */
 .trip-fp { margin: 18px 0; }
