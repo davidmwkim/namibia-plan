@@ -31,24 +31,43 @@
     return V[surface] || V.mixed || { dash: null, mapColor: null };
   }
   function dashForSurface(surface) { return surface ? (surfaceVis(surface).dash || null) : null; }
-  const SURF_OFFSET_PX = 5; // beside the weight-5 Heather line, not overlapping
-  // A thin surface-coloured line drawn OFFSET (parallel, beside) the Heather
-  // route line — so surface and who-drives sit side by side, not stacked. Needs
-  // the leaflet-polylineoffset plugin for the pixel offset; without it the
-  // `offset` option is ignored and the line falls back to running on the route.
+  // Draw the surface as a road-style line ON the route (the Heather-coloured
+  // line beneath it acts as a casing/outline = who drives), mirroring the
+  // summary bar: paved = dark tar + yellow centre line, gravel = grey beads,
+  // sand = tan dots, dirt = brown dashes, town = slate. Looks like a real road,
+  // not a parallel chain of blobs.
   function addSurfaceOverlay(map, latlngs, surface, store) {
-    const vis = surfaceVis(surface);
-    if (!vis.mapColor || !window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
-    try {
-      const opts = {
-        color: vis.mapColor, weight: 3, opacity: 0.95, offset: SURF_OFFSET_PX,
-        lineCap: 'round', lineJoin: 'round', interactive: false
-      };
-      if (vis.dash) opts.dashArray = vis.dash;
-      const ov = window.L.polyline(latlngs, opts).addTo(map);
-      if (Array.isArray(store)) store.push(ov);
-      return ov;
-    } catch (_) { return null; }
+    if (!window.L || !map || !Array.isArray(latlngs) || latlngs.length < 2) return null;
+    const add = (opts) => {
+      try {
+        const pl = window.L.polyline(latlngs, Object.assign({ interactive: false, lineCap: 'round', lineJoin: 'round' }, opts)).addTo(map);
+        if (Array.isArray(store)) store.push(pl);
+        return pl;
+      } catch (_) { return null; }
+    };
+    switch (surface) {
+      case 'paved':
+        add({ color: '#1f2937', weight: 3, opacity: 0.95 });
+        add({ color: '#f5c518', weight: 1.2, opacity: 0.95, dashArray: '6 10' }); // centre line
+        break;
+      case 'gravel':
+        // Fine, irregular dotting (round caps) → scattered small grey flecks of
+        // varying spacing, reading as loose gravel rather than a neat dotted line.
+        add({ color: '#9ca3af', weight: 3, opacity: 0.98, dashArray: '1 4 1 7 2 5 1 9 1 6' });
+        break;
+      case 'dirt': case 'unpaved':
+        add({ color: '#a16a3c', weight: 3, opacity: 0.98, dashArray: '7 5' });
+        break;
+      case 'sand':
+        add({ color: '#e6c168', weight: 3, opacity: 0.98, dashArray: '1.5 6' }); // fine dots
+        break;
+      case 'urban':
+        add({ color: '#cbd5e1', weight: 3, opacity: 0.95, dashArray: '3 4' });
+        break;
+      default:
+        add({ color: '#d1d5db', weight: 3, opacity: 0.9, dashArray: '6 5' });
+    }
+    return null;
   }
   // Dominant road surface over a path index range, from the day's route steps.
   function surfaceForRange(day, fromIdx, toIdx) {
@@ -202,15 +221,16 @@
       }
       if (latlngs.length < 2) continue;
       try {
-        // SOLID Heather-colored base (colour = who drives) — never dashed, so
-        // the colour coding is always fully readable.
+        // SOLID Heather-colored CASING (colour = who drives) — drawn wider than
+        // the surface line on top, so the colour reads as an outline/glow around
+        // a road-styled surface line. Never dashed: the colour is always clear.
         const pl = window.L.polyline(latlngs, {
           color: COLORS[part.status] || COLORS.no,
           weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
         }).addTo(map);
         if (Array.isArray(store)) store.push(pl);
-        // SURFACE on a second, thin white overlay (texture only) so it never
-        // obscures the colour underneath: gravel = dashes, sand = dots.
+        // SURFACE drawn on top as a road-style line (tar+centre line / gravel
+        // beads / sand dots / dirt dashes), the Heather casing showing through.
         addSurfaceOverlay(map, latlngs, part.surface || surfaceForRange(day, part.fromIdx, part.toIdx), store);
       } catch (_) {}
     }

@@ -84,7 +84,13 @@
    sand · dirt = brown · urban = its own block pattern. */
 .surf-line { display: inline-block; width: 34px; height: 9px; border-radius: 2px; vertical-align: middle; border: 1px solid rgba(0,0,0,.18); }
 .surf-paved  { background-color: #1f2937; background-image: repeating-linear-gradient(90deg, #f5c518 0 7px, transparent 7px 15px); background-repeat: no-repeat; background-position: center; background-size: 100% 2px; }
-.surf-gravel { background-color: #9ca3af; background-image: radial-gradient(circle, #4b5563 38%, transparent 42%); background-size: 8px 8px; background-position: center; }
+/* gravel = scattered grey beads of varying size/position (looks loose, not a grid) */
+.surf-gravel { background-color: #9ca3af; background-image:
+  radial-gradient(circle, #4b5563 40%, transparent 44%),
+  radial-gradient(circle, #374151 32%, transparent 38%),
+  radial-gradient(circle, #e5e7eb 30%, transparent 36%);
+  background-size: 9px 9px, 7px 7px, 11px 11px;
+  background-position: 0 1px, 4px 5px, 8px 2px; }
 .surf-sand   { background-color: #e3c489; background-image: repeating-linear-gradient(45deg, rgba(120,72,20,.5) 0 2px, transparent 2px 5px); }
 .surf-dirt   { background-color: #8b5a2b; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 4px, transparent 4px 9px); }
 /* town = checkerboard (built-up grid) — distinct from gravel/sand/dirt/paved */
