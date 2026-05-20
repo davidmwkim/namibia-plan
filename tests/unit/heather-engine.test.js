@@ -5,10 +5,10 @@ import DC from '../../lib/driving-core.js';
 const step = (instruction, lat, lng, duration, distance) => ({ instruction, lat, lng, duration, distance });
 
 describe('rateStep (research-cautious rules)', () => {
-  it('loose surfaces → no (gravel C-road, dirt D-road, sand)', () => {
-    expect(DC.rateStep(step('Turn onto C24 toward Solitaire', -23.6, 16.3)).status).toBe('no');
-    expect(DC.rateStep(step('Continue on D1918', -21.9, 15.4)).status).toBe('no');
-    expect(DC.rateStep(step('Drive the deep sand to Deadvlei', -24.73, 15.34)).status).toBe('no');
+  it('gravel → no (David takes gravel); firm dirt/sand → yes (Heather)', () => {
+    expect(DC.rateStep(step('Turn onto C24 toward Solitaire', -23.6, 16.3)).status).toBe('no');   // gravel C-road → David
+    expect(DC.rateStep(step('Continue on D1918', -21.9, 15.4)).status).toBe('yes');               // dirt D-road → Heather
+    expect(DC.rateStep(step('Drive the deep sand to Deadvlei', -24.73, 15.34)).status).toBe('yes'); // sand → Heather
   });
   it('open paved B-road → maybe (yellow)', () => {
     expect(DC.rateStep(step('Continue on B1 toward Rehoboth', -23.0, 17.05)).status).toBe('maybe');

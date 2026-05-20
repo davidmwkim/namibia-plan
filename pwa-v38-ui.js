@@ -107,11 +107,11 @@
   };
   function legBlurb(l){
     for (const c of (l.codes || [])) if (CODE_BLURB[c]) return CODE_BLURB[c];
-    if (l.status === 'no' && l.surface === 'sand') return 'Deep sand — 4x4 only; use the park shuttle otherwise.';
-    if (l.status === 'no' && (l.surface === 'gravel' || l.surface === 'dirt')) return 'Loose gravel/dirt — Heather doesn’t drive these; expect corrugations, dust, 60–80 km/h.';
-    if (l.status === 'no') return 'Busy town driving — frequent turns, junctions and traffic; David.';
+    if (l.status === 'no' && l.surface === 'gravel') return 'Loose gravel — David’s (Heather leaves gravel to him); corrugations, dust, 60–80 km/h.';
+    if (l.status === 'no') return 'Heavy traffic / busy town — merging, passing and junctions; David.';
+    if (l.status === 'yes' && (l.surface === 'dirt' || l.surface === 'sand')) return 'Firm dirt/sand, low traffic — a good Heather stretch (air down and keep momentum on sand).';
     if (l.status === 'yes') return 'Open paved, low traffic — a good Heather stretch.';
-    return 'Paved, but with merges / junctions / town-throughs or livestock — Heather on the open parts, David for the tricky bits.';
+    return 'Paved but with traffic — merges, passing, town-throughs or fast trucks; Heather on the open parts, David for the busy bits.';
   }
   function legName(l){
     const codes = (l.codes || []).filter(c => c && c !== 'urban' && c !== 'hwy' && c !== 'sand');
@@ -209,7 +209,7 @@
     const bandNote = inBand
       ? `<span class="band-ok">✓ ≈ within the 20–40% relief target</span>`
       : (relief < 20
-          ? `<span class="band-low">below target — gravel/loose terrain dominates; David drives most</span>`
+          ? `<span class="band-low">below target — gravel &amp; heavy traffic dominate; David drives most</span>`
           : `<span class="band-high">above target — extra rest for David</span>`);
     const rows = sum.legs.map(l => {
       const st = STATUS_BAR[l.status];
@@ -226,7 +226,7 @@
       ${heatherBarHtml(route, {})}
       <div class="seg-share">🟢 ${g}% easy · 🟡 ${y}% caution · 🔴 ${r}% David — Heather could take ≈ <strong>${relief}%</strong> of drive time · ${bandNote}</div>
       <table class="seg-table"><tbody>${rows}</tbody></table>
-      <p class="seg-legend">Bar = share of Google drive time, in route order; ticks are stops. 🟢 easy paved · 🟡 caution (merges / towns / livestock / fast trucks) · 🔴 gravel, sand or busy city.</p>
+      <p class="seg-legend">Bar = share of Google drive time, in route order; ticks are stops. 🟢 dirt/sand &amp; quiet paved · 🟡 caution (merges, passing, towns, fast trucks) · 🔴 gravel or busy city.</p>
     </div>`;
   }
 
