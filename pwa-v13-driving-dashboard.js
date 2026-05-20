@@ -451,7 +451,7 @@
         <h3>${esc(c.title || '')}</h3>
         <p>${esc(c.body || '')}</p>
         ${(typeof c.lat === 'number') || svUrl ? `<div class="card-media">
-          ${typeof c.lat === 'number' ? `<div class="card-map-osm" data-card-key="${esc(cardKey(c, i))}" data-lat="${c.lat}" data-lng="${c.lng}" data-leg="${c.legIdx ?? ''}" data-step="${c.stepIdx ?? ''}" data-kind="${esc(c.kind || '')}"></div>` : ''}
+          ${typeof c.lat === 'number' && !c.noMap ? `<div class="card-map-osm" data-card-key="${esc(cardKey(c, i))}" data-lat="${c.lat}" data-lng="${c.lng}" data-leg="${c.legIdx ?? ''}" data-step="${c.stepIdx ?? ''}" data-kind="${esc(c.kind || '')}"></div>` : ''}
           ${svUrl ? `<img loading="lazy" src="${esc(svUrl)}" alt="Street view at GPS">` : ''}
         </div>` : ''}
       </article>`;
@@ -491,7 +491,7 @@
 
   function kindEmoji(kind) {
     return ({
-      turn: '🧭', fuel: '⛽', pressure: '🛞', arrival: '🏁', sunset_risk: '🌅'
+      turn: '🧭', fuel: '⛽', pressure: '🛞', arrival: '🏁', sunset_risk: '🌅', scenery: '🏞️'
     })[kind] || '•';
   }
   // Dual-unit distance formatter. Metric first because the trip is in

@@ -377,8 +377,34 @@
         }
       }
     }
+    // Surface those 5 km frames as their own scrollable "scenery" cards, slotted
+    // into the card list by distance along the route — so the Driver view shows a
+    // road snapshot (facing the direction of travel) every 5 km, not just at the
+    // sparse turn steps (a 200 km straight gravel road otherwise = ~1 image).
+    // Image-only (noMap) so we don't spin up a Leaflet mini-map per frame.
+    if (route.svFrames.length && route.cards.length) {
+      const frameCard = (f) => ({
+        kind: 'scenery',
+        lat: f.lat, lng: f.lng, distM: f.distM,
+        title: `Roadside · ${Math.round(f.distM / 1000)} km in`,
+        body: 'View ahead, in your direction of travel',
+        streetViewUrl: f.url,
+        noMap: true
+      });
+      const merged = [];
+      let fi = 0;
+      route.cards.forEach((c, idx) => {
+        const isLast = idx === route.cards.length - 1;
+        const cd = (!isLast && typeof c.lat === 'number' && overviewPath.length >= 2)
+          ? DC.routeProgressM(overviewPath, c) : Infinity; // last card (arrival) absorbs the rest
+        while (fi < route.svFrames.length && route.svFrames[fi].distM <= cd) { merged.push(frameCard(route.svFrames[fi])); fi++; }
+        merged.push(c);
+      });
+      merged.forEach((c, i) => { c.cardId = `${d.date}:c${i}`; });
+      route.cards = merged;
+    }
     route.sunTimes = computeSunTimes(d);
-    route.schemaVersion = 8;
+    route.schemaVersion = 9; // bumped for the 5 km scenery cards — re-decorate cached routes
     return route;
   }
 
@@ -400,7 +426,7 @@
   function decorateAllCached() {
     for (const d of (window.NAMIBIA_TRIP_DATA?.days || [])) {
       const r = state.renderedRoutes[d.date];
-      if (r && r.legs && r.schemaVersion !== 8) decorateRoute(d, r);
+      if (r && r.legs && r.schemaVersion !== 9) decorateRoute(d, r);
     }
   }
   decorateAllCached();
@@ -486,7 +512,7 @@
       const route = state.renderedRoutes[d.date];
       if (!route) return;
       // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 8) decorateRoute(d, route);
+      if (route.legs && route.schemaVersion !== 9) decorateRoute(d, route);
 
       if (state.activeTab === 'overview') extendOverviewTab(d, route);
       else if (state.activeTab === 'directions') extendDirectionsTab(d, route);
