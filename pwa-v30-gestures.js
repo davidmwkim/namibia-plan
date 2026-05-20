@@ -45,13 +45,65 @@
     setTimeout(() => el.classList.remove('swipe-flash'), 380);
   }
 
-  // ---- Animated panel swipe: the content follows the finger, then slides out
-  // and the new tab slides in (carousel). Falls back gracefully if transforms
-  // aren't supported.
+  // ---- Simultaneous carousel slide: the OUTGOING content (a frozen clone) and
+  // the INCOMING content move together, so the view is never blank mid-swipe.
+  // dir>0 = next (incoming from the right), dir<0 = prev. Works for both tab and
+  // day changes — `applyChange` mutates the page, then both panels animate.
+  let sliding = false;
+  function slideTransition(node, dir, applyChange) {
+    if (!node) { applyChange(); return; }
+    const parent = node.parentElement;
+    if (sliding || !parent || typeof node.cloneNode !== 'function') {
+      applyChange();
+      node.style.transition = ''; node.style.transform = ''; node.style.opacity = '';
+      return;
+    }
+    sliding = true;
+    let clone;
+    try {
+      clone = node.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    } catch (_) { clone = null; }
+    if (!clone) { applyChange(); node.style.transition=''; node.style.transform=''; node.style.opacity=''; sliding = false; return; }
+    try { if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative'; } catch (_) {}
+    Object.assign(clone.style, {
+      position: 'absolute', top: node.offsetTop + 'px', left: node.offsetLeft + 'px',
+      width: node.offsetWidth + 'px', height: node.offsetHeight + 'px',
+      margin: '0', pointerEvents: 'none', transition: 'none', zIndex: '4',
+      transform: node.style.transform || 'translateX(0)', opacity: '1'
+    });
+    clone.dataset.v30Clone = '1';
+    parent.appendChild(clone);
+
+    applyChange();                              // node now holds the NEW content
+
+    node.style.transition = 'none';
+    node.style.transform = `translateX(${dir > 0 ? 100 : -100}%)`;
+    node.style.opacity = '1';
+    void node.offsetWidth;                      // reflow
+
+    const dur = 240;
+    requestAnimationFrame(() => {
+      clone.style.transition = `transform ${dur}ms ease`;
+      node.style.transition = `transform ${dur}ms ease`;
+      clone.style.transform = `translateX(${dir > 0 ? -100 : 100}%)`;
+      node.style.transform = 'translateX(0)';
+    });
+    setTimeout(() => {
+      try { clone.remove(); } catch (_) {}
+      node.style.transition = ''; node.style.transform = ''; node.style.opacity = '';
+      sliding = false;
+      try { ensureTabIndicator(); updateTabIndicator(); } catch (_) {}
+    }, dur + 60);
+  }
+
+  // The tab content follows the finger during a drag, then commits to a
+  // simultaneous slide on release (or springs back under threshold).
   function attachAnimatedSwipe(el) {
-    let startX = 0, startY = 0, t0 = 0, active = false, dragging = false, animating = false;
+    let startX = 0, startY = 0, t0 = 0, active = false, dragging = false;
     const reset = () => { el.style.transition = 'transform .18s ease, opacity .18s ease'; el.style.transform = ''; el.style.opacity = ''; };
-    const onStart = (x, y) => { if (animating) return; startX = x; startY = y; t0 = Date.now(); active = true; dragging = false; el.style.transition = 'none'; };
+    const onStart = (x, y) => { if (sliding) return; startX = x; startY = y; t0 = Date.now(); active = true; dragging = false; el.style.transition = 'none'; };
     const onMove = (x, y) => {
       if (!active) return;
       const dx = x - startX, dy = y - startY;
@@ -60,8 +112,7 @@
         if (Math.abs(dy) > Math.abs(dx)) { active = false; reset(); return; }
         dragging = true;
       }
-      el.style.transform = `translateX(${(dx * 0.6).toFixed(1)}px)`;
-      el.style.opacity = String(Math.max(0.45, 1 - Math.abs(dx) / 620));
+      el.style.transform = `translateX(${(dx * 0.7).toFixed(1)}px)`;
     };
     const onEnd = (x, y) => {
       if (!active) return;
@@ -69,29 +120,15 @@
       const dx = x - startX, dy = y - startY, dt = Date.now() - t0;
       if (!dragging) { reset(); return; }
       const horiz = Math.abs(dx) > Math.abs(dy) * 0.7;
-      if (dt < 800 && horiz && Math.abs(dx) >= 60) commitSwipe(el, dx < 0 ? 1 : -1);
+      if (dt < 800 && horiz && Math.abs(dx) >= 60) commitTab(el, dx < 0 ? 1 : -1);
       else reset();
     };
-    const commitSwipe = (node, dir) => {
+    const commitTab = (node, dir) => {
       const cur = (typeof state !== 'undefined' && state.activeTab) || 'overview';
       const idx = TAB_ORDER.indexOf(cur);
       const nextIdx = idx + dir;
       if (idx < 0 || nextIdx < 0 || nextIdx >= TAB_ORDER.length) { reset(); return; }
-      animating = true;
-      node.style.transition = 'transform .16s ease, opacity .16s ease';
-      node.style.transform = `translateX(${dir > 0 ? '-' : ''}55%)`;
-      node.style.opacity = '0';
-      setTimeout(() => {
-        changeTab(dir);                       // sets activeTab + renderTab() (rebuilds content)
-        node.style.transition = 'none';
-        node.style.transform = `translateX(${dir > 0 ? '' : '-'}55%)`;
-        node.style.opacity = '0';
-        void node.offsetWidth;                // reflow so the incoming slide animates
-        node.style.transition = 'transform .2s ease, opacity .2s ease';
-        node.style.transform = '';
-        node.style.opacity = '';
-        setTimeout(() => { animating = false; }, 220);
-      }, 150);
+      slideTransition(node, dir, () => changeTab(dir));
     };
     el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; const t = e.touches[0]; const w = window.innerWidth; if (t.clientX < 20 || t.clientX > w - 20) return; onStart(t.clientX, t.clientY); }, { passive: true });
     el.addEventListener('touchmove', e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive: true });
@@ -99,6 +136,17 @@
     el.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
     window.addEventListener('mousemove', e => { if (active) onMove(e.clientX, e.clientY); });
     window.addEventListener('mouseup', e => { if (active) onEnd(e.clientX, e.clientY); });
+  }
+
+  // Animated day change (used by the header swipe + the ‹ Day › buttons).
+  function daySwipe(dir) {
+    const sel = document.getElementById('daySelect');
+    if (!sel) return;
+    const n = sel.selectedIndex + dir;
+    if (n < 0 || n >= sel.options.length) return;
+    const tc = document.getElementById('tabContent');
+    if (tc) slideTransition(tc, dir, () => changeDay(dir));
+    else changeDay(dir);
   }
 
   // ---- Sliding indicator under the tab bar ----
@@ -180,7 +228,20 @@
     const hero = document.querySelector('.hero');
     if (hero && !hero.dataset.v30Swipe) {
       hero.dataset.v30Swipe = '1';
-      attachSwipe(hero, () => changeDay(1), () => changeDay(-1));
+      attachSwipe(hero, () => daySwipe(1), () => daySwipe(-1));
+    }
+    // Explicit, discoverable day navigation: ‹ Day / Day › chevrons in the toolbar.
+    const tl = document.querySelector('.toolbar .toolbar-left');
+    if (tl && !tl.dataset.v30Days) {
+      tl.dataset.v30Days = '1';
+      const prev = document.createElement('button');
+      prev.id = 'dayPrev'; prev.className = 'day-nav'; prev.textContent = '‹ Day'; prev.title = 'Previous day';
+      prev.onclick = () => daySwipe(-1);
+      const next = document.createElement('button');
+      next.id = 'dayNext'; next.className = 'day-nav'; next.textContent = 'Day ›'; next.title = 'Next day';
+      next.onclick = () => daySwipe(1);
+      tl.insertBefore(prev, tl.firstChild);
+      tl.appendChild(next);
     }
     ensureTabIndicator();
     updateTabIndicator();
@@ -216,7 +277,7 @@
     if (localStorage.getItem('namibia_v30_hint_shown')) return;
     const hint = document.createElement('div');
     hint.className = 'swipe-hint';
-    hint.textContent = '👆 Swipe ← → on the page to switch tabs · swipe on the top header to change day';
+    hint.textContent = '👆 Swipe ← → to switch tabs · use ‹ Day › or swipe the header to change day';
     document.body.appendChild(hint);
     requestAnimationFrame(() => hint.classList.add('visible'));
     const dismiss = () => {

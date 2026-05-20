@@ -17,6 +17,15 @@
 .panel { overflow-x: clip; }
 body { overflow-x: hidden; }
 
+/* Frozen clone used during a carousel slide. */
+[data-v30-clone] { overflow: hidden; }
+
+/* Day navigation chevrons in the toolbar. */
+.day-nav {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
 /* Sliding indicator under the active tab. */
 .tabs { position: relative; }
 .tab-underline {
