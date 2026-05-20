@@ -58,29 +58,55 @@
     return placesService;
   }
 
+  // Strip generic "service" descriptors from the stop name so the keyword
+  // search has the best chance of hitting the actual business pin.
+  function searchKeyword(stop) {
+    if (stop.placeQuery) return stop.placeQuery; // hand-curated override
+    let n = String(stop.name || '');
+    // Drop bracketed annotations.
+    n = n.replace(/\([^)]*\)/g, '');
+    // Drop "fuel option" / "tyre check" / "luggage pickup" suffixes that
+    // describe role rather than identity.
+    n = n.replace(/\b(fuel|tyre|tire|pressure|service|station|luggage|pickup|stop|option|exit|entry|gate)\b.*$/i, '');
+    // Drop multi-name separators ("McGregor's Bakery / Solitaire Fuel" →
+    // first name wins, which is more specific).
+    n = n.split(/\s*[\/—–]\s*/)[0];
+    return n.trim() || stop.name;
+  }
+
   function findPlaceFromQuery(stop) {
     return new Promise((resolve) => {
       const svc = ensurePlacesService();
       if (!svc) return resolve(null);
-      const query = `${stop.name}, Namibia`;
-      svc.findPlaceFromQuery({
-        query,
-        fields: ['place_id', 'geometry', 'name'],
-        locationBias: { lat: Number(stop.lat), lng: Number(stop.lng) }
-      }, (results, status) => {
-        if (status !== google.maps.places.PlacesServiceStatus.OK || !results?.length) {
-          return resolve(null);
-        }
-        // Prefer the result whose coordinates are closest to the stop.
-        let best = results[0], bestD = Infinity;
-        const dist = window.NamibiaDrivingCore?.distMeters || ((a, b) => 0);
-        for (const r of results) {
-          const loc = r.geometry?.location;
-          const d = loc ? dist({ lat: loc.lat(), lng: loc.lng() }, { lat: Number(stop.lat), lng: Number(stop.lng) }) : Infinity;
-          if (d < bestD) { bestD = d; best = r; }
-        }
-        resolve(best);
-      });
+      const keyword = searchKeyword(stop);
+      const dist = window.NamibiaDrivingCore?.distMeters || ((a, b) => 0);
+      // Progressive radius expansion: try a tight search first, then widen if
+      // we don't find anything. Most lodge/restaurant pins are within 500 m
+      // of the stop's lat/lng; some Windhoek restaurants where we stored a
+      // city-centre coord need ~5 km.
+      const radii = [500, 2000, 5000];
+      const tryRadius = (i) => {
+        if (i >= radii.length) return resolve(null);
+        svc.nearbySearch({
+          location: { lat: Number(stop.lat), lng: Number(stop.lng) },
+          radius: radii[i],
+          keyword
+        }, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results?.length) {
+            // Pick the candidate whose coordinates are closest to the stop.
+            let best = results[0], bestD = Infinity;
+            for (const r of results) {
+              const loc = r.geometry?.location;
+              const d = loc ? dist({ lat: loc.lat(), lng: loc.lng() }, { lat: Number(stop.lat), lng: Number(stop.lng) }) : Infinity;
+              if (d < bestD) { bestD = d; best = r; }
+            }
+            resolve(best);
+          } else {
+            tryRadius(i + 1);
+          }
+        });
+      };
+      tryRadius(0);
     });
   }
 
@@ -211,26 +237,33 @@
       const menuHtml = menuUrl
         ? `<a class="biz-link biz-menu" href="${esc(menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
         : (website ? `<a class="biz-link biz-menu-fallback" href="${esc(website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
-      // Cover image priority:
-      //   1. Google Places photo (best: actual business cover)
-      //   2. Street View image at the stop's coords (so remote lodges with no
-      //      Places photo still show *something* of the location)
-      let photoUrl = null;
-      let photoSource = '';
-      if (shaped.photoRef && state.apiKey) {
-        photoUrl = PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600);
-        photoSource = 'places';
-      } else if (state.apiKey && typeof stop.lat === 'number' && typeof stop.lng === 'number') {
-        const sv = new URLSearchParams({
-          size: '600x300', location: `${stop.lat},${stop.lng}`,
-          fov: '90', pitch: '0', source: 'outdoor', radius: '120',
-          key: state.apiKey
-        });
-        photoUrl = 'https://maps.googleapis.com/maps/api/streetview?' + sv.toString();
-        photoSource = 'streetview';
+      // Cover image waterfall:
+      //   1. Google Places primary photo (highest-scoring landscape)
+      //   2. Alternate Places photos (up to 3 more) — tried via onerror chain
+      //   3. Street View at the stop's coords (so remote lodges still show
+      //      *something* of the location)
+      //   4. Final hard-fail → hidden via style.display='none'
+      const photoChain = [];
+      if (state.apiKey) {
+        if (shaped.photoRef) photoChain.push(PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600));
+        for (const ref of (shaped.altPhotoRefs || [])) {
+          if (ref === shaped.photoRef) continue;
+          photoChain.push(PL.placePhotoUrl(ref, state.apiKey, 600));
+        }
+        if (typeof stop.lat === 'number' && typeof stop.lng === 'number') {
+          const sv = new URLSearchParams({
+            size: '600x300', location: `${stop.lat},${stop.lng}`,
+            fov: '90', pitch: '0', source: 'outdoor', radius: '120',
+            key: state.apiKey
+          });
+          photoChain.push('https://maps.googleapis.com/maps/api/streetview?' + sv.toString());
+        }
       }
-      const photoHtml = photoUrl
-        ? `<img class="biz-photo biz-photo-${photoSource}" src="${esc(photoUrl)}" alt="${esc(stop.name)} cover" loading="lazy" onerror="this.style.display='none'">`
+      // Encode chain into the IMG's data-fallbacks so a tiny JS shim can
+      // walk it on each onerror without us writing a long inline handler.
+      const photoSource = shaped.photoRef ? 'places' : (state.apiKey ? 'streetview' : 'none');
+      const photoHtml = photoChain.length
+        ? `<img class="biz-photo biz-photo-${photoSource}" src="${esc(photoChain[0])}" alt="${esc(stop.name)} cover" loading="lazy" data-fallbacks="${esc(photoChain.slice(1).join('|'))}" onerror="(function(im){const fbs=(im.dataset.fallbacks||'').split('|').filter(Boolean); if(fbs.length){im.src=fbs.shift();im.dataset.fallbacks=fbs.join('|');}else{im.style.display='none';}})(this)">`
         : '';
 
       const wrap = document.createElement('div');
@@ -283,14 +316,44 @@
     if (!state?.apiKey) return;
     enrichAll({ force: false }).then(() => {
       try { enrichStopsTab(); } catch (_) {}
-      // Photos referenced by enrich results — warm the SW cache so they're
-      // available offline (without forcing a full refresh).
       warmAssetCache().catch(() => {});
+      // Second pass: re-fetch any stop whose cached entry has no photoRef.
+      // This catches places that the OLD findPlaceFromQuery missed but the
+      // new nearbySearch should pick up.
+      setTimeout(() => reenrichStopsWithoutPhotos(), 1000);
     }).catch(() => {});
   }, 3000);
 
+  // Targeted retry: invalidate + re-fetch only the stops whose cached Places
+  // entry is missing a photoRef. Throttled to 400ms between requests so we
+  // don't blast the quota.
+  async function reenrichStopsWithoutPhotos() {
+    if (!PL) return { tried: 0, gainedPhotos: 0 };
+    const days = window.NAMIBIA_TRIP_DATA?.days || [];
+    let tried = 0, gainedPhotos = 0;
+    for (const d of days) {
+      for (const stop of (d.stops || [])) {
+        const cached = loadCache(stop);
+        if (!cached) continue;            // never enriched — let primary path do it
+        if (cached.photoRef) continue;    // already has a photo
+        tried++;
+        try {
+          // Invalidate so enrichOne actually re-fetches.
+          localStorage.removeItem(PL.cacheKey(stop));
+          const shaped = await enrichOne(stop);
+          if (shaped?.photoRef) gainedPhotos++;
+          await new Promise(r => setTimeout(r, 400));
+        } catch (_) {}
+      }
+    }
+    if (typeof log === 'function') log(`Re-enriched photoless stops: ${gainedPhotos}/${tried} gained a Places photo.`);
+    if (state?.activeTab === 'stops' && typeof renderTab === 'function') renderTab();
+    return { tried, gainedPhotos };
+  }
+
   window.NamibiaV26 = {
     enrichAll, enrichOne, warmAssetCache, invalidateAllPlaces,
+    reenrichStopsWithoutPhotos,
     loadCache, saveCache,
     findPlaceFromQuery, getDetails
   };
