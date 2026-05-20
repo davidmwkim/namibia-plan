@@ -35,13 +35,18 @@
   let compassActive = false;
   let onOrient = null;
 
-  // Read a clockwise-from-north compass heading from a deviceorientation event,
-  // across the iOS (webkitCompassHeading) and Android (absolute alpha) shapes.
+  // Read a clockwise-from-north compass heading from a deviceorientation event.
+  // iOS exposes webkitCompassHeading directly; Android delivers it via the
+  // `deviceorientationabsolute` event (absolute === true). We MUST ignore the
+  // plain `deviceorientation` event (absolute === false) — its alpha is relative
+  // to an arbitrary start orientation, not north, so using it points the chevron
+  // the wrong way. Verified on a Pixel 6 Pro: absolute alpha 331 → 29°, which
+  // matched the AbsoluteOrientationSensor reading.
   function compassFromEvent(e) {
     if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) {
       return (e.webkitCompassHeading + 360) % 360;
     }
-    if (typeof e.alpha === 'number' && (e.absolute === true || e.webkitCompassHeading == null)) {
+    if (e.absolute === true && typeof e.alpha === 'number') {
       const so = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
       return (360 - e.alpha + so + 360) % 360;
     }
