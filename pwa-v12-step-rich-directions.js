@@ -366,7 +366,11 @@
         if (i > 0) acc += DC.distMeters(overviewPath[i - 1], overviewPath[i]);
         if (acc >= nextAt) {
           const here = overviewPath[i];
-          const ahead = overviewPath[Math.min(overviewPath.length - 1, i + 2)] || here;
+          // Forward bearing from a point ~150 m further along the path, so the
+          // Street View faces the DIRECTION OF TRAVEL (not a jittery 1-vertex hop).
+          let j = i, adv = 0;
+          while (j + 1 < overviewPath.length && adv < 150) { adv += DC.distMeters(overviewPath[j], overviewPath[j + 1]); j++; }
+          const ahead = overviewPath[j] || here;
           const heading = DC.bearingForStreetView(here, ahead);
           route.svFrames.push({ distM: Math.round(acc), lat: here.lat, lng: here.lng, heading, url: stepStreetViewUrl(here.lat, here.lng, heading) });
           nextAt = acc + STEP_M;

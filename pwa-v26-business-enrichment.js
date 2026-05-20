@@ -187,6 +187,25 @@
     if (typeof log === 'function') log(`Cached ${arr.length} business asset URLs (photos + menus).`);
   }
 
+  // Bearing of travel along the day's route nearest a stop — used to orient the
+  // Street View fallback toward the driving direction. Null if off-route (>3 km).
+  function routeHeadingAt(stop) {
+    try {
+      const DC = window.NamibiaDrivingCore;
+      const d = (typeof day === 'function') ? day() : null;
+      const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
+      const path = route && route.overviewPath;
+      if (!DC || !path || path.length < 2 || typeof stop.lat !== 'number') return null;
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < path.length; i++) { const dd = DC.distMeters(stop, path[i]); if (dd < bd) { bd = dd; bi = i; } }
+      if (bd > 3000) return null;
+      let j = bi, adv = 0;
+      while (j + 1 < path.length && adv < 150) { adv += DC.distMeters(path[j], path[j + 1]); j++; }
+      const ahead = path[j] || path[bi];
+      return DC.bearingForStreetView(path[bi], ahead);
+    } catch (_) { return null; }
+  }
+
   // ---- Stops tab — enrich each existing .stop card with the metadata ----
   function enrichStopsTab() {
     if (state?.activeTab !== 'stops') return;
@@ -278,12 +297,16 @@
           photoChain.push(PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600));
         }
         if (typeof stop.lat === 'number' && typeof stop.lng === 'number') {
-          const sv = new URLSearchParams({
+          const svParams = {
             size: '600x300', location: `${stop.lat},${stop.lng}`,
             fov: '90', pitch: '0', source: 'outdoor', radius: '120',
             key: state.apiKey
-          });
-          photoChain.push('https://maps.googleapis.com/maps/api/streetview?' + sv.toString());
+          };
+          // For stops we drive past, face the Street View along the direction of
+          // travel (route bearing at the stop) rather than a random angle.
+          const hdg = routeHeadingAt(stop);
+          if (hdg != null) svParams.heading = String(Math.round(hdg));
+          photoChain.push('https://maps.googleapis.com/maps/api/streetview?' + new URLSearchParams(svParams).toString());
         }
       }
       // Encode chain into the IMG's data-fallbacks so a tiny JS shim can

@@ -162,7 +162,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "8:15 AM",
-          "name": "Windhoek staffed fuel + tyre-pressure station",
+          "name": "Engen Klein Windhoek Service Station",
           "emoji": "🛞",
           "type": "mandatory tyre pressure + fuel prompt",
           "tripStopType": "intermediate",
@@ -178,7 +178,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "9:30 AM",
-          "name": "Rehoboth fuel stop (Shell)",
+          "name": "Shell Rehoboth Service Station",
           "emoji": "⛽",
           "type": "fuel / last reliable before gravel",
           "tripStopType": "intermediate",
@@ -260,7 +260,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "6:30 AM",
-          "name": "Sesriem / Sossus Oasis services",
+          "name": "Sossus Oasis Engen Service Station (Sesriem)",
           "emoji": "⛽",
           "type": "fuel / tyre check option",
           "tripStopType": "intermediate",
@@ -421,7 +421,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "10:00 AM",
-          "name": "Sesriem / Sossus Oasis services",
+          "name": "Sossus Oasis Engen Service Station (Sesriem)",
           "emoji": "⛽",
           "type": "fuel / tyre check option",
           "tripStopType": "intermediate",
@@ -540,7 +540,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "1:00 PM est.",
-          "name": "Walvis Bay staffed fuel / tyre-pressure area",
+          "name": "Engen Walvis Bay Convenience Centre (24h)",
           "emoji": "🛞",
           "type": "mandatory tyre pressure change / optional fuel",
           "tripStopType": "intermediate",
@@ -679,7 +679,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "4:00 PM",
-          "name": "Walvis Bay fuel / tyre check option",
+          "name": "Puma West Coast Service Centre (Walvis Bay, 24h)",
           "emoji": "⛽",
           "type": "fuel / tyre check option",
           "tripStopType": "intermediate",
@@ -689,7 +689,7 @@ window.NAMIBIA_TRIP_DATA = {
           "notes": "Optional top-up/check; not forced into route.",
           "fuel": "If no Walvis/Swakopmund top-up on May 27, estimated tank after today’s coastal round trip: ~39–44 L / 49–55%.",
           "kind": "service",
-          "placeQuery": "Engen Walvis Bay"
+          "placeQuery": "Puma West Coast Service Centre Walvis Bay"
         },
         {
           "time": "4:00 PM",
@@ -769,7 +769,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "3:00 PM est.",
-          "name": "Usakos staffed fuel + tyre-pressure stop",
+          "name": "Shell Oasis Service Centre, Usakos",
           "emoji": "🛞",
           "type": "mandatory fuel / tyre pressure",
           "tripStopType": "intermediate",
@@ -781,7 +781,7 @@ window.NAMIBIA_TRIP_DATA = {
           "fuel": "Estimated arrival if last full fill was Solitaire May 27: ~13–20 L / 16–25%. Fill to 100%.",
           "pressureAction": "down",
           "kind": "service",
-          "placeQuery": "Engen Usakos"
+          "placeQuery": "Shell Oasis Service Centre Usakos"
         },
         {
           "time": "4:30 PM",
@@ -902,7 +902,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "10:00 AM est.",
-          "name": "Omaruru staffed tyre-pressure reset point",
+          "name": "Agra Omaruru Shell (24h)",
           "emoji": "🛞",
           "type": "mandatory tyre pressure / optional fuel",
           "tripStopType": "intermediate",
@@ -914,11 +914,11 @@ window.NAMIBIA_TRIP_DATA = {
           "fuel": "Optional. Estimated arrival from Usakos fill after Spitzkoppe/local driving: ~47–55 L / 59–69%.",
           "pressureAction": "up",
           "kind": "service",
-          "placeQuery": "Engen Omaruru"
+          "placeQuery": "Agra Omaruru Shell"
         },
         {
           "time": "12:00 PM",
-          "name": "Otjiwarongo fuel / tyre-pressure stop",
+          "name": "Midway Convenience Shell, Otjiwarongo",
           "emoji": "⛽",
           "type": "fuel / tyre check",
           "tripStopType": "intermediate",
@@ -930,7 +930,7 @@ window.NAMIBIA_TRIP_DATA = {
           "fuel": "Estimated arrival if no Omaruru fuel: ~31–40 L / 39–50%. Fill to 100%.",
           "pressureAction": "up",
           "kind": "service",
-          "placeQuery": "Shell Otjiwarongo service station"
+          "placeQuery": "Midway Convenience Shell Otjiwarongo"
         },
         {
           "time": "12:00 PM",
@@ -955,7 +955,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "1:15 PM est.",
-          "name": "Otavi fuel option (Shell)",
+          "name": "Otavi Shell Service Station",
           "emoji": "⛽",
           "type": "fuel option",
           "tripStopType": "intermediate",
@@ -969,7 +969,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "4:30 PM est.",
-          "name": "Omuthiya / Oshivelo corridor final fuel option",
+          "name": "Omuthiya Shell Service Station",
           "emoji": "⛽",
           "type": "fuel / tyre check",
           "tripStopType": "intermediate",
@@ -980,7 +980,7 @@ window.NAMIBIA_TRIP_DATA = {
           "pressure": "CHECK: ask about lodge access-road condition.",
           "fuel": "Estimated arrival from Otjiwarongo fill: ~35–42 L / 44–53%. Fill to 100% before lodge/return leg.",
           "kind": "service",
-          "placeQuery": "Engen Omuthiya"
+          "placeQuery": "Omuthiya Shell Service Station"
         },
         {
           "time": "5:00 PM",
@@ -1168,7 +1168,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "8:45 AM est.",
-          "name": "Omuthiya / Oshivelo corridor fuel option",
+          "name": "Omuthiya Shell Service Station (top-up)",
           "emoji": "⛽",
           "type": "fuel option",
           "tripStopType": "intermediate",
@@ -1177,11 +1177,11 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 16.5752,
           "notes": "Optional top-up if gauge is not near full after May 31 fill. Remember NWR camp fuel inside Etosha is unreliable (2025–26) — if you didn't fill at Omuthiya northbound, do it now.",
           "kind": "service",
-          "placeQuery": "Engen Omuthiya"
+          "placeQuery": "Omuthiya Shell Service Station"
         },
         {
           "time": "10:30 AM est.",
-          "name": "Tsumeb fuel option",
+          "name": "Tsumeb Agra Shell",
           "emoji": "⛽",
           "type": "fuel option",
           "tripStopType": "intermediate",
@@ -1190,11 +1190,11 @@ window.NAMIBIA_TRIP_DATA = {
           "lng": 17.7181,
           "notes": "Optional fuel/check.",
           "kind": "service",
-          "placeQuery": "Engen Tsumeb"
+          "placeQuery": "Tsumeb Agra Shell"
         },
         {
           "time": "11:30 AM est.",
-          "name": "Otavi fuel option (Shell)",
+          "name": "Otavi Shell Service Station",
           "emoji": "⛽",
           "type": "fuel option",
           "tripStopType": "intermediate",
@@ -1208,7 +1208,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "12:30 PM",
-          "name": "Otjiwarongo fuel / tyre-pressure stop",
+          "name": "Midway Convenience Shell, Otjiwarongo",
           "emoji": "⛽",
           "type": "fuel / tyre check",
           "tripStopType": "intermediate",
@@ -1220,7 +1220,7 @@ window.NAMIBIA_TRIP_DATA = {
           "fuel": "Estimated arrival if filled Omuthiya May 31 and did only lodge transfer/guided days: ~24–33 L / 30–41%. Fill to 100%.",
           "pressureAction": "up",
           "kind": "service",
-          "placeQuery": "Shell Otjiwarongo service station"
+          "placeQuery": "Midway Convenience Shell Otjiwarongo"
         },
         {
           "time": "12:30 PM",
@@ -1245,7 +1245,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "3:30 PM est.",
-          "name": "Okahandja fuel option (Engen 1 Stop / Wimpy)",
+          "name": "Engen 1 Stop & Wimpy, Okahandja (24h)",
           "emoji": "⛽",
           "type": "fuel option",
           "tripStopType": "intermediate",
@@ -1324,7 +1324,7 @@ window.NAMIBIA_TRIP_DATA = {
         },
         {
           "time": "10:45 AM",
-          "name": "Final Windhoek / airport-road fuel stop",
+          "name": "Engen Hosea Kutako Airport Service Station",
           "emoji": "⛽",
           "type": "mandatory fuel prompt",
           "tripStopType": "intermediate",
