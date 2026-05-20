@@ -1,0 +1,88 @@
+/* v37 — full-screen Driving mode. A fixed overlay laid out as a column so the
+   map, current turn card, and Street View all fit the viewport with no page
+   scroll. Uses dynamic viewport units (dvh) so it sits correctly under mobile
+   browser chrome. */
+.df-open, .df-open body { overflow: hidden; }
+
+.driving-focus {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  background: #0e0e10;
+  color: #fff;
+  height: 100dvh;
+  /* Respect notches / home indicators. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.df-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #17171b;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.df-sun {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.df-sun.sun-safe { background: rgba(22,163,74,0.25); }
+.df-sun.sun-tight { background: rgba(245,158,11,0.30); }
+.df-sun.sun-risk { background: rgba(220,38,38,0.35); }
+.df-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+.df-btn {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.df-btn.df-exit { background: #5a1738; font-weight: 600; }
+
+/* The map takes the largest share; card + street view get fixed-ish heights. */
+.df-map {
+  flex: 1 1 auto;
+  min-height: 38dvh;
+  background: #aadaff;
+}
+.df-map.leaflet-container { background: #aadaff; }
+
+.df-card {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  background: #1c1c22;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.df-card-kind { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #9aa0aa; }
+.df-card-title { font-size: 22px; font-weight: 700; line-height: 1.2; margin: 2px 0 4px; }
+.df-card-sub { font-size: 15px; color: #d4d4d8; }
+.df-dist { font-weight: 700; color: #fff; }
+.df-empty { color: #9aa0aa; }
+
+.df-sv {
+  flex: 0 0 auto;
+  height: 28dvh;
+  background: #000;
+  overflow: hidden;
+}
+.df-sv img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* On short/landscape screens, shrink the text block + street view so the map
+   still gets room. */
+@media (max-height: 520px) {
+  .df-card-title { font-size: 18px; }
+  .df-sv { height: 22dvh; }
+}
