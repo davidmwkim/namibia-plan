@@ -53,7 +53,8 @@ const ORDER = [
   'pwa-v33-notifications.js',
   'pwa-v38-ui.js',
   'pwa-v40-malaria.js',
-  'pwa-v41-packing.js'
+  'pwa-v41-packing.js',
+  'pwa-v42-wildlife.js'
 ];
 
 function inlineScripts(files) {

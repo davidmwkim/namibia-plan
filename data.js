@@ -14,6 +14,23 @@ window.NAMIBIA_TRIP_DATA = {
       "medEndDate": "2026-06-10",
       "postTripReminderHour": 9
     },
+    "wildlife": {
+      "source": "Namibia Wildlife Resorts / Etosha regulations + reputable safari operators",
+      "area": "Etosha National Park (entered via the King Nehale gate on the north side)",
+      "entryDate": "2026-05-31",
+      "exitDate": "2026-06-03",
+      "zoneDates": ["2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"],
+      "note": "Inside Etosha you must stay in the vehicle at all times — it is open big-game country (lion, leopard, elephant, black rhino). Exit only inside the fenced rest camps (Okaukuejo, Halali, Namutoni, Dolomite, Olifantsrus) and the fenced picnic/comfort stops. Note: your Etosha King Nehale lodge is NOT fenced — game can walk through, so stay alert on the grounds after dark too.",
+      "rules": [
+        "Never get out on open roads or at waterholes — only inside fenced rest camps / picnic stops.",
+        "Keep windows up near lion, elephant or rhino; no arms, heads or cameras outside the vehicle.",
+        "Don't drive at animals — approach slowly, switch the engine off near elephants, reverse to make space.",
+        "Let herds cross; never split them. Keep enough distance that the animal doesn't react to you.",
+        "No driving after sunset — be inside a fenced camp before the gates close."
+      ],
+      "riskTimes": "Dawn and dusk are peak predator and elephant activity — and when gate closures force you back to camp.",
+      "safeCamps": ["Okaukuejo", "Halali", "Namutoni", "Dolomite", "Olifantsrus"]
+    },
     "fuelAssumptions": {
       "vehicle": "Namibia2Go-style 4x4, assumed Toyota Hilux/Fortuner-type diesel",
       "tankLitres": 80,

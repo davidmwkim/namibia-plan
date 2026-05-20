@@ -79,7 +79,9 @@
       const d = (DATA.days || [])[i]; if (!d) return;
       const info = malariaForDate(d.date);
       const mark = info.zone ? ' 🦟' : (info.med ? ' 💊' : '');
-      if (mark && !opt.text.endsWith(mark)) opt.text = opt.text + mark;
+      // includes() (not endsWith) so a second module appending its own emoji
+      // after ours doesn't make us re-append on the next render.
+      if (mark && !opt.text.includes(mark.trim())) opt.text = opt.text + mark;
     });
   }
 
