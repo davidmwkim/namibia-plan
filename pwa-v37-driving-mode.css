@@ -72,6 +72,9 @@
   transform-origin: 50% 50%;
   will-change: transform;
   background: #aadaff;
+  /* Pan is instant (Leaflet translates the inner panes); only the heading
+     rotation applied to this element is eased, so turns feel smooth. */
+  transition: transform 0.18s linear;
 }
 .df-map-inner.leaflet-container { background: #aadaff; }
 /* The shared blue dot is replaced by the chevron puck on the nav map (the

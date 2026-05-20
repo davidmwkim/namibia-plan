@@ -113,7 +113,9 @@
   // view), unlike the overview/per-step maps which stay framed on the route.
   function recenterOnGps() {
     if (!lMap || !ready || !state.gps) return;
-    try { lMap.panTo([Number(state.gps.lat), Number(state.gps.lng)], { animate: true, duration: 0.25 }); } catch (_) {}
+    // Instant — an animated pan never settles at the demo's tick rate (blank
+    // tiles + drift). Frequent small instant recenters read as smooth.
+    try { lMap.panTo([Number(state.gps.lat), Number(state.gps.lng)], { animate: false }); } catch (_) {}
   }
 
   // ---- Public hooks called from v13 ----

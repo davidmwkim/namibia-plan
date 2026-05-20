@@ -19,9 +19,54 @@
 
   // ---- Heading-up navigation camera ----
   const NAV_ZOOM = 16;
-  let navHeading = 0;        // smoothed heading-of-travel (deg, 0 = north)
-  let navLastGps = null;     // previous fix, for bearing
+  let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
+  let navLastGps = null;     // previous fix, for movement bearing
   let onResize = null;
+  // Device compass (magnetometer) — the real "which way is the phone pointing".
+  let compassHeading = null;
+  let compassActive = false;
+  let onOrient = null;
+
+  // Read a clockwise-from-north compass heading from a deviceorientation event,
+  // across the iOS (webkitCompassHeading) and Android (absolute alpha) shapes.
+  function compassFromEvent(e) {
+    if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) {
+      return (e.webkitCompassHeading + 360) % 360;
+    }
+    if (typeof e.alpha === 'number' && (e.absolute === true || e.webkitCompassHeading == null)) {
+      const so = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+      return (360 - e.alpha + so + 360) % 360;
+    }
+    return null;
+  }
+
+  function startCompass() {
+    compassHeading = null; compassActive = false;
+    onOrient = (e) => {
+      const h = compassFromEvent(e);
+      if (h != null && isFinite(h)) { compassHeading = h; compassActive = true; }
+    };
+    const attach = () => {
+      window.addEventListener('deviceorientationabsolute', onOrient, true);
+      window.addEventListener('deviceorientation', onOrient, true);
+    };
+    // iOS 13+ requires explicit permission, requested from a user gesture
+    // (enterFocus is called from the button tap, so we're inside one).
+    const DOE = window.DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === 'function') {
+      DOE.requestPermission().then(s => { if (s === 'granted') attach(); }).catch(() => {});
+    } else {
+      attach();
+    }
+  }
+  function stopCompass() {
+    if (onOrient) {
+      window.removeEventListener('deviceorientationabsolute', onOrient, true);
+      window.removeEventListener('deviceorientation', onOrient, true);
+      onOrient = null;
+    }
+    compassActive = false; compassHeading = null;
+  }
 
   // Shortest-arc angular interpolation (handles the 360°→0° wrap).
   function lerpAngle(a, b, t) {
@@ -122,8 +167,9 @@
     if (window.NamibiaTTS) overlay.querySelector('#dfMute').textContent = window.NamibiaTTS.isMuted() ? '🔇' : '🔊';
     lastCardKey = null;
     navHeading = 0; navLastGps = null;
+    startCompass();
     refreshFocus(true);
-    refreshTimer = setInterval(() => refreshFocus(false), 250);
+    refreshTimer = setInterval(() => refreshFocus(false), 150);
     document.addEventListener('keydown', onKey);
     onResize = () => { const h = overlay && overlay.querySelector('#dfMap'); const inr = h && h.querySelector('.df-map-inner'); if (h && inr) { sizeNavInner(h, inr); try { focusMap.invalidateSize(); } catch (_) {} } };
     window.addEventListener('resize', onResize);
@@ -133,6 +179,7 @@
     if (!overlay) return;
     if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
     document.removeEventListener('keydown', onKey);
+    stopCompass();
     if (onResize) { window.removeEventListener('resize', onResize); onResize = null; }
     if (focusMap && OSM()) OSM().unregisterMap(focusMap);
     try { if (focusMap) focusMap.remove(); } catch (_) {}
@@ -178,13 +225,22 @@
     // follow the driver and rotate the map so travel direction is always "up".
     if (OSM()) OSM().updateAllGps();
     if (focusMap && state.gps) {
-      // Heading from movement (smoothed); hold last heading when stationary.
-      if (navLastGps) {
+      // Heading source: the phone compass (which way the phone points) when
+      // available for real driving; the simulated movement bearing during the
+      // demo (no real compass) or when no compass is present.
+      if (compassActive && compassHeading != null && !state.driving.demoMode) {
+        navHeading = lerpAngle(navHeading, compassHeading, 0.5);
+      } else if (navLastGps) {
         const moved = DC.distMeters(navLastGps, state.gps);
         if (moved > 3) navHeading = lerpAngle(navHeading, DC.bearing(navLastGps, state.gps), 0.35);
       }
       navLastGps = { lat: state.gps.lat, lng: state.gps.lng };
-      try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: true, duration: 0.25 }); } catch (_) {}
+      // Instant recenter — an animated pan never settles at the demo's tick
+      // rate, leaving the map perpetually mid-animation (blank tiles) while the
+      // route + GPS circle slide under the fixed chevron ("flies off the route").
+      // Snapping keeps the GPS exactly under the puck every frame; rotation is
+      // eased via a CSS transition on the inner instead.
+      try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: false }); } catch (_) {}
       const inner = overlay.querySelector('.df-map-inner');
       if (inner) inner.style.transform = `rotate(${(-navHeading).toFixed(1)}deg)`;
     }
