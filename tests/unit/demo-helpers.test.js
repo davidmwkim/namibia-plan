@@ -73,6 +73,55 @@ describe('NamibiaDemo.sampleNoise', () => {
   });
 });
 
+describe('NamibiaDemo.cardCursor', () => {
+  const cards = Array.from({ length: 6 }, (_, i) => ({ lat: i, lng: 0 }));
+  it('is monotonic and visits EVERY card index across the demo', () => {
+    const visited = new Set();
+    let last = -1, monotonic = true;
+    for (let i = 0; i <= 600; i++) {
+      const c = Demo.cardCursor(cards, i / 600);
+      visited.add(c.idx);
+      if (c.idx < last) monotonic = false;
+      last = c.idx;
+    }
+    expect(monotonic).toBe(true);
+    expect(visited.size).toBe(cards.length); // no skipped turns
+    expect(Math.max(...visited)).toBe(cards.length - 1);
+  });
+  it('starts at the first card and ends at the last', () => {
+    expect(Demo.cardCursor(cards, 0).idx).toBe(0);
+    expect(Demo.cardCursor(cards, 1).idx).toBe(cards.length - 1);
+  });
+  it('places the GPS pin between the active card and the next', () => {
+    const c = Demo.cardCursor(cards, 0.5); // mid-demo
+    expect(c.pos).not.toBe(null);
+    expect(c.pos.lat).toBeGreaterThanOrEqual(0);
+    expect(c.pos.lat).toBeLessThanOrEqual(cards.length - 1);
+  });
+  it('handles empty card list', () => {
+    expect(Demo.cardCursor([], 0.5)).toEqual({ idx: -1, pos: null });
+  });
+});
+
+describe('NamibiaDemo.buildDrivePath', () => {
+  it('builds one vertex per step plus the final destination', () => {
+    const route = {
+      legs: [{ steps: [
+        { lat: 1, lng: 1 }, { lat: 2, lng: 2, endLat: 3, endLng: 3 }
+      ] }],
+      overviewPath: [{ lat: 0, lng: 0 }, { lat: 9, lng: 9 }]
+    };
+    const path = Demo.buildDrivePath(route);
+    expect(path.length).toBe(3); // 2 step starts + final end
+    expect(path[0]).toEqual({ lat: 1, lng: 1 });
+    expect(path[2]).toEqual({ lat: 3, lng: 3 });
+  });
+  it('falls back to overviewPath when there are no steps', () => {
+    const route = { legs: [], overviewPath: [{ lat: 0, lng: 0 }, { lat: 1, lng: 1 }] };
+    expect(Demo.buildDrivePath(route)).toEqual(route.overviewPath);
+  });
+});
+
 describe('NamibiaDemo.totalRouteMinutes', () => {
   it('sums all step durations across all legs', () => {
     const route = {

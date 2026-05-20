@@ -94,34 +94,49 @@
       state.driving.distToNextTurnM = cur.distToNextTurnM;
     }
 
-    // Active card (used for auto-scroll).
-    const r = DC.relevantCards(state.gps, route);
+    // Active card (auto-scroll target). Progress-based + monotonic so it steps
+    // through EVERY card in route order — the old 2-D nearest-card jumped around
+    // and skipped short turns + the pressure/fuel cards entirely.
     const prevActive = state.driving.activeCardIndex;
-    state.driving.activeCardIndex = r.activeIndex;
+    // In demo mode the demo dictates a monotonic active index (visits every
+    // card in order); real driving reverse-maps GPS → nearest card ahead.
+    const activeIdx = (state.driving.demoMode && typeof state.driving.demoActiveIdx === 'number')
+      ? state.driving.demoActiveIdx
+      : DC.activeCardIndex(state.gps, route);
+    state.driving.activeCardIndex = activeIdx;
 
-    // Demo mode: force-fire a TTS announcement whenever the active card
-    // changes. Threshold-based firing below may skip cards when GPS jumps a
-    // large distance per tick (demo's 1km+/tick speed), so this guarantees
-    // the user hears every card during the playback.
-    if (state.driving.demoMode && prevActive !== r.activeIndex && r.activeIndex >= 0) {
-      const activeCard = route.cards?.[r.activeIndex];
-      if (activeCard?.ttsKey) {
+    if (state.driving.demoMode) {
+      // The demo's GPS jumps >1 km per tick, which skips the distance
+      // thresholds below — so announce as we ADVANCE past cards. Among the
+      // cards newly reached this tick, prefer an event card (pressure / fuel /
+      // sunset) and force it past the throttle so the safety warning is never
+      // silently dropped; otherwise voice the latest turn.
+      const lastAnn = (typeof state.driving._lastAnnouncedIdx === 'number') ? state.driving._lastAnnouncedIdx : -1;
+      if (activeIdx > lastAnn && route.cards) {
+        let pick = null, pickIsEvent = false;
+        for (let i = lastAnn + 1; i <= activeIdx; i++) {
+          const c = route.cards[i];
+          if (!c || !c.ttsKey) continue;
+          const isEvent = c.kind === 'pressure' || c.kind === 'fuel' || c.kind === 'sunset_risk';
+          if (isEvent) { pick = c; pickIsEvent = true; break; }
+          pick = c;
+        }
         const tts = TTS();
-        if (tts) tts.speak(activeCard.ttsKey);
+        if (tts && pick) tts.speak(pick.ttsKey, pick.ttsText, pickIsEvent ? { force: true } : undefined);
+        state.driving._lastAnnouncedIdx = activeIdx;
       }
-    }
-
-    // Threshold-based TTS for each upcoming card within range.
-    if (route.cards) {
+    } else if (route.cards) {
+      // Real driving: distance-threshold advance warnings (2 km / 500 m / 100 m
+      // / arrive) for every card still ahead of the active one.
       route.cards.forEach((card, idx) => {
         const d2 = DC.distMeters(state.gps, card);
         const prev = state.driving.prevDistByCard[card.cardId];
         const last = state.driving.lastThresholdByCard[card.cardId] || null;
         const fired = DC.ttsTriggerThresholds(prev, d2, last);
-        if (fired && idx >= r.activeIndex) {
+        if (fired && idx >= activeIdx) {
           state.driving.lastThresholdByCard[card.cardId] = fired;
           const tts = TTS();
-          if (tts && card.ttsKey) tts.speak(card.ttsKey);
+          if (tts && card.ttsKey) tts.speak(card.ttsKey, card.ttsText);
         }
         state.driving.prevDistByCard[card.cardId] = d2;
       });

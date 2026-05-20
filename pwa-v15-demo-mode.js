@@ -40,6 +40,42 @@
     return m;
   }
 
+  // Build the demo drive path from STEP coordinates (start of each step + the
+  // final destination), so the simulated GPS passes through every turn. Falls
+  // back to the decimated overviewPath only if steps are unavailable.
+  function buildDrivePath(route) {
+    const pts = [];
+    const legs = (route && route.legs) || [];
+    legs.forEach(leg => (leg.steps || []).forEach(s => {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') pts.push({ lat: s.lat, lng: s.lng });
+    }));
+    const lastLeg = legs[legs.length - 1];
+    const lastStep = lastLeg && lastLeg.steps && lastLeg.steps[lastLeg.steps.length - 1];
+    if (lastStep && typeof lastStep.endLat === 'number') pts.push({ lat: lastStep.endLat, lng: lastStep.endLng });
+    return pts.length >= 2 ? pts : ((route && route.overviewPath) || []);
+  }
+
+  // Demo progress t (0..1) → which card is active + where the GPS pin sits.
+  // The demo gives EVERY card an equal slice of time and places the pin between
+  // the active card and the next, so the highlight + pin stay aligned and no
+  // turn (or pressure/fuel stop) is ever skipped — the core "missing turns" fix.
+  function cardCursor(cards, t) {
+    const N = (cards || []).length;
+    if (!N) return { idx: -1, pos: null };
+    const f = Math.max(0, Math.min(1, t)) * (N - 1);
+    const idx = Math.min(N - 1, Math.floor(f + 1e-9));
+    const segT = Math.min(1, Math.max(0, f - idx));
+    const c0 = cards[idx];
+    const c1 = cards[Math.min(N - 1, idx + 1)] || c0;
+    let pos = null;
+    if (c0 && typeof c0.lat === 'number') {
+      const la1 = (c1 && typeof c1.lat === 'number') ? c1.lat : c0.lat;
+      const lo1 = (c1 && typeof c1.lng === 'number') ? c1.lng : c0.lng;
+      pos = { lat: c0.lat + (la1 - c0.lat) * segT, lng: c0.lng + (lo1 - c0.lng) * segT };
+    }
+    return { idx, pos };
+  }
+
   function interpPolyline(path, t) {
     if (!Array.isArray(path) || path.length === 0) return null;
     if (path.length === 1) return { lat: path[0].lat, lng: path[0].lng };
@@ -103,7 +139,13 @@
     }
     const baseStartMs = Date.parse(d.date + 'T' + opts.startLocal + '+02:00');
     const realDriveMinutes = totalRouteMinutes(route) || 60;
-    const path = route.overviewPath;
+    // Drive the STEP path (one vertex per turn), not the decimated overviewPath.
+    // The overview path collapses short city turns to a single vertex, so the
+    // demo would sail past several turns without findCurrentStep ever resolving
+    // them. Driving through each step's start guarantees every turn (and the
+    // pressure/fuel cards near them) is visited + announced.
+    const path = buildDrivePath(route);
+    const cards = route.cards || [];
     const noise = generateNoiseSeries(24, opts.noiseHours);
 
     // Ensure the Driving Dashboard is visible so the user sees the cards scroll.
@@ -123,15 +165,21 @@
     if (typeof state !== 'undefined' && state.driving) {
       state.driving.demoMode = true;
       state.driving.lastDemoActiveIdx = -1;
+      // Reset the announce frontier so every card voices from the start.
+      state.driving._lastAnnouncedIdx = -1;
     }
 
     const startTs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
     demoTimer = setInterval(() => {
       const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
       const t = Math.min(1, (now - startTs) / opts.durationMs);
-      const pos = interpPolyline(path, t);
+      const cursor = cardCursor(cards, t);
+      const pos = cursor.pos || interpPolyline(path, t);
       const noiseMin = sampleNoise(noise, t);
       const simMs = baseStartMs + (realDriveMinutes * t + noiseMin) * 60000;
+      // Demo dictates the active card monotonically (so v13 doesn't reverse-map
+      // GPS→card, which skips clustered turns + off-road pressure/fuel stops).
+      if (state.driving) state.driving.demoActiveIdx = cursor.idx;
       try {
         // Prefer the silent variants so the demo doesn't trigger a full
         // renderTab cascade (~20 patches) on every 100ms tick. The silent
@@ -158,6 +206,7 @@
     }
     if (typeof state !== 'undefined' && state.driving) {
       state.driving.demoMode = false;
+      state.driving.demoActiveIdx = null;
     }
     updateDemoButton(0, true);
   }
@@ -273,6 +322,8 @@
     startDemo,
     stopDemo,
     interpPolyline,
+    buildDrivePath,
+    cardCursor,
     totalRouteMinutes,
     generateNoiseSeries,
     sampleNoise,
