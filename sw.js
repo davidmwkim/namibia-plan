@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.27.3';
+const APP_VERSION = '1.27.4';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -74,7 +74,12 @@ const ASSETS = [
 const CROSS_ORIGIN_CACHE_PREFIXES = [
   'https://maps.googleapis.com/maps/api/staticmap',
   'https://maps.googleapis.com/maps/api/streetview',
-  'https://maps.googleapis.com/maps/api/place/photo',
+  // Covers BOTH the web-service photo endpoint (/place/photo) and the JS SDK
+  // getUrl() endpoint (/place/js/PhotoService.GetPhoto).
+  'https://maps.googleapis.com/maps/api/place/',
+  // Place photos resolved via getUrl() redirect to googleusercontent CDN.
+  'https://lh3.googleusercontent.com/',
+  'https://lh5.googleusercontent.com/',
   'https://api.open-meteo.com/v1/forecast',
   // OSM raster tiles (v32) — cache aggressively so the dashboard map keeps
   // working when offline + when Google Maps quota is exhausted.

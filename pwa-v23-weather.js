@@ -188,6 +188,20 @@
   // temperature gradients — coast vs inland — so a single day-centroid would be
   // misleading). Falls back to the day centroid forecast if the per-stop one
   // isn't cached yet.
+  // Parse a "H:MM AM/PM" (or 24h "HH:MM") clock string to minutes-past-midnight.
+  function parseClockToMinutes(t) {
+    if (!t) return null;
+    const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ap = (m[3] || '').toUpperCase();
+    if (ap === 'PM' && h !== 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    if (h > 23 || min > 59) return null;
+    return h * 60 + min;
+  }
+
   function attachWeatherToStops() {
     const days = window.NAMIBIA_TRIP_DATA?.days || [];
     for (const d of days) {
@@ -212,8 +226,18 @@
         } else {
           etaMin = lastWaypointCumMin;
         }
-        const localPlus = new Date(startMs + etaMin * 60000 + NAMIBIA_TZ_OFFSET_MIN * 60000);
-        const iso = localPlus.toISOString().slice(0, 13) + ':00';
+        // Prefer the stop's hand-authored schedule (s.time, e.g. "1:20 PM") —
+        // it's the time shown in the card header and accounts for flights /
+        // dwell time that the continuous-driving model can't know about. Fall
+        // back to the leg-cumulative estimate only when no time is given.
+        const clockMin = parseClockToMinutes(s.time);
+        let iso;
+        if (clockMin != null) {
+          iso = `${d.date}T${String(Math.floor(clockMin / 60)).padStart(2, '0')}:00`;
+        } else {
+          const localPlus = new Date(startMs + etaMin * 60000 + NAMIBIA_TZ_OFFSET_MIN * 60000);
+          iso = localPlus.toISOString().slice(0, 13) + ':00';
+        }
         const hasCoords = typeof s.lat === 'number' && typeof s.lng === 'number';
         const fc = (hasCoords && loadCached(d.date, s.lat, s.lng)) || dayFc;
         let w = fc ? W.weatherAtLocalIso(fc, iso) : null;

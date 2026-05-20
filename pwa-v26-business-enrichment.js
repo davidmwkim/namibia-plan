@@ -36,7 +36,7 @@
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('namibia_place_v1:')) keys.push(k);
+      if (k && (k.startsWith('namibia_place_v2:') || k.startsWith('namibia_place_v1:'))) keys.push(k);
     }
     keys.forEach(k => localStorage.removeItem(k));
   }
@@ -175,7 +175,9 @@
     const urls = new Set();
     for (const d of days) for (const s of (d.stops || [])) {
       const c = loadCache(s);
-      if (c?.photoRef && state.apiKey) {
+      if (c?.photoUrl) urls.add(c.photoUrl);
+      for (const u of (c?.altPhotoUrls || [])) urls.add(u);
+      if (!c?.photoUrl && c?.photoRef && state.apiKey) {
         urls.add(PL.placePhotoUrl(c.photoRef, state.apiKey, 600));
       }
       if (s.menuUrl) urls.add(s.menuUrl);
@@ -260,17 +262,20 @@
         ? `<a class="biz-link biz-menu" href="${esc(menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
         : (website ? `<a class="biz-link biz-menu-fallback" href="${esc(website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
       // Cover image waterfall:
-      //   1. Google Places primary photo (highest-scoring landscape)
-      //   2. Alternate Places photos (up to 3 more) — tried via onerror chain
+      //   1. Google Places photos resolved via the JS SDK getUrl() — these are
+      //      pre-signed and need NO API key (primary, then alternates).
+      //   2. Legacy photo_reference URLs (web-service shape) if present.
       //   3. Street View at the stop's coords (so remote lodges still show
       //      *something* of the location)
       //   4. Final hard-fail → hidden via style.display='none'
       const photoChain = [];
+      if (shaped.photoUrl) photoChain.push(shaped.photoUrl);
+      for (const u of (shaped.altPhotoUrls || [])) {
+        if (u && u !== shaped.photoUrl) photoChain.push(u);
+      }
       if (state.apiKey) {
-        if (shaped.photoRef) photoChain.push(PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600));
-        for (const ref of (shaped.altPhotoRefs || [])) {
-          if (ref === shaped.photoRef) continue;
-          photoChain.push(PL.placePhotoUrl(ref, state.apiKey, 600));
+        if (!photoChain.length && shaped.photoRef) {
+          photoChain.push(PL.placePhotoUrl(shaped.photoRef, state.apiKey, 600));
         }
         if (typeof stop.lat === 'number' && typeof stop.lng === 'number') {
           const sv = new URLSearchParams({
@@ -283,7 +288,7 @@
       }
       // Encode chain into the IMG's data-fallbacks so a tiny JS shim can
       // walk it on each onerror without us writing a long inline handler.
-      const photoSource = shaped.photoRef ? 'places' : (state.apiKey ? 'streetview' : 'none');
+      const photoSource = (shaped.photoUrl || shaped.photoRef) ? 'places' : (state.apiKey ? 'streetview' : 'none');
       const photoHtml = photoChain.length
         ? `<img class="biz-photo biz-photo-${photoSource}" src="${esc(photoChain[0])}" alt="${esc(stop.name)} cover" loading="lazy" data-fallbacks="${esc(photoChain.slice(1).join('|'))}" onerror="(function(im){const fbs=(im.dataset.fallbacks||'').split('|').filter(Boolean); if(fbs.length){im.src=fbs.shift();im.dataset.fallbacks=fbs.join('|');}else{im.style.display='none';}})(this)">`
         : '';
@@ -356,14 +361,14 @@
     for (const d of days) {
       for (const stop of (d.stops || [])) {
         const cached = loadCache(stop);
-        if (!cached) continue;            // never enriched — let primary path do it
-        if (cached.photoRef) continue;    // already has a photo
+        if (!cached) continue;                          // never enriched — let primary path do it
+        if (cached.photoUrl || cached.photoRef) continue; // already has a photo
         tried++;
         try {
           // Invalidate so enrichOne actually re-fetches.
           localStorage.removeItem(PL.cacheKey(stop));
           const shaped = await enrichOne(stop);
-          if (shaped?.photoRef) gainedPhotos++;
+          if (shaped?.photoUrl || shaped?.photoRef) gainedPhotos++;
           await new Promise(r => setTimeout(r, 400));
         } catch (_) {}
       }
