@@ -91,12 +91,12 @@
   }
 
   function addMapHint() {
+    // The Overview mini-map is now a live OpenStreetMap (v35) that renders from
+    // cached route data with no Google key required, so the old "draws here
+    // after Save key" hint is obsolete. Remove any stale note if present.
     const el = document.querySelector('.mini-map');
-    if (!el || el.querySelector('.map-size-note')) return;
-    const note = document.createElement('div');
-    note.className = 'map-size-note';
-    note.textContent = 'Google route draws here after “Save key + render all”.';
-    el.appendChild(note);
+    const stale = el && el.querySelector('.map-size-note');
+    if (stale) stale.remove();
   }
 
   const baseRender = render;

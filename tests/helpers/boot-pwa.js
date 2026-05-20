@@ -47,6 +47,7 @@ const ORDER = [
   'pwa-v31-polish.js',
   'pwa-v34-osm-core.js',
   'pwa-v32-osm-map.js',
+  'pwa-v35-osm-overview.js',
   'pwa-v33-notifications.js'
 ];
 
