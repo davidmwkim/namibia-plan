@@ -120,6 +120,15 @@
   border-radius: 6px;
   background: #f4ecdb;
 }
+/* Live OSM mini-map per card (replaces the old Google static screenshot). */
+.drive-card .card-map-osm {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #aadaff;
+}
+.drive-card .card-map-inner { width: 100%; height: 100%; }
 @media (max-width: 520px) {
   .drive-card .card-media { grid-template-columns: 1fr; }
 }

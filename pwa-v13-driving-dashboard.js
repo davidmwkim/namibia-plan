@@ -231,6 +231,111 @@
     return 'https://maps.googleapis.com/maps/api/streetview?' + p.toString();
   }
 
+  // ---- Live OSM mini-map per card (replaces the old Google static screenshot).
+  // The cards list innerHTML is rebuilt periodically (≤5 s + on active-card
+  // change), which would destroy a naive Leaflet map and flicker. So we OWN the
+  // Leaflet container node, cache it by a stable card key, and re-parent it into
+  // the freshly-built placeholder on each rebuild — the map (and its loaded
+  // tiles) survive untouched. Each card map joins the shared GPS layer so the
+  // blue dot + accuracy ring follow along on every card too.
+  const cardMapByKey = new Map(); // key -> { inner, map }
+
+  function cardKey(c, i) {
+    const la = typeof c.lat === 'number' ? c.lat.toFixed(4) : 'x';
+    const lo = typeof c.lng === 'number' ? c.lng.toFixed(4) : 'x';
+    return `${c.kind || 'card'}|${la},${lo}|${c.legIdx ?? ''}-${c.stepIdx ?? ''}`;
+  }
+
+  function buildCardMap(ph, d, route) {
+    const OSM = window.NamibiaOSM;
+    if (!OSM || !OSM.hasLeaflet()) return null;
+    const lat = parseFloat(ph.dataset.lat), lng = parseFloat(ph.dataset.lng);
+    if (!isFinite(lat) || !isFinite(lng)) return null;
+    const inner = document.createElement('div');
+    inner.className = 'card-map-inner';
+    ph.innerHTML = '';
+    ph.appendChild(inner);
+    const map = OSM.createMap(inner, {
+      center: [lat, lng], zoom: 14,
+      zoomControl: false, attributionControl: false,
+      scrollWheelZoom: false, dragging: false, tap: false
+    });
+    if (!map) return null;
+    try { map.doubleClickZoom.disable(); map.boxZoom.disable(); map.keyboard.disable(); } catch (_) {}
+
+    const legIdx = ph.dataset.leg !== '' ? Number(ph.dataset.leg) : null;
+    const stepIdx = ph.dataset.step !== '' ? Number(ph.dataset.step) : null;
+    let bounds = null;
+    try {
+      const leg = (legIdx != null) ? route?.legs?.[legIdx] : null;
+      const step = (leg && stepIdx != null) ? leg.steps[stepIdx] : null;
+      if (step && window.NamibiaV12?.pathSlice) {
+        // Turn card → draw the step's road slice, Heather-colored.
+        const a = { lat: step.lat, lng: step.lng };
+        const nx = leg.steps[stepIdx + 1];
+        const b = nx ? { lat: nx.lat, lng: nx.lng }
+          : { lat: (typeof step.endLat === 'number' ? step.endLat : a.lat), lng: (typeof step.endLng === 'number' ? step.endLng : a.lng) };
+        let slice = window.NamibiaV12.pathSlice(route.overviewPath || [], a, b) || [];
+        if (slice.length < 2) slice = [a, b];
+        const status = window.NamibiaV19?.partitionForStep?.(route, d, legIdx, stepIdx)?.status || 'no';
+        const color = (OSM.COLORS && OSM.COLORS[status]) || '#dc2626';
+        const ll = slice.map(p => [Number(p.lat), Number(p.lng)]);
+        window.L.polyline(ll, { color, weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+        window.L.circleMarker([a.lat, a.lng], { radius: 5, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1, interactive: false }).addTo(map);
+        window.L.circleMarker([b.lat, b.lng], { radius: 5, color: '#fff', weight: 2, fillColor: '#dc2626', fillOpacity: 1, interactive: false }).addTo(map);
+        bounds = window.L.latLngBounds(ll);
+      } else {
+        // Point card (fuel / pressure / arrival / sunset risk) → a single pin.
+        const kindColor = { fuel: '#0ea5e9', pressure: '#7c3aed', arrival: '#16a34a', sunset_risk: '#dc2626' };
+        const col = kindColor[ph.dataset.kind] || '#5a1738';
+        window.L.circleMarker([lat, lng], { radius: 7, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1, interactive: false }).addTo(map);
+        bounds = window.L.latLngBounds([[lat, lng]]);
+      }
+    } catch (_) {}
+
+    setTimeout(() => {
+      try {
+        map.invalidateSize();
+        if (bounds && bounds.isValid()) map.fitBounds(bounds, { padding: [14, 14], maxZoom: 15 });
+        else map.setView([lat, lng], 14);
+        OSM.updateAllGps();
+      } catch (_) {}
+    }, 60);
+    OSM.registerMap(map);
+    return { inner, map };
+  }
+
+  function initCardMaps() {
+    const OSM = window.NamibiaOSM;
+    if (!OSM || !OSM.hasLeaflet() || state.activeTab !== 'street') return;
+    const d = day();
+    const route = state.renderedRoutes?.[d.date];
+    const placeholders = document.querySelectorAll('.drive-cards .card-map-osm');
+    const seen = new Set();
+    placeholders.forEach(ph => {
+      const key = ph.dataset.cardKey;
+      seen.add(key);
+      const entry = cardMapByKey.get(key);
+      if (entry && entry.inner) {
+        // Re-attach the surviving Leaflet container into the fresh placeholder.
+        if (entry.inner.parentNode !== ph) { ph.innerHTML = ''; ph.appendChild(entry.inner); }
+        setTimeout(() => { try { entry.map.invalidateSize(); } catch (_) {} }, 0);
+      } else {
+        const built = buildCardMap(ph, d, route);
+        if (built) cardMapByKey.set(key, built);
+      }
+    });
+    // Drop maps for cards no longer present (e.g. after a day change).
+    for (const [key, e] of Array.from(cardMapByKey)) {
+      if (!seen.has(key)) {
+        OSM.unregisterMap(e.map);
+        try { e.map.remove(); } catch (_) {}
+        try { e.inner.remove(); } catch (_) {}
+        cardMapByKey.delete(key);
+      }
+    }
+  }
+
   function cardsHtml(d, route) {
     const cards = route?.cards || [];
     const active = state.driving.activeCardIndex;
@@ -267,8 +372,8 @@
         ${youAreHere}
         <h3>${esc(c.title || '')}</h3>
         <p>${esc(c.body || '')}</p>
-        ${c.mapUrl || svUrl ? `<div class="card-media">
-          ${c.mapUrl ? `<img loading="lazy" src="${esc(c.mapUrl)}" alt="Map">` : ''}
+        ${(typeof c.lat === 'number') || svUrl ? `<div class="card-media">
+          ${typeof c.lat === 'number' ? `<div class="card-map-osm" data-card-key="${esc(cardKey(c, i))}" data-lat="${c.lat}" data-lng="${c.lng}" data-leg="${c.legIdx ?? ''}" data-step="${c.stepIdx ?? ''}" data-kind="${esc(c.kind || '')}"></div>` : ''}
           ${svUrl ? `<img loading="lazy" src="${esc(svUrl)}" alt="Street view at GPS">` : ''}
         </div>` : ''}
       </article>`;
@@ -382,6 +487,7 @@
       state.driving._lastHeavyRebuild = now;
       state.driving._lastBuiltActiveIdx = state.driving.activeCardIndex;
       bindDashboardEvents();
+      initCardMaps();
     }
 
     // Auto-scroll only when explicitly requested or demo is running.
@@ -607,6 +713,7 @@
       driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
       updateDriveMap();
       bindDashboardEvents();
+      initCardMaps();
       // Initial mount: one-shot scroll to the active card, then never again
       // unless the user clicks "📍 Center".
       if (state.driving.activeCardIndex >= 0) {
