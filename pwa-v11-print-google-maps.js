@@ -105,26 +105,50 @@
     addMapHint();
   };
 
+  // Compact day itinerary for print: event end-times + synthesized downtime
+  // (reusing v38), with the full tyre/fuel instruction kept inline so nothing
+  // important is lost from the printed reference.
+  function printItineraryHtml(d) {
+    const V38 = window.NamibiaV38;
+    const entries = (V38 && V38.synthDowntime) ? V38.synthDowntime(d.stops || []) : (d.stops || []);
+    const range = s => s.endTime ? `${esc(s.time || '')}–${esc(s.endTime)}` : esc(s.time || '');
+    return `<div class="print-itinerary"><h3>Itinerary</h3><ul>${entries.map(s => {
+      const tag = s.pressure
+        ? `<span class="pi-tag pi-tyre">🛞 ${esc(s.pressureAction === 'down' ? 'lower' : s.pressureAction === 'up' ? 'raise' : 'check')}</span>`
+        : (s.fuel ? `<span class="pi-tag pi-fuel">⛽ fuel</span>` : '');
+      const detail = s.pressure ? `<div class="pi-detail">${esc(s.pressure)}</div>`
+        : (s.fuel ? `<div class="pi-detail">${esc(s.fuel)}</div>` : '');
+      return `<li class="pi-row${s.kind === 'downtime' ? ' pi-downtime' : ''}"><div class="pi-line"><span class="pi-time">${range(s)}</span> <span class="pi-name">${esc((s.emoji || '') + ' ' + s.name)}</span> ${tag}</div>${detail}</li>`;
+    }).join('')}</ul></div>`;
+  }
+  function printSurfaceLegend() {
+    return `<div class="print-surface-legend"><strong>Surface:</strong> <span class="sl sl-paved">paved (solid)</span> · <span class="sl sl-gravel">gravel (dashed)</span> · <span class="sl sl-sand">sand (dotted)</span> · line colour on maps = who drives</div>`;
+  }
+
   renderPrintPages = function renderPrintPagesWithGoogleMaps() {
     $('printPages').innerHTML = DATA.days.map(d => `
       <article class="print-day">
         <h1>Day ${d.day}: ${esc(d.title)}</h1>
         <h2>${esc(d.date)} · ${d.selfDrive ? 'Self-drive / route day' : 'Guided or local day'}</h2>
-        ${printMapHtml(d)}
-        <div class="print-experience">
-          <h3>What to expect on this leg</h3>
-          <p><strong>${esc(d.driveExperience?.summary || '')}</strong></p>
-          <ul>${(d.driveExperience?.expect || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-          <p><strong>Watch for:</strong> ${(d.driveExperience?.hazards || []).map(esc).join(' · ')}</p>
-        </div>
-        ${heatherPrintBlockForDay(d)}
-        <section class="print-directions">
-          <h3>Turn-by-turn directions</h3>
-          ${printDirectionsHtml(d)}
-        </section>
-        <p>${esc(d.routeNotes)}</p>
-        <div class="print-grid">
-          ${d.stops.map(s => `<div class="print-card"><h3>${esc((s.emoji || '') + ' ' + (s.time || '') + ' — ' + s.name)}</h3><p><b>TYPE:</b> ${esc(s.type)} · <b>Route:</b> ${esc(s.routeRole)}</p><p>${esc(s.notes)}</p>${s.pressure ? `<p><b>Tyre:</b> ${esc(s.pressure)}</p>` : ''}${s.fuel ? `<p><b>Fuel:</b> ${esc(s.fuel)}</p>` : ''}<p><a href="${wazeUrl(s)}">Waze</a> · <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}">Google Maps</a></p></div>`).join('')}
+        <div class="print-cols">
+          <div class="print-col print-col-left">
+            ${printMapHtml(d)}
+            ${printItineraryHtml(d)}
+            ${printSurfaceLegend()}
+            <p class="print-notes">${esc(d.routeNotes)}</p>
+          </div>
+          <div class="print-col print-col-right">
+            <div class="print-experience">
+              <h3>What to expect</h3>
+              <p><strong>${esc(d.driveExperience?.summary || '')}</strong></p>
+              <p class="print-watch"><strong>Watch for:</strong> ${(d.driveExperience?.hazards || []).map(esc).join(' · ')}</p>
+            </div>
+            ${heatherPrintBlockForDay(d)}
+            <section class="print-directions">
+              <h3>Turn-by-turn directions</h3>
+              ${printDirectionsHtml(d)}
+            </section>
+          </div>
         </div>
       </article>`).join('');
   };
