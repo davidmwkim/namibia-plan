@@ -81,6 +81,29 @@
    accuracy ring is rotation-invariant, so we keep it). */
 .df-map-nav .ml-gps-dot { display: none; }
 
+/* "Re-center" pill — appears (Google-style) when the user pans/zooms away from
+   the follow camera; tapping it resumes heading-up tilted follow. */
+.df-recenter {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 700;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: #1a73e8;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+.df-recenter.df-recenter-on { display: inline-flex; }
+
 /* Fixed directional puck — sits at the clip-box centre, always pointing up
    (the map rotates beneath it). */
 .df-chevron {

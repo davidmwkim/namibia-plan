@@ -19,9 +19,17 @@
 
   // ---- Heading-up navigation camera ----
   const NAV_ZOOM = 16;
+  const NAV_TILT = 52;       // degrees of 3-D pitch (rotateX), Google-nav style
+  const NAV_PERSPECTIVE = 1000; // px; smaller = stronger perspective
   let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
   let navLastGps = null;     // previous fix, for movement bearing
+  let navFollow = true;      // true = follow + heading-up + tilt; false = free look
   let onResize = null;
+
+  // The CSS transform for the live nav camera (3-D tilt + heading-up rotation).
+  function followTransform() {
+    return `perspective(${NAV_PERSPECTIVE}px) rotateX(${NAV_TILT}deg) rotate(${(-navHeading).toFixed(1)}deg)`;
+  }
   // Device compass (magnetometer) — the real "which way is the phone pointing".
   let compassHeading = null;
   let compassActive = false;
@@ -116,12 +124,15 @@
           <button class="df-btn df-exit" id="dfExit" title="Exit driving mode">✕ Exit</button>
         </span>
       </div>
-      <div class="df-map" id="dfMap"></div>
+      <div class="df-map" id="dfMap">
+        <button class="df-recenter" id="dfRecenter" title="Re-center on me">◎ Re-center</button>
+      </div>
       <div class="df-card" id="dfCard"></div>
       <div class="df-sv" id="dfSv"></div>`;
     document.body.appendChild(overlay);
     overlay.querySelector('#dfExit').onclick = exitFocus;
     overlay.querySelector('#dfDemo').onclick = toggleDemo;
+    overlay.querySelector('#dfRecenter').onclick = recenter;
     overlay.querySelector('#dfMute').onclick = () => {
       try {
         if (window.NamibiaTTS) {
@@ -149,15 +160,18 @@
     chev.innerHTML = '<div class="df-chevron-arrow"></div>';
     host.appendChild(chev);
     sizeNavInner(host, inner);
+    // Interactive live map — the user can pan/zoom to look around (a "Re-center"
+    // button returns to the follow camera). zoomControl off (we keep the view
+    // clean); pinch + drag + double-tap zoom stay on.
     focusMap = OSM().createMap(inner, {
       center: [-22.5, 17.0], zoom: NAV_ZOOM,
-      zoomControl: false, attributionControl: true,
-      scrollWheelZoom: false, dragging: false, tap: false
+      zoomControl: false, attributionControl: true
     });
     if (focusMap) {
-      // Pure follow camera — kill every interaction handler.
-      try { ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'].forEach(h => focusMap[h] && focusMap[h].disable()); } catch (_) {}
       OSM().registerMap(focusMap);
+      // A user-initiated drag/zoom drops out of follow mode (free look).
+      focusMap.on('dragstart', onUserMove);
+      focusMap.on('zoomstart', onUserMove);
     }
     // Draw the day's colored route once so there's context around the puck.
     const { route } = activeCard();
@@ -166,7 +180,7 @@
     }
     if (window.NamibiaTTS) overlay.querySelector('#dfMute').textContent = window.NamibiaTTS.isMuted() ? '🔇' : '🔊';
     lastCardKey = null;
-    navHeading = 0; navLastGps = null;
+    navHeading = 0; navLastGps = null; navFollow = true;
     startCompass();
     refreshFocus(true);
     refreshTimer = setInterval(() => refreshFocus(false), 150);
@@ -190,6 +204,26 @@
   }
 
   function onKey(e) { if (e.key === 'Escape') exitFocus(); }
+
+  // User grabbed the map → free-look mode: flatten to a plain north-up map (so
+  // panning/zooming is intuitive, not rotated/tilted) and reveal "Re-center".
+  function onUserMove() {
+    if (!navFollow) return;
+    navFollow = false;
+    const inner = overlay && overlay.querySelector('.df-map-inner');
+    if (inner) inner.style.transform = 'none';
+    const btn = overlay && overlay.querySelector('#dfRecenter');
+    if (btn) btn.classList.add('df-recenter-on');
+  }
+
+  // Re-center → resume the heading-up, tilted follow camera.
+  function recenter() {
+    navFollow = true;
+    const btn = overlay && overlay.querySelector('#dfRecenter');
+    if (btn) btn.classList.remove('df-recenter-on');
+    if (focusMap) { try { focusMap.setZoom(NAV_ZOOM, { animate: false }); } catch (_) {} }
+    refreshFocus(true);
+  }
 
   // Start/stop the high-speed demo from inside Driving mode. Unlocks audio on
   // the user gesture (required for the first voice line on mobile) and fires a
@@ -224,7 +258,9 @@
     // Keep the shared GPS dot current + drive the heading-up navigation camera:
     // follow the driver and rotate the map so travel direction is always "up".
     if (OSM()) OSM().updateAllGps();
-    if (focusMap && state.gps) {
+    // Drive the follow camera only when following — in free-look the user owns
+    // the view (we leave it flat + wherever they panned, with "Re-center" up).
+    if (focusMap && state.gps && navFollow) {
       // Heading source: the phone compass (which way the phone points) when
       // available for real driving; the simulated movement bearing during the
       // demo (no real compass) or when no compass is present.
@@ -238,11 +274,11 @@
       // Instant recenter — an animated pan never settles at the demo's tick
       // rate, leaving the map perpetually mid-animation (blank tiles) while the
       // route + GPS circle slide under the fixed chevron ("flies off the route").
-      // Snapping keeps the GPS exactly under the puck every frame; rotation is
-      // eased via a CSS transition on the inner instead.
+      // Snapping keeps the GPS exactly under the puck; rotation/tilt is eased via
+      // a CSS transition on the inner instead.
       try { focusMap.panTo([state.gps.lat, state.gps.lng], { animate: false }); } catch (_) {}
       const inner = overlay.querySelector('.df-map-inner');
-      if (inner) inner.style.transform = `rotate(${(-navHeading).toFixed(1)}deg)`;
+      if (inner) inner.style.transform = followTransform();
     }
     // Sun / ETA chip mirrors the dashboard's.
     const sunEl = overlay.querySelector('#dfSun');
