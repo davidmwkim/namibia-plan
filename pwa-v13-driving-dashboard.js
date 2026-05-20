@@ -478,6 +478,13 @@
   let driveMapHostEl = null;
 
   function ensureDriveMap() {
+    // OSM takeover (v32): if an OpenStreetMap-based map adapter is available,
+    // let it own the dashboard map host. We bail out here and v32 handles
+    // everything (init, marker, route layers, recentering).
+    if (window.NamibiaOsmMap?.takeOver) {
+      try { window.NamibiaOsmMap.takeOver(); } catch (_) {}
+      return null;
+    }
     const host = document.getElementById('driveMapHost');
     if (!host) return null;
     if (driveMap && driveMapHostEl === host) return driveMap;
@@ -501,6 +508,11 @@
   }
 
   function updateDriveMap() {
+    // OSM mode takes priority — its update path knows about MapLibre layers.
+    if (window.NamibiaOsmMap?.update) {
+      try { window.NamibiaOsmMap.update(); } catch (_) {}
+      return;
+    }
     const map = ensureDriveMap();
     if (!map || !window.google) return;
     const d = day();

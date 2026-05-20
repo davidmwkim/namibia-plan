@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.25.0';
+const APP_VERSION = '1.27.0';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -56,6 +56,9 @@ const ASSETS = [
   './pwa-v30-gestures.css',
   './pwa-v31-polish.js',
   './pwa-v31-polish.css',
+  './pwa-v32-osm-map.js',
+  './pwa-v32-osm-map.css',
+  './pwa-v33-notifications.js',
   './lib/sun-times.js',
   './lib/driving-core.js',
   './lib/weather.js',
@@ -72,7 +75,16 @@ const CROSS_ORIGIN_CACHE_PREFIXES = [
   'https://maps.googleapis.com/maps/api/staticmap',
   'https://maps.googleapis.com/maps/api/streetview',
   'https://maps.googleapis.com/maps/api/place/photo',
-  'https://api.open-meteo.com/v1/forecast'
+  'https://api.open-meteo.com/v1/forecast',
+  // OSM raster tiles (v32) — cache aggressively so the dashboard map keeps
+  // working when offline + when Google Maps quota is exhausted.
+  'https://tile.openstreetmap.org/',
+  'https://a.tile.openstreetmap.org/',
+  'https://b.tile.openstreetmap.org/',
+  'https://c.tile.openstreetmap.org/',
+  // MapLibre GL JS library + its glyphs (used for any labels we add later).
+  'https://unpkg.com/maplibre-gl',
+  'https://demotiles.maplibre.org/font/'
 ];
 
 self.addEventListener('install', event => {
