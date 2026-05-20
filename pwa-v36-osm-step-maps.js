@@ -81,44 +81,40 @@
     frames.push({ host, map });
   }
 
-  let observer = null;
-  function getObserver() {
-    if (observer) return observer;
-    if (typeof IntersectionObserver === 'undefined') return null;
-    observer = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          initStepMap(e.target);
-          observer.unobserve(e.target);
-        }
-      }
-    }, { rootMargin: '200px' });
-    return observer;
-  }
-
+  // Init step maps within ~400px of the viewport (instant response to scroll).
   function observeAll() {
     if (state.activeTab !== 'directions') return;
     pruneOrphans();
-    const obs = getObserver();
-    const hosts = document.querySelectorAll('.step-map-osm:not([data-osm-init])');
-    if (!obs) {
-      // No IntersectionObserver — just init them all (rare; old engines).
-      hosts.forEach(initStepMap);
-      return;
-    }
-    hosts.forEach(h => obs.observe(h));
+    const vh = window.innerHeight || 800;
+    document.querySelectorAll('.step-map-osm:not([data-osm-init])').forEach(h => {
+      const r = h.getBoundingClientRect();
+      if (r.top < vh + 400 && r.bottom > -400) initStepMap(h);
+    });
   }
+  let scheduled = false;
+  function onScroll() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => { scheduled = false; try { observeAll(); } catch (_) {} });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
 
-  // Run after each render pass so freshly-built step rows get observed. v12
-  // builds the .step-media lazily, so we re-scan on every render.
-  if (typeof render === 'function') {
-    const baseRender = render;
-    render = function patchedRenderV36() {
-      const r = baseRender.apply(this, arguments);
-      try { setTimeout(observeAll, 0); } catch (_) {}
-      return r;
-    };
+  // GUARANTEE: a steady interval inits the uninitialised step map nearest the
+  // viewport, one at a time, while the Directions tab is open. The previous
+  // IntersectionObserver/scroll-only approach left most maps as blank "blue
+  // rectangles" when it didn't fire; this fills every map in regardless, while
+  // staying gentle on the OSM tile server (~3 maps/sec).
+  function initNearestUninit() {
+    if (typeof state === 'undefined' || !state || state.activeTab !== 'directions') return;
+    pruneOrphans();
+    const hosts = Array.from(document.querySelectorAll('.step-map-osm:not([data-osm-init])'));
+    if (!hosts.length) return;
+    const mid = (window.innerHeight || 800) / 2;
+    hosts.sort((a, b) => Math.abs(a.getBoundingClientRect().top - mid) - Math.abs(b.getBoundingClientRect().top - mid));
+    initStepMap(hosts[0]);
   }
+  setInterval(() => { try { initNearestUninit(); } catch (_) {} }, 300);
   setTimeout(observeAll, 800);
 
   window.NamibiaV36 = { observeAll, initStepMap, _frames: () => frames };
