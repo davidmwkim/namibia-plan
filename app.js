@@ -73,12 +73,6 @@ function init(){
             <span class="hero-hint">Open the <strong>Settings</strong> tab to add your Google Maps key, prepare offline, and export.</span>
           </div>
         </div>
-        <div class="statusbar">
-          <span class="chip" id="googleStatus">Google: not loaded</span>
-          <span class="chip" id="offlineStatus">Offline cache: checking</span>
-          <span class="chip" id="gpsStatus">GPS: off</span>
-          <span class="chip">Fuel model: ${DATA.meta.fuelAssumptions.tankLitres}L tank · ${DATA.meta.fuelAssumptions.planningConsumptionLPer100Km}L/100km</span>
-        </div>
       </section>
       <main class="main">
         <div class="toolbar">

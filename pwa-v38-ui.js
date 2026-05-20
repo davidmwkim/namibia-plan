@@ -18,6 +18,26 @@
   const E = (typeof esc === 'function') ? esc : esc2;
   const $id = (id) => document.getElementById(id);
 
+  // ---- Status chips (moved out of the hero into Settings to declutter the
+  // main view). We keep a store of the latest status text so the Settings panel
+  // can show current values whenever it's opened, and wrap the global setStatus
+  // so live updates still land on the chips when Settings is the active tab.
+  const STATUS = { googleStatus: 'Google: not loaded', offlineStatus: 'Offline cache: checking', gpsStatus: 'GPS: off' };
+  if (typeof setStatus === 'function') {
+    const _setStatus = setStatus;
+    setStatus = function patchedSetStatusV38(id, text) { STATUS[id] = text; return _setStatus(id, text); };
+  }
+  let swVersion = '';
+  function fetchSwVersion(cb) {
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller && typeof MessageChannel !== 'undefined') {
+        const ch = new MessageChannel();
+        ch.port1.onmessage = e => { swVersion = String(e.data || ''); cb(swVersion); };
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' }, [ch.port2]);
+      } else cb(swVersion);
+    } catch (_) { cb(swVersion); }
+  }
+
   // ---------- time helpers ----------
   function toMin(t){ return (typeof parseTimeMinutes === 'function') ? parseTimeMinutes(t) : null; }
   function fmtClock(min){ if (min == null) return ''; let h = Math.floor(min/60), m = ((min%60)+60)%60; const ap = h>=12?'PM':'AM'; let hh = h%12; if (hh===0) hh=12; return `${hh}:${String(m).padStart(2,'0')} ${ap}`; }
@@ -198,9 +218,18 @@
 
   function settingsHtml(){
     const key = (state && state.apiKey) || '';
-    const verChip = $id('appVersionChip');
-    const ver = verChip ? (verChip.textContent || '').replace(/[^0-9.]/g, '') : '';
+    const fuel = DATA && DATA.meta && DATA.meta.fuelAssumptions;
     return `<div class="settings-panel">
+      <section class="settings-group">
+        <h3>Status</h3>
+        <div class="settings-status">
+          <span class="chip" id="googleStatus">${E(STATUS.googleStatus)}</span>
+          <span class="chip" id="offlineStatus">${E(STATUS.offlineStatus)}</span>
+          <span class="chip" id="gpsStatus">${E(STATUS.gpsStatus)}</span>
+          ${fuel ? `<span class="chip">Fuel model: ${E(fuel.tankLitres)}L tank · ${E(fuel.planningConsumptionLPer100Km)}L/100km</span>` : ''}
+          <span class="chip" id="setVersionChip">⚙ ${swVersion ? 'v' + E(swVersion) : '…'}</span>
+        </div>
+      </section>
       <section class="settings-group">
         <h3>Google Maps key</h3>
         <p class="settings-help">Stored only in this browser. Needed to render routes, maps, Street View, and prepare offline.</p>
@@ -228,7 +257,7 @@
       </section>
       <section class="settings-group settings-meta">
         <h3>About</h3>
-        <p>${E(DATA && DATA.meta && DATA.meta.title || '')} · ${E(DATA && DATA.meta && DATA.meta.subtitle || '')}${ver ? ` · app v${ver}` : ''}</p>
+        <p>${E(DATA && DATA.meta && DATA.meta.title || '')} · ${E(DATA && DATA.meta && DATA.meta.subtitle || '')}${swVersion ? ` · app v${E(swVersion)}` : ''}</p>
       </section>
     </div>`;
   }
@@ -254,6 +283,12 @@
     const tc = $id('tabContent'); if (!tc) return;
     tc.innerHTML = settingsHtml();
     bindSettings();
+    // Fetch the live SW version and fill the chip + About line in.
+    fetchSwVersion((v) => {
+      if (state.activeTab !== 'settings') return;
+      const chip = $id('setVersionChip');
+      if (chip) chip.textContent = '⚙ ' + (v ? 'v' + v : '—');
+    });
   }
 
   // ============================================================ wrap renderTab (outermost)
