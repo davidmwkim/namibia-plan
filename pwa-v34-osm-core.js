@@ -45,10 +45,13 @@
         return pl;
       } catch (_) { return null; }
     };
+    const paved = () => {
+      add({ color: '#1f2937', weight: 3, opacity: 0.95 });
+      add({ color: '#f5c518', weight: 1.2, opacity: 0.95, dashArray: '6 10' }); // centre line
+    };
     switch (surface) {
       case 'paved':
-        add({ color: '#1f2937', weight: 3, opacity: 0.95 });
-        add({ color: '#f5c518', weight: 1.2, opacity: 0.95, dashArray: '6 10' }); // centre line
+        paved();
         break;
       case 'gravel':
         // Fine, irregular dotting (round caps) → scattered small grey flecks of
@@ -62,29 +65,40 @@
         add({ color: '#e6c168', weight: 3, opacity: 0.98, dashArray: '1.5 6' }); // fine dots
         break;
       case 'urban':
-        add({ color: '#cbd5e1', weight: 3, opacity: 0.95, dashArray: '3 4' });
+        // town = black + white zebra-crossing blocks (square caps), distinct
+        // from gravel's grey speckle.
+        add({ color: '#111827', weight: 4, opacity: 0.95 });
+        add({ color: '#ffffff', weight: 4, opacity: 1, dashArray: '4 4', lineCap: 'butt' });
         break;
       default:
-        add({ color: '#d1d5db', weight: 3, opacity: 0.9, dashArray: '6 5' });
+        // Unknown surface is most likely a sealed road — render as paved rather
+        // than a confusing grey dash.
+        paved();
     }
     return null;
   }
   // Dominant road surface over a path index range, from the day's route steps.
+  // Dominant surface in a path range, derived from the SAME driving-core
+  // rateStep the summary bar uses — so the map and the bar always agree (the
+  // old V22.classifyRoad path emitted 'mixed', which the map drew as a generic
+  // grey dash, making tar highways look unpaved). rateStep yields only
+  // paved/gravel/dirt/sand/urban (unknown inherits prevCtx, default paved).
   function surfaceForRange(day, fromIdx, toIdx) {
     try {
       const route = window.state && window.state.renderedRoutes && window.state.renderedRoutes[day.date];
-      const V19 = window.NamibiaV19, V22 = window.NamibiaV22;
-      if (!route || !route.legs || !V19 || !V19.nearestPathIdx) return null;
+      const V19 = window.NamibiaV19, DC = window.NamibiaDrivingCore;
+      if (!route || !route.legs || !V19 || !V19.nearestPathIdx || !DC || !DC.rateStep) return null;
       const path = route.overviewPath || [];
       if (!path.length) return null;
       const tally = {};
+      let prev = {}; // prevCtx must carry across ALL steps in order for inheritance
       for (const leg of route.legs) {
         for (const step of (leg.steps || [])) {
+          const r = DC.rateStep(step, prev);
+          prev = { surface: r.roadSurface || r.surface, code: r.code };
           if (typeof step.lat !== 'number') continue;
-          const surf = step.surface || (V22 && V22.classifyRoad ? V22.classifyRoad(step.instruction, day).type : null);
-          if (!surf) continue;
           const idx = V19.nearestPathIdx(path, { lat: step.lat, lng: step.lng }).idx;
-          if (idx >= fromIdx && idx <= toIdx) tally[surf] = (tally[surf] || 0) + 1;
+          if (idx >= fromIdx && idx <= toIdx) tally[r.surface] = (tally[r.surface] || 0) + 1;
         }
       }
       let best = null, bestN = 0;
@@ -248,7 +262,14 @@
   function pinStyle(stop, day) {
     const role = stop.routeRole;
     const kind = stop.kind;
-    if (stop.pressure || /tyre|tire|pressure/i.test(stop.name || '')) return { color: '#7c3aed', glyph: '🛞' };
+    if (stop.pressure || /tyre|tire|pressure/i.test(stop.name || '')) {
+      // Mandatory pressure CHANGE → a direction arrow (▼ lower / ▲ raise);
+      // optional checks keep the neutral 🛞.
+      const pd = window.NamibiaV25 && window.NamibiaV25.mandatoryPressureDir ? window.NamibiaV25.mandatoryPressureDir(stop) : null;
+      if (pd === 'down') return { color: '#ea580c', glyph: '▼' };
+      if (pd === 'up')   return { color: '#2563eb', glyph: '▲' };
+      return { color: '#7c3aed', glyph: '🛞' };
+    }
     if (kind === 'service' || /fuel|petrol|gas/i.test(stop.name || '')) return { color: '#0ea5e9', glyph: '⛽' };
     if (role === 'optional') return { color: '#f59e0b', glyph: '◇' };
     if (role === 'mandatory') return { color: '#16a34a', glyph: '●' };

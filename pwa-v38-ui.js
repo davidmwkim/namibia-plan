@@ -144,9 +144,15 @@
       return `<span class="hbar-seg hbar-${l.status}" style="left:${left}%;width:${w}%" title="${STATUS_BAR[l.status].emoji} ${E(legName(l))} · ${surfLabel(l.surface)} · ${fmtDur(l.durMin)}"></span>`;
     }).join('');
     const d = day();
+    const pdir = window.NamibiaV25 && window.NamibiaV25.mandatoryPressureDir;
     const marks = (d.stops || []).filter(s => typeof s.lat === 'number').map(s => {
       const f = stopTimeFrac(route, legs, s);
-      return `<span class="hbar-stop" style="left:${(f * 100).toFixed(2)}%" title="${E(s.time || '')} ${E(s.name)}"><i class="hbar-stop-dot"></i><i class="hbar-stop-time">${E((s.time || '').replace(/\s*(est\.|approx\.)$/i, ''))}</i></span>`;
+      const pd = pdir ? pdir(s) : null; // 'up' (raise) | 'down' (lower) | null
+      const mark = pd
+        ? `<i class="hbar-press hbar-press-${pd}" aria-label="${pd === 'down' ? 'lower' : 'raise'} tyre pressure">${pd === 'down' ? '▼' : '▲'}</i>`
+        : `<i class="hbar-stop-dot"></i>`;
+      const tip = pd ? ` — tyre pressure ${pd === 'down' ? 'LOWER ▼' : 'RAISE ▲'}` : '';
+      return `<span class="hbar-stop${pd ? ' hbar-stop-press' : ''}" style="left:${(f * 100).toFixed(2)}%" title="${E(s.time || '')} ${E(s.name)}${tip}">${mark}<i class="hbar-stop-time">${E((s.time || '').replace(/\s*(est\.|approx\.)$/i, ''))}</i></span>`;
     }).join('');
     let here = '';
     if (opts.showHere && state.gps){ here = `<span class="hbar-here" style="left:${(stopTimeFrac(route, legs, state.gps) * 100).toFixed(2)}%" title="You are here">▲</span>`; }

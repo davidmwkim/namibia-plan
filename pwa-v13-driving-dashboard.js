@@ -349,8 +349,24 @@
       } else {
         // Point card (fuel / pressure / arrival / sunset risk) → a single pin.
         const kindColor = { fuel: '#0ea5e9', pressure: '#7c3aed', arrival: '#16a34a', sunset_risk: '#dc2626' };
-        const col = kindColor[ph.dataset.kind] || '#5a1738';
-        window.L.circleMarker([lat, lng], { radius: 7, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1, interactive: false }).addTo(map);
+        // Mandatory pressure change → a direction badge (▼ lower / ▲ raise).
+        let pd = null;
+        if (ph.dataset.kind === 'pressure' && window.NamibiaV25 && window.NamibiaV25.mandatoryPressureDir) {
+          const near = (d.stops || []).filter(s => typeof s.lat === 'number')
+            .map(s => ({ s, dd: Math.hypot(s.lat - lat, s.lng - lng) }))
+            .sort((a, b) => a.dd - b.dd)[0];
+          if (near && near.dd < 0.03) pd = window.NamibiaV25.mandatoryPressureDir(near.s);
+        }
+        if (pd) {
+          const col = pd === 'down' ? '#ea580c' : '#2563eb';
+          const html = `<div style="width:24px;height:24px;border-radius:50%;background:${col};color:#fff;`
+            + `border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;`
+            + `justify-content:center;font-size:13px;font-weight:800;line-height:1">${pd === 'down' ? '▼' : '▲'}</div>`;
+          window.L.marker([lat, lng], { icon: window.L.divIcon({ className: 'card-press-icon', html, iconSize: [24, 24], iconAnchor: [12, 12] }), interactive: false }).addTo(map);
+        } else {
+          const col = kindColor[ph.dataset.kind] || '#5a1738';
+          window.L.circleMarker([lat, lng], { radius: 7, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1, interactive: false }).addTo(map);
+        }
         bounds = window.L.latLngBounds([[lat, lng]]);
       }
     } catch (_) {}

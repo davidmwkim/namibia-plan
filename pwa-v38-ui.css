@@ -71,6 +71,11 @@
 .hbar-stoptrack { position: relative; flex: 1; height: 18px; }
 .hbar-stop { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
 .hbar-stop-dot { width: 6px; height: 6px; border-radius: 50%; background: #1f2937; border: 1px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
+/* Mandatory tyre-pressure change: ▼ lower (orange) / ▲ raise (blue). */
+.hbar-press { display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; font-size: 8px; line-height: 1; color: #fff; border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3); }
+.hbar-press-down { background: #ea580c; }
+.hbar-press-up   { background: #2563eb; }
+.hbar-stop-press { z-index: 3; }
 .hbar-stop-time { font-size: 8px; color: #4a4045; white-space: nowrap; margin-top: 1px; transform: rotate(0deg); }
 .hbar-here { position: absolute; top: -2px; transform: translateX(-50%); color: #2563eb; font-size: 13px; line-height: 1; }
 .hbar-speedrow { margin-bottom: -2px; }
@@ -98,8 +103,9 @@
 .surf-sand   { background-color: #e6c168; background-image: repeating-linear-gradient(45deg, #97601f 0 2px, transparent 2px 6px); }
 /* dirt = brown with horizontal furrow lines (distinct from sand's diagonal) */
 .surf-dirt   { background-color: #9c6630; background-image: repeating-linear-gradient(0deg, rgba(40,20,5,.45) 0 2px, transparent 2px 6px); }
-/* town = bold checkerboard (built-up grid) — distinct from gravel/sand/dirt/paved */
-.surf-urban  { background-color: #cbd5e1; background-image: linear-gradient(45deg, #475569 25%, transparent 25%, transparent 75%, #475569 75%), linear-gradient(45deg, #475569 25%, transparent 25%, transparent 75%, #475569 75%); background-size: 9px 9px; background-position: 0 0, 4.5px 4.5px; }
+/* town = vertical black/white zebra-crossing stripes (crosswalk) — clearly
+   distinct from gravel's grey speckle */
+.surf-urban  { background-color: #ffffff; background-image: repeating-linear-gradient(90deg, #111827 0 4px, #ffffff 4px 8px); }
 .surf-mixed  { background-color: #b8a8c8; }
 .hbar-surflegend { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 11px; color: var(--muted, #6f6368); margin: 6px 0 0 52px; }
 .hbar-surflegend .surf-line { width: 30px; height: 13px; }

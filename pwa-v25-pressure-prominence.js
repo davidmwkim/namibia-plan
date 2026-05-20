@@ -24,6 +24,18 @@
     return null;
   }
 
+  // Direction for a MANDATORY pressure CHANGE only (up/down). Returns null for
+  // optional checks, plain "check" stops, or anything without a clear direction —
+  // used to place ↓/↑ markers on the summary bar and the route maps.
+  function mandatoryPressureDir(stop) {
+    if (!stop || !stop.pressure) return null;
+    const dir = pressureDirection(stop.pressure, stop);
+    if (dir !== 'up' && dir !== 'down') return null; // "check"/unknown isn't a change
+    const mandatory = stop.routeRole === 'mandatory' || stop.routeRole === 'mandatoryAction'
+      || /mandatory/i.test(stop.type || '') || /\bMANDATORY\b/.test(stop.pressure || '');
+    return mandatory ? dir : null;
+  }
+
   function pressureBannerHtml(d) {
     const stops = (d.stops || []).filter(s => s.pressure);
     if (!stops.length) return '';
@@ -168,5 +180,5 @@
   }
   injectOverviewBanner();
 
-  window.NamibiaV25 = { pressureDirection, pressureIcon, pressureBannerHtml };
+  window.NamibiaV25 = { pressureDirection, pressureIcon, pressureBannerHtml, mandatoryPressureDir };
 })();
