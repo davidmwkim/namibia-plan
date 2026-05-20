@@ -1,7 +1,22 @@
 {
+  "demo_starting": {
+    "file": "26906f9169cbdf08ad09a684.mp3",
+    "text": "Demo playback starting. Cards will scroll automatically as the simulated GPS moves along the route.",
+    "voice": "en-US-AvaNeural"
+  },
   "fuel_stop": {
     "file": "8c06201bc0cb1385b6e191d4.mp3",
     "text": "Fuel stop coming up. Top up before the next remote section.",
+    "voice": "en-US-AvaNeural"
+  },
+  "fuel_stop_passing": {
+    "file": "0cf4869c48f8f17c7f74d428.mp3",
+    "text": "Passing a fuel station. Top up if your gauge is low \u2014 the next one may be far.",
+    "voice": "en-US-AvaNeural"
+  },
+  "pressure_check_passing": {
+    "file": "625eb7c9aeffc513b27fafb1.mp3",
+    "text": "Tyre service is available at this stop if you need air or a repair.",
     "voice": "en-US-AvaNeural"
   },
   "pressure_lower": {
@@ -14,9 +29,19 @@
     "text": "Tyre pressure action coming up. Raise pressure for the upcoming road.",
     "voice": "en-US-AvaNeural"
   },
+  "rain_warning": {
+    "file": "0ff8b3c3d9113101191eb586.mp3",
+    "text": "Rain is forecast on the road ahead. Slow down \u2014 gravel turns slippery and visibility drops.",
+    "voice": "en-US-AvaNeural"
+  },
   "stop:Afternoon Guided Game Drive": {
     "file": "e9e7bb9d907a16cac55c4415.mp3",
     "text": "Arriving at Afternoon Guided Game Drive.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Agra Omaruru Shell (24h)": {
+    "file": "c43b60358ad1bd8a0f69910d.mp3",
+    "text": "Arriving at Agra Omaruru Shell (24h).",
     "voice": "en-US-AvaNeural"
   },
   "stop:Casa Forno / Otjiwarongo lunch option": {
@@ -39,6 +64,26 @@
     "text": "Arriving at Dune 45.",
     "voice": "en-US-AvaNeural"
   },
+  "stop:Engen 1 Stop & Wimpy, Okahandja (24h)": {
+    "file": "3e57a5c47134553133207107.mp3",
+    "text": "Arriving at Engen 1 Stop & Wimpy, Okahandja (24h).",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Engen Hosea Kutako Airport Service Station": {
+    "file": "4b4ecf8af0998b7c98570f4f.mp3",
+    "text": "Arriving at Engen Hosea Kutako Airport Service Station.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Engen Klein Windhoek Service Station": {
+    "file": "950f8694734db539f3a9ed76.mp3",
+    "text": "Arriving at Engen Klein Windhoek Service Station.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Engen Walvis Bay Convenience Centre (24h)": {
+    "file": "0e92721742c9c39ba66da32a.mp3",
+    "text": "Arriving at Engen Walvis Bay Convenience Centre (24h).",
+    "voice": "en-US-AvaNeural"
+  },
   "stop:Etosha King Nehale": {
     "file": "b4170bccd8144500280a1965.mp3",
     "text": "Arriving at Etosha King Nehale.",
@@ -47,11 +92,6 @@
   "stop:Etosha King Nehale dinner": {
     "file": "c02144f6cdebe5eb8126ab00.mp3",
     "text": "Arriving at Etosha King Nehale dinner.",
-    "voice": "en-US-AvaNeural"
-  },
-  "stop:Final Windhoek / airport-road fuel stop": {
-    "file": "daf8152d5a0603fe187e2d85.mp3",
-    "text": "Arriving at Final Windhoek / airport-road fuel stop.",
     "voice": "en-US-AvaNeural"
   },
   "stop:Fritz Manor": {
@@ -72,6 +112,11 @@
   "stop:Joe's Beerhouse": {
     "file": "6aadc7cb999abb06a977e33d.mp3",
     "text": "Arriving at Joe's Beerhouse.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Midway Convenience Shell, Otjiwarongo": {
+    "file": "c1f244047bcfe998150a52f2.mp3",
+    "text": "Arriving at Midway Convenience Shell, Otjiwarongo.",
     "voice": "en-US-AvaNeural"
   },
   "stop:Mola Mola Walvis Bay Waterfront Office": {
@@ -104,24 +149,24 @@
     "text": "Arriving at Namibia Craft Centre.",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Omaruru staffed tyre-pressure reset point": {
-    "file": "bd4d89b5fec08cd94e41c79f.mp3",
-    "text": "Arriving at Omaruru staffed tyre-pressure reset point.",
+  "stop:Omuthiya Shell Service Station": {
+    "file": "b51b7dade80c649d120b1ede.mp3",
+    "text": "Arriving at Omuthiya Shell Service Station.",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Omuthiya / Oshivelo corridor final fuel option": {
-    "file": "f63ac28cd5e33d9c4d4f4bf2.mp3",
-    "text": "Arriving at Omuthiya / Oshivelo corridor final fuel option.",
+  "stop:Omuthiya Shell Service Station (top-up)": {
+    "file": "86fe2fe39941dbe37be27d2d.mp3",
+    "text": "Arriving at Omuthiya Shell Service Station (top-up).",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Omuthiya / Oshivelo corridor fuel option": {
-    "file": "9e394e47f0af90e3cc73c159.mp3",
-    "text": "Arriving at Omuthiya / Oshivelo corridor fuel option.",
+  "stop:Otavi Shell Service Station": {
+    "file": "2f37f11429a7162f0abf7f66.mp3",
+    "text": "Arriving at Otavi Shell Service Station.",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Otjiwarongo fuel / tyre-pressure stop": {
-    "file": "8f5e09b9a5aa1a4e14a4f5ba.mp3",
-    "text": "Arriving at Otjiwarongo fuel / tyre-pressure stop.",
+  "stop:Puma West Coast Service Centre (Walvis Bay, 24h)": {
+    "file": "9042c36a0d9804e8f1497e12.mp3",
+    "text": "Arriving at Puma West Coast Service Centre (Walvis Bay, 24h).",
     "voice": "en-US-AvaNeural"
   },
   "stop:SUPERSPAR Grove / The Grove Mall": {
@@ -134,11 +179,6 @@
     "text": "Arriving at Seal kayaking meeting point \u2014 Angling Club / Dolphins Coffee Shop.",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Sesriem / Sossus Oasis services": {
-    "file": "cbcc88b2e0d1a6e8f7000db6.mp3",
-    "text": "Arriving at Sesriem / Sossus Oasis services.",
-    "voice": "en-US-AvaNeural"
-  },
   "stop:Sesriem / Sossusvlei Gate": {
     "file": "affea590efeedc8be83fa69d.mp3",
     "text": "Arriving at Sesriem / Sossusvlei Gate.",
@@ -149,9 +189,24 @@
     "text": "Arriving at Sesriem Canyon.",
     "voice": "en-US-AvaNeural"
   },
+  "stop:Shell Oasis Service Centre, Usakos": {
+    "file": "1446ab2448a1def570416e99.mp3",
+    "text": "Arriving at Shell Oasis Service Centre, Usakos.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Shell Rehoboth Service Station": {
+    "file": "8f9df1943c5396078efe6308.mp3",
+    "text": "Arriving at Shell Rehoboth Service Station.",
+    "voice": "en-US-AvaNeural"
+  },
   "stop:Solitaire Fuel Station / McGregor's Bakery": {
     "file": "37da3b81d49b09e7283e354d.mp3",
     "text": "Arriving at Solitaire Fuel Station / McGregor's Bakery.",
+    "voice": "en-US-AvaNeural"
+  },
+  "stop:Sossus Oasis Engen Service Station (Sesriem)": {
+    "file": "b681144f73413df82b722f9a.mp3",
+    "text": "Arriving at Sossus Oasis Engen Service Station (Sesriem).",
     "voice": "en-US-AvaNeural"
   },
   "stop:Sossusvlei 2WD / shuttle parking sand entry": {
@@ -209,34 +264,14 @@
     "text": "Arriving at The Weinberg Windhoek.",
     "voice": "en-US-AvaNeural"
   },
-  "stop:Tsumeb fuel option": {
-    "file": "5dc588728b051c78def5ee48.mp3",
-    "text": "Arriving at Tsumeb fuel option.",
-    "voice": "en-US-AvaNeural"
-  },
-  "stop:Usakos staffed fuel + tyre-pressure stop": {
-    "file": "d4cd498da1d44d47d3a9ab5d.mp3",
-    "text": "Arriving at Usakos staffed fuel + tyre-pressure stop.",
+  "stop:Tsumeb Agra Shell": {
+    "file": "c4cc0759d217fb0778d37655.mp3",
+    "text": "Arriving at Tsumeb Agra Shell.",
     "voice": "en-US-AvaNeural"
   },
   "stop:Walvis Bay Waterfront lunch / fuel option": {
     "file": "ce08d5651e68a983b5fa803f.mp3",
     "text": "Arriving at Walvis Bay Waterfront lunch / fuel option.",
-    "voice": "en-US-AvaNeural"
-  },
-  "stop:Walvis Bay fuel / tyre check option": {
-    "file": "569e4154d2e0a633717d3ade.mp3",
-    "text": "Arriving at Walvis Bay fuel / tyre check option.",
-    "voice": "en-US-AvaNeural"
-  },
-  "stop:Walvis Bay staffed fuel / tyre-pressure area": {
-    "file": "07fd510b2fc946ce0a303133.mp3",
-    "text": "Arriving at Walvis Bay staffed fuel / tyre-pressure area.",
-    "voice": "en-US-AvaNeural"
-  },
-  "stop:Windhoek staffed fuel + tyre-pressure station": {
-    "file": "2ceb72cc864d68a9ed0a8a25.mp3",
-    "text": "Arriving at Windhoek staffed fuel + tyre-pressure station.",
     "voice": "en-US-AvaNeural"
   },
   "sunset_risk_tight": {

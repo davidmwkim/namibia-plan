@@ -43,22 +43,29 @@ ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = ROOT / 'tts-cache'
 MANIFEST_PATH = CACHE_DIR / 'manifest.json'
 
-# These mirror the CANNED set in pwa-v14-tts-offline.js. Keep in sync.
+# These MIRROR the CANNED set in pwa-v14-tts-offline.js EXACTLY. Keep in sync —
+# v14 fetches tts-cache/<file>.mp3 by ttsKey, so a text mismatch plays stale audio.
 CANNED = {
     'sunset_risk_warning':
-        'Warning: you are at risk of arriving after sunset. Driving after '
-        'dark is not permitted in Namibia. Consider stopping at the next '
-        'safe town.',
+        'Warning: you are at risk of arriving after sunset. Driving after dark '
+        'is not permitted in Namibia. Consider stopping at the next safe town.',
     'sunset_risk_tight':
-        'Caution: arrival is close to sunset. Maintain current pace and do '
-        'not stop for long.',
+        'Caution: arrival is close to sunset. Maintain current pace and do not '
+        'stop for long.',
     'pressure_lower':
-        'Tyre pressure action coming up. Lower pressure before the next '
-        'section.',
+        'Tyre pressure action coming up. Lower pressure before the next section.',
     'pressure_raise':
         'Tyre pressure action coming up. Raise pressure for the upcoming road.',
     'fuel_stop':
         'Fuel stop coming up. Top up before the next remote section.',
+    'fuel_stop_passing':
+        'Passing a fuel station. Top up if your gauge is low — the next one may be far.',
+    'pressure_check_passing':
+        'Tyre service is available at this stop if you need air or a repair.',
+    'rain_warning':
+        'Rain is forecast on the road ahead. Slow down — gravel turns slippery and visibility drops.',
+    'demo_starting':
+        'Demo playback starting. Cards will scroll automatically as the simulated GPS moves along the route.',
 }
 
 

@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.42.1';
+const APP_VERSION = '1.42.2';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -100,7 +100,20 @@ const CROSS_ORIGIN_CACHE_PREFIXES = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(caches.open(CACHE).then(async cache => {
+    await cache.addAll(ASSETS);
+    // Precache ALL pre-generated Edge-TTS audio so spoken cues are bundled
+    // offline from first install and are NEVER fetched over the network later.
+    try {
+      const res = await fetch('./tts-cache/manifest.json', { cache: 'no-cache' });
+      if (res && res.ok) {
+        const m = await res.json();
+        const files = ['./tts-cache/manifest.json']
+          .concat([...new Set(Object.values(m).map(v => './tts-cache/' + v.file))]);
+        await Promise.allSettled(files.map(f => cache.add(f)));
+      }
+    } catch (_) {}
+  }));
 });
 
 self.addEventListener('message', event => {
