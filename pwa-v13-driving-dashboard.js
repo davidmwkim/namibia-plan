@@ -339,7 +339,7 @@
         const status = window.NamibiaV19?.partitionForStep?.(route, d, legIdx, stepIdx)?.status || 'no';
         const color = (OSM.COLORS && OSM.COLORS[status]) || '#dc2626';
         const ll = slice.map(p => [Number(p.lat), Number(p.lng)]);
-        window.L.polyline(ll, { color, weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+        window.L.polyline(ll, { color, weight: 9, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(map);
         // Surface (dash/dot) overlay so the card map matches every other map.
         const surf = step.surface || (window.NamibiaV22 && window.NamibiaV22.classifyRoad ? window.NamibiaV22.classifyRoad(step.instruction, d).type : null);
         if (OSM.addSurfaceOverlay) OSM.addSurfaceOverlay(map, ll, surf);

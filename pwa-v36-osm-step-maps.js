@@ -69,7 +69,7 @@
     try { surf = step.surface || (window.NamibiaV22 && window.NamibiaV22.classifyRoad ? window.NamibiaV22.classifyRoad(step.instruction, d).type : null); } catch (_) {}
     try {
       const latlngs = slice.map(p => [Number(p.lat), Number(p.lng)]);
-      window.L.polyline(latlngs, { color, weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+      window.L.polyline(latlngs, { color, weight: 9, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(map);
       if (OSM.addSurfaceOverlay) OSM.addSurfaceOverlay(map, latlngs, surf);
       window.L.circleMarker([a.lat, a.lng], { radius: 5, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1, interactive: false }).addTo(map);
       window.L.circleMarker([b.lat, b.lng], { radius: 5, color: '#fff', weight: 2, fillColor: '#dc2626', fillOpacity: 1, interactive: false }).addTo(map);

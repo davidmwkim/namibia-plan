@@ -240,7 +240,7 @@
         // a road-styled surface line. Never dashed: the colour is always clear.
         const pl = window.L.polyline(latlngs, {
           color: COLORS[part.status] || COLORS.no,
-          weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
+          weight: 9, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
         }).addTo(map);
         if (Array.isArray(store)) store.push(pl);
         // SURFACE drawn on top as a road-style line (tar+centre line / gravel
