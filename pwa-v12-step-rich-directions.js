@@ -357,7 +357,7 @@
   decorateAllCached();
 
   // ---- Modal with shared interactive map ----
-  let modalEl = null, modalMap = null;
+  let modalEl = null, modalMap = null, modalLayers = [];
   function openStepModal(legIdx, stepIdx) {
     const route = state.renderedRoutes[day().date];
     const leg = route?.legs?.[legIdx];
@@ -390,25 +390,40 @@
       `<p><strong>${esc(step.distance || '')}</strong> · <strong>${esc(step.duration || '')}</strong></p>
        <p>${esc(step.lat.toFixed(5))}, ${esc(step.lng.toFixed(5))} → ${esc((step.endLat || step.lat).toFixed(5))}, ${esc((step.endLng || step.lng).toFixed(5))}</p>`;
     modalEl.classList.add('open');
-    if (window.google?.maps && !modalMap) {
-      modalMap = new google.maps.Map(document.getElementById('stepModalMap'), {
-        center: { lat: step.lat, lng: step.lng }, zoom: 12,
-        streetViewControl: false, fullscreenControl: true
-      });
-    }
-    if (modalMap) {
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend({ lat: step.lat, lng: step.lng });
-      bounds.extend({ lat: step.endLat || step.lat, lng: step.endLng || step.lng });
-      modalMap.fitBounds(bounds, 60);
-      // Best-effort: draw polyline for the slice if overviewPath cached.
-      const route = state.renderedRoutes[day().date];
-      if (route?.overviewPath) {
-        const slice = pathSlice(route.overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat || step.lat, lng: step.endLng || step.lng });
-        if (window.__stepModalPolyline) window.__stepModalPolyline.setMap(null);
-        window.__stepModalPolyline = new google.maps.Polyline({
-          path: slice, map: modalMap, strokeColor: '#5a1738', strokeWeight: 5, strokeOpacity: 0.95
-        });
+    // Interactive expanded view — a live OSM (Leaflet) map joined to the shared
+    // GPS layer, instead of a dynamic Google map.
+    const OSM = window.NamibiaOSM;
+    if (OSM && OSM.hasLeaflet()) {
+      const host = document.getElementById('stepModalMap');
+      if (!modalMap) {
+        modalMap = OSM.createMap(host, { center: [step.lat, step.lng], zoom: 12 });
+        if (modalMap) { OSM.registerMap(modalMap); modalLayers = []; }
+      }
+      if (modalMap) {
+        modalLayers.forEach(l => { try { modalMap.removeLayer(l); } catch (_) {} });
+        modalLayers = [];
+        const a = { lat: step.lat, lng: step.lng };
+        const b = { lat: step.endLat || step.lat, lng: step.endLng || step.lng };
+        let slice = [];
+        try { slice = pathSlice(route.overviewPath || [], a, b) || []; } catch (_) {}
+        if (slice.length < 2) slice = [a, b];
+        const status = (stepHeatherPart(day(), route, legIdx, stepIdx) || {}).status || 'no';
+        const color = (OSM.COLORS && OSM.COLORS[status]) || '#dc2626';
+        try {
+          const latlngs = slice.map(p => [Number(p.lat), Number(p.lng)]);
+          modalLayers.push(window.L.polyline(latlngs, { color, weight: 5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(modalMap));
+          modalLayers.push(window.L.circleMarker([a.lat, a.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1 }).addTo(modalMap));
+          modalLayers.push(window.L.circleMarker([b.lat, b.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#dc2626', fillOpacity: 1 }).addTo(modalMap));
+          const bounds = window.L.latLngBounds(latlngs);
+          // The modal was display:none — Leaflet must recompute size now it's shown.
+          setTimeout(() => {
+            try {
+              modalMap.invalidateSize();
+              if (bounds.isValid()) modalMap.fitBounds(bounds, { padding: [30, 30] });
+              OSM.updateAllGps();
+            } catch (_) {}
+          }, 80);
+        } catch (_) {}
       }
     }
   }
