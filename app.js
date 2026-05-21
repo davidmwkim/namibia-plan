@@ -50,7 +50,7 @@ function streetViewUrl(lat,lng,heading=0,size='600x320'){
   // radius lets the Street View Static API snap to the nearest available
   // panorama (defaults to 50m on the API; bump to 200m so remote-road turns
   // still find a usable panorama instead of returning a "no imagery" tile).
-  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'outdoor',radius:'200',key:state.apiKey});
+  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'default',radius:'800',return_error_code:'true',key:state.apiKey});
   return 'https://maps.googleapis.com/maps/api/streetview?'+p.toString();
 }
 function distMeters(a,b){

@@ -320,26 +320,44 @@
   // For long active steps (think 85 km on B1), the cached Street View at
   // the step's START is no longer relevant — drivers are 30 km into it.
   // Compute a fresh Street View URL anchored at the current GPS position.
-  function dynamicStreetViewUrl() {
-    if (!state.gps || !state.apiKey) return null;
+  function uniqueSvUrls(urls) {
+    const seen = new Set();
+    return (urls || []).filter(u => {
+      if (!u || seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+  }
+
+  function svImgHtml(urls, alt) {
+    if (window.NamibiaV12 && typeof window.NamibiaV12.streetViewImgHtml === 'function') {
+      return window.NamibiaV12.streetViewImgHtml(urls, alt, '', 'loading="lazy"');
+    }
+    const list = uniqueSvUrls(Array.isArray(urls) ? urls : [urls]);
+    return list[0] ? `<img loading="lazy" src="${esc(list[0])}" alt="${esc(alt)}">` : '';
+  }
+
+  function dynamicStreetViewUrls() {
+    if (!state.gps || !state.apiKey) return [];
     // Prefer the pre-sampled 5 km grid frame nearest our route progress, so the
     // image is stable across a whole 5 km band (cacheable) instead of a fresh
     // fetch every GPS tick.
     try {
       const d = (typeof day === 'function') ? day() : null;
       const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
-      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlForGps && window.NamibiaV12.svFrameUrlForGps(route, state.gps);
-      if (f) return f;
+      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlsForGps && window.NamibiaV12.svFrameUrlsForGps(route, state.gps);
+      if (f && f.length) return f;
     } catch (_) {}
     const heading = state.driving?.heading ?? 0;
-    const p = new URLSearchParams({
-      size: '320x180',
-      location: `${state.gps.lat},${state.gps.lng}`,
-      heading: String(Math.round(heading || 0)),
-      pitch: '0', fov: '90', source: 'outdoor', radius: '300',
-      key: state.apiKey
-    });
-    return 'https://maps.googleapis.com/maps/api/streetview?' + p.toString();
+    if (window.NamibiaV12 && typeof window.NamibiaV12.streetViewUrlCandidates === 'function') {
+      return window.NamibiaV12.streetViewUrlCandidates([state.gps], heading, { radii: [120, 500, 1200, 2500] });
+    }
+    return [];
+  }
+
+  function dynamicStreetViewUrl() {
+    const urls = dynamicStreetViewUrls();
+    return urls[0] || null;
   }
 
   // ---- Live OSM mini-map per card (replaces the old Google static screenshot).
@@ -476,7 +494,7 @@
       ? route.legs[state.driving.legIdx]?.steps?.[state.driving.stepIdx]
       : null;
     const intermediate = closestIntermediateSv(activeStep);
-    const liveSv = dynamicStreetViewUrl();
+    const liveSvUrls = dynamicStreetViewUrls();
     const html = displayCards.map((c, i) => {
       const isActive = i === active;
       const isPast = active >= 0 && i < active;
@@ -488,9 +506,10 @@
       //   2. Live GPS-anchored Street View (online, fresh)
       //   3. The cached step-start snapshot (fallback)
       // Past + future cards always show their step-start snapshot.
-      const svUrl = isActive
-        ? (intermediate?.url || liveSv || c.streetViewUrl)
-        : c.streetViewUrl;
+      const svUrls = isActive
+        ? uniqueSvUrls([...(intermediate?.urls || []), intermediate?.url, ...liveSvUrls, ...(c.streetViewUrls || []), c.streetViewUrl])
+        : uniqueSvUrls([...(c.streetViewUrls || []), c.streetViewUrl]);
+      const svUrl = svUrls[0];
       const youAreHere = isActive && state.gps
         ? `<span class="card-here">📍 You are here</span>`
         : '';
@@ -505,7 +524,7 @@
         <p>${esc(c.body || '')}</p>
         ${(typeof c.lat === 'number') || svUrl ? `<div class="card-media">
           ${typeof c.lat === 'number' && !c.noMap ? `<div class="card-map-osm" data-card-key="${esc(cardKey(c, i))}" data-lat="${c.lat}" data-lng="${c.lng}" data-leg="${c.legIdx ?? ''}" data-step="${c.stepIdx ?? ''}" data-kind="${esc(c.kind || '')}"></div>` : ''}
-          ${svUrl ? `<img loading="lazy" src="${esc(svUrl)}" alt="Street view at GPS">` : ''}
+          ${svUrl ? svImgHtml(svUrls, 'Street view at GPS') : ''}
         </div>` : ''}
       </article>`;
     }).join('');

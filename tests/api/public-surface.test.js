@@ -65,7 +65,32 @@ describe('public window surfaces', () => {
     expect(typeof V12.encodePolyline).toBe('function');
     expect(typeof V12.stepStaticMapUrl).toBe('function');
     expect(typeof V12.stepStreetViewUrl).toBe('function');
+    expect(typeof V12.streetViewUrlCandidates).toBe('function');
+    expect(typeof V12.streetViewImgHtml).toBe('function');
+    expect(typeof V12.tryNextStreetView).toBe('function');
     expect(typeof V12.ttsTextFor).toBe('function');
+  });
+
+  it('Street View URLs fail fast and expose fallback candidates', async () => {
+    const dom = await bootPwa();
+    const w = dom.window;
+    w.state.apiKey = 'test-key';
+    const urls = w.NamibiaV12.streetViewUrlCandidates([
+      { lat: -23.3197, lng: 17.0834 },
+      { lat: -23.3202, lng: 17.0839 }
+    ], 180, { radii: [80, 800], sources: ['outdoor', 'default'] });
+
+    expect(urls.length).toBe(8);
+    const first = new URL(urls[0]);
+    expect(first.searchParams.get('return_error_code')).toBe('true');
+    expect(first.searchParams.get('source')).toBe('outdoor');
+    expect(first.searchParams.get('radius')).toBe('80');
+    expect(urls.some(u => new URL(u).searchParams.get('source') === 'default')).toBe(true);
+    expect(urls.some(u => new URL(u).searchParams.get('radius') === '800')).toBe(true);
+
+    const html = w.NamibiaV12.streetViewImgHtml(urls, 'Street view', 'step-streetview', 'loading="lazy"');
+    expect(html).toContain('data-sv-fallbacks=');
+    expect(html).toContain('return_error_code=true');
   });
 
   it('no top-level patch throws on load with the Google Maps stub', async () => {

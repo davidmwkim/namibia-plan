@@ -94,19 +94,95 @@
     return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
   }
 
-  function stepStreetViewUrl(lat, lng, heading) {
+  function stepStreetViewUrl(lat, lng, heading, opts = {}) {
     if (!state.apiKey) return '';
-    // Tight radius — the step's lat/lng is now a point taken from the step's
-    // own encoded polyline (Google's road-snapped geometry), so a small
-    // radius locks the panorama to the same road. 300m was pulling panos from
-    // parallel/cross streets at intersections.
+    const radius = opts.radius ?? 80;
+    const source = opts.source || 'outdoor';
+    const size = opts.size || '320x180';
     const p = new URLSearchParams({
-      size: '320x180',
+      size,
       location: `${lat},${lng}`,
       heading: String(Math.round(heading || 0)),
-      pitch: '0', fov: '90', source: 'outdoor', radius: '60', key: state.apiKey
+      pitch: '0',
+      fov: String(opts.fov || 90),
+      radius: String(radius),
+      return_error_code: 'true',
+      key: state.apiKey
     });
+    if (source) p.set('source', source);
     return 'https://maps.googleapis.com/maps/api/streetview?' + p.toString();
+  }
+
+  function uniqueUrls(urls) {
+    const seen = new Set();
+    return (urls || []).filter(u => {
+      if (!u || seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+  }
+
+  function polylineDistanceM(pts) {
+    let m = 0;
+    for (let k = 1; k < (pts || []).length; k++) m += DC.distMeters(pts[k - 1], pts[k]);
+    return m;
+  }
+
+  function streetViewUrlCandidates(points, heading, opts = {}) {
+    const pts = Array.isArray(points) ? points : [points];
+    const radii = opts.radii || [80, 250, 800, 2000];
+    const sources = opts.sources || ['outdoor', 'default'];
+    const urls = [];
+    for (const pt of pts) {
+      if (!pt || typeof pt.lat !== 'number' || typeof pt.lng !== 'number') continue;
+      for (const radius of radii) {
+        for (const source of sources) {
+          const url = stepStreetViewUrl(pt.lat, pt.lng, heading, { ...opts, radius, source });
+          if (url) urls.push(url);
+        }
+      }
+    }
+    return uniqueUrls(urls);
+  }
+
+  function streetViewCandidatePoints(decoded, anchor, totalM) {
+    const points = [anchor].filter(Boolean);
+    if (decoded && decoded.length >= 2 && totalM > 0) {
+      const probes = [120, 500, 1200, totalM * 0.5, Math.max(0, totalM - 120)];
+      for (const m of probes) {
+        if (m <= 0 || m > totalM) continue;
+        const pt = distAlong(decoded, 0, m);
+        if (pt) points.push(pt);
+      }
+    }
+    return points;
+  }
+
+  function streetViewFallbackAttrs(urls) {
+    const rest = uniqueUrls(urls).slice(1);
+    if (!rest.length) return '';
+    return ` data-sv-fallbacks="${esc(rest.join('|'))}" onerror="window.NamibiaV12&&window.NamibiaV12.tryNextStreetView&&window.NamibiaV12.tryNextStreetView(this)"`;
+  }
+
+  function streetViewImgHtml(urls, alt, className = '', attrs = '') {
+    const list = uniqueUrls(Array.isArray(urls) ? urls : [urls]);
+    if (!list.length) return '';
+    const cls = className ? ` class="${esc(className)}"` : '';
+    const extra = attrs ? ' ' + attrs.trim() : '';
+    return `<img${cls}${extra} src="${esc(list[0])}" alt="${esc(alt)}"${streetViewFallbackAttrs(list)}>`;
+  }
+
+  function tryNextStreetView(img) {
+    if (!img) return false;
+    const queue = String(img.dataset.svFallbacks || '').split('|').filter(Boolean);
+    const next = queue.shift();
+    if (!next) {
+      img.dataset.svFailed = '1';
+      return false;
+    }
+    img.dataset.svFallbacks = queue.join('|');
+    img.src = next;
+    return true;
   }
 
   // Decode a Google encoded polyline (https://developers.google.com/maps/documentation/utilities/polylinealgorithm)
@@ -191,6 +267,7 @@
           body: `${step.distance} · ${step.duration}`,
           mapUrl: step.stepMapUrl,
           streetViewUrl: step.streetViewUrl,
+          streetViewUrls: step.streetViewUrls || (step.streetViewUrl ? [step.streetViewUrl] : []),
           ttsKey: step.ttsKey,
           ttsText: step.ttsText,
           triggerRadiusM: 100
@@ -298,11 +375,7 @@
         let svAnchor = { lat: step.lat, lng: step.lng };
         let headingTarget = { lat: next.lat, lng: next.lng };
         if (decoded.length >= 2) {
-          const totalM = (function () {
-            let m = 0;
-            for (let k = 1; k < decoded.length; k++) m += DC.distMeters(decoded[k - 1], decoded[k]);
-            return m;
-          })();
+          const totalM = polylineDistanceM(decoded);
           // Snap the anchor 20m down the road (or 25% of the step, whichever is smaller).
           const anchorAlongM = Math.min(20, totalM * 0.25);
           svAnchor = distAlong(decoded, 0, anchorAlongM) || svAnchor;
@@ -318,8 +391,14 @@
           ? decoded
           : pathSlice(overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
         const newStepMapUrl = stepStaticMapUrl(slice, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng }, d);
-        const newStreetViewUrl = stepStreetViewUrl(svAnchor.lat, svAnchor.lng, step.heading);
+        const totalStepM = decoded.length >= 2 ? polylineDistanceM(decoded) : 0;
+        const newStreetViewUrls = streetViewUrlCandidates(
+          streetViewCandidatePoints(decoded, svAnchor, totalStepM),
+          step.heading
+        );
+        const newStreetViewUrl = newStreetViewUrls[0] || stepStreetViewUrl(svAnchor.lat, svAnchor.lng, step.heading);
         if (newStepMapUrl || !step.stepMapUrl) step.stepMapUrl = newStepMapUrl;
+        if (newStreetViewUrls.length) step.streetViewUrls = newStreetViewUrls;
         if (newStreetViewUrl || !step.streetViewUrl) step.streetViewUrl = newStreetViewUrl;
 
         // For LONG stretches (e.g. 85 km on B1), one Street View at the
@@ -329,8 +408,7 @@
         // is also SW-cached on first fetch, so they work offline too.
         step.intermediates = [];
         if (decoded.length >= 2) {
-          let totalM = 0;
-          for (let k = 1; k < decoded.length; k++) totalM += DC.distMeters(decoded[k - 1], decoded[k]);
+          let totalM = polylineDistanceM(decoded);
           // 1 intermediate per ~30 km, max 5, only if the step itself > 25 km.
           if (totalM > 25000) {
             const n = Math.min(5, Math.floor(totalM / 30000));
@@ -340,9 +418,12 @@
               if (!pt) continue;
               const aheadPt = distAlong(decoded, 0, Math.min(totalM, targetM + 80));
               const heading = (pt && aheadPt) ? DC.bearingForStreetView(pt, aheadPt) : step.heading;
-              const url = stepStreetViewUrl(pt.lat, pt.lng, heading);
+              const urls = streetViewUrlCandidates(streetViewCandidatePoints(decoded, pt, totalM), heading, {
+                radii: [120, 500, 1200, 2500]
+              });
+              const url = urls[0] || stepStreetViewUrl(pt.lat, pt.lng, heading);
               if (!url) continue;     // skip entries with no URL (no API key at decoration time)
-              step.intermediates.push({ lat: pt.lat, lng: pt.lng, distFromStartM: targetM, heading, url });
+              step.intermediates.push({ lat: pt.lat, lng: pt.lng, distFromStartM: targetM, heading, url, urls });
             }
           }
         }
@@ -372,7 +453,8 @@
           while (j + 1 < overviewPath.length && adv < 150) { adv += DC.distMeters(overviewPath[j], overviewPath[j + 1]); j++; }
           const ahead = overviewPath[j] || here;
           const heading = DC.bearingForStreetView(here, ahead);
-          route.svFrames.push({ distM: Math.round(acc), lat: here.lat, lng: here.lng, heading, url: stepStreetViewUrl(here.lat, here.lng, heading) });
+          const urls = streetViewUrlCandidates([here, ahead], heading, { radii: [120, 500, 1200, 2500] });
+          route.svFrames.push({ distM: Math.round(acc), lat: here.lat, lng: here.lng, heading, url: urls[0] || stepStreetViewUrl(here.lat, here.lng, heading), urls });
           nextAt = acc + STEP_M;
         }
       }
@@ -389,6 +471,7 @@
         title: `Roadside · ${Math.round(f.distM / 1000)} km in`,
         body: 'View ahead, in your direction of travel',
         streetViewUrl: f.url,
+        streetViewUrls: f.urls || (f.url ? [f.url] : []),
         noMap: true
       });
       const merged = [];
@@ -404,7 +487,7 @@
       route.cards = merged;
     }
     route.sunTimes = computeSunTimes(d);
-    route.schemaVersion = 9; // bumped for the 5 km scenery cards — re-decorate cached routes
+    route.schemaVersion = 10; // bumped for Street View return-error + fallback candidate chains
     return route;
   }
 
@@ -426,7 +509,7 @@
   function decorateAllCached() {
     for (const d of (window.NAMIBIA_TRIP_DATA?.days || [])) {
       const r = state.renderedRoutes[d.date];
-      if (r && r.legs && r.schemaVersion !== 9) decorateRoute(d, r);
+      if (r && r.legs && r.schemaVersion !== 10) decorateRoute(d, r);
     }
   }
   decorateAllCached();
@@ -512,7 +595,7 @@
       const route = state.renderedRoutes[d.date];
       if (!route) return;
       // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 9) decorateRoute(d, route);
+      if (route.legs && route.schemaVersion !== 10) decorateRoute(d, route);
 
       if (state.activeTab === 'overview') extendOverviewTab(d, route);
       else if (state.activeTab === 'directions') extendDirectionsTab(d, route);
@@ -629,7 +712,7 @@
         // Google static image — lazily initialised when scrolled into view.
         const media = `<div class="step-media">
           ${typeof step.lat === 'number' ? `<div class="step-map-osm" data-leg="${li}" data-step="${si}" data-status="${hs}"></div>` : ''}
-          ${step.streetViewUrl ? `<img class="step-streetview" loading="lazy" src="${esc(step.streetViewUrl)}" alt="Street view at step ${si + 1}">` : ''}
+          ${streetViewImgHtml(step.streetViewUrls || step.streetViewUrl, `Street view at step ${si + 1}`, 'step-streetview', 'loading="lazy"')}
         </div>`;
 
         // Insert: dir-emoji at start, then chip after the existing instruction text,
@@ -648,8 +731,13 @@
   // Euclidean — avoids picking the wrong frame at hairpins). Returns a freshly
   // built URL (deterministic params → SW-cache hit) or '' when unavailable.
   function svFrameUrlForGps(route, gps) {
+    const urls = svFrameUrlsForGps(route, gps);
+    return urls[0] || '';
+  }
+
+  function svFrameUrlsForGps(route, gps) {
     const frames = route && route.svFrames;
-    if (!frames || !frames.length || !gps) return '';
+    if (!frames || !frames.length || !gps) return [];
     const path = route.overviewPath || [];
     let progress = 0;
     try { progress = DC.routeProgressM ? DC.routeProgressM(path, gps) : 0; } catch (_) { progress = 0; }
@@ -658,13 +746,14 @@
       const dd = Math.abs(f.distM - progress);
       if (dd < bestD) { bestD = dd; best = f; }
     }
-    return stepStreetViewUrl(best.lat, best.lng, best.heading) || best.url || '';
+    return uniqueUrls([...(best.urls || []), stepStreetViewUrl(best.lat, best.lng, best.heading), best.url]);
   }
 
   window.NamibiaV12 = {
     decorateRoute, buildCards, computeSunTimes,
-    encodePolyline, sampledPath, pathSlice, svFrameUrlForGps,
-    stepStaticMapUrl, stepStreetViewUrl, ttsTextFor, openStepModal
+    encodePolyline, sampledPath, pathSlice, svFrameUrlForGps, svFrameUrlsForGps,
+    stepStaticMapUrl, stepStreetViewUrl, streetViewUrlCandidates,
+    streetViewImgHtml, tryNextStreetView, ttsTextFor, openStepModal
   };
 
   if (typeof render === 'function') render();

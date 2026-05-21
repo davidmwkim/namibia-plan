@@ -131,9 +131,16 @@
   async function cacheStreetViewImages() {
     // Pre-cache legacy street snapshots AND the 5 km Driver-view svFrames so
     // driving works offline through cellular dead zones before they're visited.
+    const stepUrls = (r) => (r.legs || []).flatMap(leg => (leg.steps || []).flatMap(step => [
+      step.streetViewUrl,
+      ...(step.streetViewUrls || []),
+      ...((step.intermediates || []).flatMap(it => [it.url, ...(it.urls || [])]))
+    ]));
     const urls = [...new Set(Object.values(state.renderedRoutes || {}).flatMap(r => [
-      ...((r.street || []).map(s => s.url)),
-      ...((r.svFrames || []).map(f => f.url))
+      ...((r.street || []).flatMap(s => [s.url, ...(s.urls || []), ...(s.streetViewUrls || [])])),
+      ...((r.svFrames || []).flatMap(f => [f.url, ...(f.urls || [])])),
+      ...((r.cards || []).flatMap(c => [c.streetViewUrl, ...(c.streetViewUrls || [])])),
+      ...stepUrls(r)
     ]).filter(Boolean))];
     if (!urls.length || !('caches' in window)) return { done: 0, total: urls.length };
     const cache = await caches.open(RUNTIME_CACHE);

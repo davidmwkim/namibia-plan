@@ -19,17 +19,29 @@
   let lastSvUrl = null;
   // Current Street-View image: prefer the pre-sampled 5 km grid frame nearest
   // our GPS (updates every ~5 km, even within one long card), else the card's.
-  function currentSvUrl(card) {
+  function uniqueSvUrls(urls) {
+    const seen = new Set();
+    return (urls || []).filter(u => {
+      if (!u || seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+  }
+  function currentSvUrls(card) {
     try {
       const route = activeCard().route;
-      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlForGps && window.NamibiaV12.svFrameUrlForGps(route, state.gps);
-      if (f) return f;
+      const f = window.NamibiaV12 && window.NamibiaV12.svFrameUrlsForGps && window.NamibiaV12.svFrameUrlsForGps(route, state.gps);
+      if (f && f.length) return f;
     } catch (_) {}
-    return (card && card.streetViewUrl) || '';
+    return uniqueSvUrls([...(card?.streetViewUrls || []), card?.streetViewUrl]);
+  }
+  function currentSvUrl(card) {
+    return currentSvUrls(card)[0] || '';
   }
   function applySv(svEl, card) {
     if (!svEl) return;
-    const url = currentSvUrl(card);
+    const urls = currentSvUrls(card);
+    const url = urls[0];
     // Nothing new available on the route → LEAVE the current image up (don't
     // blank it). Only swap once a genuinely new image has loaded.
     if (!url || url === lastSvUrl) return;
@@ -43,9 +55,13 @@
       svEl.appendChild(img);
       svEl.style.display = '';
     };
-    // On error (uncached/offline) keep whatever good image is showing — the
-    // next frame along the route will swap it in.
-    img.onerror = () => {};
+    const queue = urls.slice(1);
+    // On error, walk the broader Street View candidate chain. If every
+    // candidate fails, keep whatever good image was already showing.
+    img.onerror = () => {
+      const next = queue.shift();
+      if (next) img.src = next;
+    };
     img.src = url;
   }
   let chevMarker = null;     // the chevron lives ON the map (at the GPS) so it

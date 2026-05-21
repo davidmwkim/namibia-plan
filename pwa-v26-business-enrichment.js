@@ -300,7 +300,7 @@
         if (typeof stop.lat === 'number' && typeof stop.lng === 'number') {
           const svParams = {
             size: '600x300', location: `${stop.lat},${stop.lng}`,
-            fov: '90', pitch: '0', source: 'outdoor', radius: '120',
+            fov: '90', pitch: '0', source: 'default', radius: '800', return_error_code: 'true',
             key: state.apiKey
           };
           // For stops we drive past, face the Street View along the direction of
