@@ -119,6 +119,19 @@
 .hbar-compact .hbar-surftrack { height: 14px; }
 .hbar-compact .hbar-speedtrack { height: 20px; }
 .hbar-compact .hbar-stoptrack { height: 14px; }
+.drive-heather .drive-scrub-row {
+  display: block;
+  box-sizing: border-box;
+  padding-left: 52px;
+}
+.drive-heather .drive-scrub {
+  width: 100%;
+}
+.drive-heather .drive-scrub-lbl {
+  display: block;
+  max-width: 100%;
+  margin-top: 2px;
+}
 
 @media (max-width: 520px) {
   .drive-heather .hbar-row { gap: 4px; }
@@ -137,6 +150,9 @@
     height: 19px;
     font-size: 7.5px;
     border-width: 1.5px;
+  }
+  .drive-heather .drive-scrub-row {
+    padding-left: 40px;
   }
 }
 
