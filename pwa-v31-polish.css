@@ -165,6 +165,41 @@ h3 { font-size: var(--t-lg);  line-height: var(--lh-tight); }
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
+button.chip {
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+}
+button.chip.version-chip {
+  min-height: 28px;
+  transition: background var(--motion-fast) var(--ease-out),
+              transform var(--motion-fast) var(--ease-out);
+}
+button.chip.version-chip:hover {
+  background: rgba(255,255,255,0.22);
+}
+button.chip.version-chip:active {
+  transform: scale(0.97);
+}
+button.chip.version-chip:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.85);
+  outline-offset: 2px;
+}
+button.chip.version-chip:disabled {
+  cursor: wait;
+}
+.hero .hero-actions button.version-chip {
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  font-size: var(--t-xs);
+  font-weight: 550;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border-color: rgba(255,255,255,0.20);
+}
+.hero .hero-actions button.version-chip:hover {
+  background: rgba(255,255,255,0.22);
+}
 
 /* ---- Toolbar ----------------------------------------------------- */
 .toolbar {

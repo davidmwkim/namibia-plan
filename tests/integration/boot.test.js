@@ -64,6 +64,31 @@ describe('PWA boot in JSDOM', () => {
       expect(query).toMatch(/\bNamibia\b/i);
     });
   });
+
+  it('renders the version chip as a force-refresh button', async () => {
+    const dom = await bootPwa();
+    const w = dom.window;
+    const chip = w.document.getElementById('appVersionChip');
+    let clickedWith = null;
+    let clickedOptions = null;
+
+    expect(chip).toBeTruthy();
+    expect(chip.tagName).toBe('BUTTON');
+    expect(chip.getAttribute('type')).toBe('button');
+    expect(chip.classList.contains('version-chip')).toBe(true);
+    expect(chip.getAttribute('aria-label')).toMatch(/Force refresh app version/i);
+
+    w.HTMLMediaElement.prototype.play = () => Promise.resolve();
+    w.NamibiaV29.forceUpdate = (btn, options) => {
+      clickedWith = btn;
+      clickedOptions = options;
+    };
+    chip.click();
+
+    expect(clickedWith).toBe(chip);
+    expect(clickedOptions.updatingText).toContain('Updating');
+    expect(clickedOptions.idleText).toMatch(/^⟳ /);
+  });
 });
 
 describe('Directions tab with v12 enrichment', () => {

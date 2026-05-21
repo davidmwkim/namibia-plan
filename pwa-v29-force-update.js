@@ -20,20 +20,22 @@
     return reg.waiting || null;
   }
 
-  async function forceUpdate(btn) {
+  async function forceUpdate(btn, options = {}) {
+    const updatingText = options.updatingText || '🔃 Updating…';
+    const idleText = options.idleText || '🔃 Force update';
     const setBtn = (txt, disabled) => {
       if (!btn) return;
       btn.textContent = txt;
       btn.disabled = !!disabled;
     };
-    setBtn('🔃 Updating…', true);
+    setBtn(updatingText, true);
     try {
       const polite = await tryPoliteUpdate();
       if (polite) return; // page will reload
       await nukeAndReload();
     } catch (e) {
       if (typeof log === 'function') log('Force-update failed: ' + (e?.message || e));
-      setBtn('🔃 Force update', false);
+      setBtn(idleText, false);
     }
   }
 

@@ -1,6 +1,7 @@
 // Namibia PWA v27 — Version banner + best-effort menu PDF discovery.
 //
 //   * Reads `window.NAMIBIA_APP_VERSION` (set below) and renders it as a chip
+//     button
 //     in the hero status bar, so the user can verify which build they have
 //     loaded — useful when chasing "is my SW serving stale code?" issues.
 //   * On the Refresh button (v23), in addition to re-fetching routes + places,
@@ -63,11 +64,33 @@ window.NAMIBIA_APP_VERSION = null;
   function setVersion(v) {
     window.NAMIBIA_APP_VERSION = v;
     const chip = document.getElementById('appVersionChip');
-    if (chip) chip.textContent = '⚙ ' + v;
+    if (chip) updateVersionButton(chip, v);
+  }
+
+  function versionButtonText(v) {
+    return '⟳ ' + (v || 'loading…');
+  }
+
+  function updateVersionButton(chip, v) {
+    chip.textContent = versionButtonText(v);
+    chip.setAttribute('aria-label', `Force refresh app version ${v || 'loading'}`);
+  }
+
+  function forceRefreshFromVersionChip(btn) {
+    const version = window.NAMIBIA_APP_VERSION || 'loading…';
+    if (window.NamibiaV29 && typeof window.NamibiaV29.forceUpdate === 'function') {
+      return window.NamibiaV29.forceUpdate(btn, {
+        updatingText: '⟳ Updating…',
+        idleText: versionButtonText(version),
+      });
+    }
+    window.location.reload();
+    return null;
   }
 
   function versionChipHost() {
-    return document.querySelector('.statusbar')
+    return document.querySelector('.hero .hero-actions')
+      || document.querySelector('.statusbar')
       || document.querySelector('.toolbar-left')
       || document.querySelector('.hero-actions');
   }
@@ -75,12 +98,14 @@ window.NAMIBIA_APP_VERSION = null;
   function injectVersionChip() {
     const bar = versionChipHost();
     if (!bar || document.getElementById('appVersionChip')) return;
-    const chip = document.createElement('span');
+    const chip = document.createElement('button');
     const darkHost = !bar.classList.contains('statusbar') && !bar.closest('.hero');
-    chip.className = darkHost ? 'chip dark' : 'chip';
+    chip.className = darkHost ? 'chip version-chip dark' : 'chip version-chip';
     chip.id = 'appVersionChip';
-    chip.title = 'PWA build version — single-sourced from sw.js. Useful when verifying that the SW has activated the latest code.';
-    chip.textContent = '⚙ ' + (window.NAMIBIA_APP_VERSION || 'loading…');
+    chip.type = 'button';
+    chip.title = 'Force-refresh the app and fetch the latest PWA build.';
+    chip.onclick = () => forceRefreshFromVersionChip(chip);
+    updateVersionButton(chip, window.NAMIBIA_APP_VERSION);
     bar.appendChild(chip);
   }
 
@@ -187,6 +212,6 @@ window.NAMIBIA_APP_VERSION = null;
 
   window.NamibiaV27 = {
     runMenuDiscovery, probeCandidatesFromWebsite,
-    MENU_PATHS, injectVersionChip
+    MENU_PATHS, injectVersionChip, forceRefreshFromVersionChip
   };
 })();
