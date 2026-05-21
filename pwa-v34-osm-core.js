@@ -301,7 +301,7 @@
         + (s.notes ? `<div class="ml-pop-row">${esc(s.notes)}</div>` : '')
         + pressure + fuel
         + `<div class="ml-pop-links"><a href="${esc(window.wazeUrl ? window.wazeUrl(s) : '#')}" target="_blank" rel="noopener">Waze</a> · `
-        + `<a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank" rel="noopener">Maps</a></div></div>`;
+        + `<a href="${esc(window.googleMapsStopUrl ? window.googleMapsStopUrl(s) : '#')}" target="_blank" rel="noopener">Maps</a></div></div>`;
       try {
         const m = window.L.marker([s.lat, s.lng], { icon: pinDivIcon(style) }).addTo(map);
         m.bindPopup(popup);

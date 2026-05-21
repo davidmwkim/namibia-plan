@@ -94,6 +94,35 @@ def collect_step_keys() -> dict:
     return out
 
 
+def collect_route_tts_keys() -> dict:
+    """Collect ttsKey/ttsText pairs from cached route JSON blobs checked into
+    the repo. This covers old Google Directions route caches where step/card
+    announcements are already encoded as step-YYYY-MM-DD-* keys."""
+    out = {}
+    search_roots = [ROOT / 'tests' / '__fixtures__']
+    for base in search_roots:
+        if not base.exists():
+            continue
+        for path in base.rglob('*.json'):
+            try:
+                data = json.loads(path.read_text(encoding='utf-8'))
+            except Exception:
+                continue
+            stack = [data]
+            while stack:
+                cur = stack.pop()
+                if isinstance(cur, dict):
+                    key = cur.get('ttsKey')
+                    text = cur.get('ttsText')
+                    if (isinstance(key, str) and key.startswith('step-') and
+                            isinstance(text, str) and text):
+                        out[key] = text
+                    stack.extend(cur.values())
+                elif isinstance(cur, list):
+                    stack.extend(cur)
+    return out
+
+
 async def synth_one(text: str, dest: Path, voice: str):
     communicate = edge_tts.Communicate(text=text, voice=voice)
     await communicate.save(str(dest))
@@ -118,6 +147,7 @@ async def main():
     # Build the full ttsKey → text map.
     all_keys = dict(CANNED)
     all_keys.update(collect_step_keys())
+    all_keys.update(collect_route_tts_keys())
 
     print(f"{len(all_keys)} ttsKeys to consider, voice={args.voice}")
     new_count, skip_count, err_count = 0, 0, 0

@@ -25,6 +25,20 @@ function day(){ return DATA.days[state.dayIndex]; }
 function mandatoryStops(d=day()){ return d.stops.filter(s => ['mandatory','mandatoryAction'].includes(s.routeRole)); }
 function routeStops(d=day()){ return d.stops.filter(s => s.routeRole === 'mandatory'); }
 function wazeUrl(s){ return `https://waze.com/ul?ll=${encodeURIComponent(s.lat+','+s.lng)}&navigate=yes&zoom=17&utm_source=namibia_trip`; }
+function googleMapsStopQuery(s){
+  const raw = s?.googleMapsQuery || s?.mapsQuery || s?.placeQuery || s?.name || '';
+  let q = String(raw).replace(/\s+/g, ' ').trim();
+  if (q) {
+    if (!/\bnamibia\b/i.test(q)) q += ' Namibia';
+    return q;
+  }
+  const fallback = String(s?.type || 'Namibia stop').replace(/\s+/g, ' ').trim();
+  return /\bnamibia\b/i.test(fallback) ? fallback : `${fallback} Namibia`;
+}
+function googleMapsStopUrl(s){
+  const p = new URLSearchParams({api:'1',query:googleMapsStopQuery(s)});
+  return 'https://www.google.com/maps/search/?' + p.toString();
+}
 function googleMapsUrl(d=day()){
   const s=routeStops(d); if(s.length<2) return '';
   const p=new URLSearchParams({api:'1',origin:`${s[0].lat},${s[0].lng}`,destination:`${s[s.length-1].lat},${s[s.length-1].lng}`,travelmode:'driving'});
@@ -216,7 +230,7 @@ function stopCard(s){
       <p>${esc(s.notes)}</p>
       ${s.pressure ? `<p><strong>Tyre:</strong> ${esc(s.pressure)}</p>` : ''}
       ${s.fuel ? `<p><strong>Fuel:</strong> ${esc(s.fuel)}</p>` : ''}
-      <p><a href="${wazeUrl(s)}" target="_blank">Open in Waze</a> · <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank">Open in Google Maps</a></p>
+      <p><a href="${wazeUrl(s)}" target="_blank">Open in Waze</a> · <a href="${esc(googleMapsStopUrl(s))}" target="_blank" rel="noopener">Open in Google Maps</a></p>
     </div>
   </div>`;
 }
@@ -378,7 +392,7 @@ function renderPrintPages(){
       <h2>${esc(d.date)} · ${d.selfDrive?'Self-drive / route day':'Guided or local day'}</h2>
       <p>${esc(d.routeNotes)}</p>
       <div class="print-grid">
-        ${d.stops.map(s=>`<div class="print-card"><h3>${esc(s.emoji+' '+s.time+' — '+s.name)}</h3><p><b>TYPE:</b> ${esc(s.type)} · <b>Route:</b> ${esc(s.routeRole)}</p><p>${esc(s.notes)}</p>${s.pressure?`<p><b>Tyre:</b> ${esc(s.pressure)}</p>`:''}${s.fuel?`<p><b>Fuel:</b> ${esc(s.fuel)}</p>`:''}<p><a href="${wazeUrl(s)}">Waze</a> · <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}">Google Maps</a></p></div>`).join('')}
+        ${d.stops.map(s=>`<div class="print-card"><h3>${esc(s.emoji+' '+s.time+' — '+s.name)}</h3><p><b>TYPE:</b> ${esc(s.type)} · <b>Route:</b> ${esc(s.routeRole)}</p><p>${esc(s.notes)}</p>${s.pressure?`<p><b>Tyre:</b> ${esc(s.pressure)}</p>`:''}${s.fuel?`<p><b>Fuel:</b> ${esc(s.fuel)}</p>`:''}<p><a href="${wazeUrl(s)}">Waze</a> · <a href="${esc(googleMapsStopUrl(s))}">Google Maps</a></p></div>`).join('')}
       </div>
     </article>`).join('');
 }

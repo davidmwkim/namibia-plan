@@ -32,6 +32,13 @@
     if (!PL) return;
     try { localStorage.setItem(PL.cacheKey(stop), JSON.stringify(shaped)); } catch (_) {}
   }
+  function stopMapsUrl(stop) {
+    if (typeof window.googleMapsStopUrl === 'function') return window.googleMapsStopUrl(stop);
+    const q = String(stop?.placeQuery || stop?.name || '').replace(/\s+/g, ' ').trim();
+    if (q) return 'https://www.google.com/maps/search/?' + new URLSearchParams({ api: '1', query: /\bnamibia\b/i.test(q) ? q : q + ' Namibia' }).toString();
+    const fallback = String(stop?.type || 'Namibia stop').replace(/\s+/g, ' ').trim();
+    return 'https://www.google.com/maps/search/?' + new URLSearchParams({ api: '1', query: /\bnamibia\b/i.test(fallback) ? fallback : fallback + ' Namibia' }).toString();
+  }
   function invalidateAllPlaces() {
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -232,7 +239,7 @@
           const label = stop.kind === 'service'
             ? `<strong>Any nearby ${esc(stop.type || 'fuel/tyre station')}.</strong> Pull into the closest staffed station — see in-step notes for recommended brands.`
             : `<strong>${esc(stop.name)}.</strong> Public landmark / geographic point — see Google Maps for navigation details.`;
-          wrap.innerHTML = `<div class="biz-meta">${label}${stop.lat ? ` <a class="biz-link" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank" rel="noopener">📍 Open by coordinate</a>` : ''}</div>`;
+          wrap.innerHTML = `<div class="biz-meta">${label} <a class="biz-link" href="${esc(stopMapsUrl(stop))}" target="_blank" rel="noopener">🗺️ Open in Google Maps</a></div>`;
           cardEl.appendChild(wrap);
           cardEl.dataset.v26Done = '1';
         }
@@ -266,17 +273,11 @@
       const websiteHtml = website
         ? `<a class="biz-link" href="${esc(website)}" target="_blank" rel="noopener">🌐 Website</a>`
         : '';
-      // TWO Maps links per user request:
-      //   1) the actual Google Maps business listing (uses Place ID + place URL
-      //      from Places API) — opens the curated business page.
-      //   2) a coordinate-only search URL — works offline-first via cached map
-      //      tiles if you've lost cell service.
+      // Prefer the actual Google Maps business listing when Places returned
+      // one; otherwise fall back to an exact name/placeQuery search.
       const bizPageHtml = shaped.url
         ? `<a class="biz-link" href="${esc(shaped.url)}" target="_blank" rel="noopener">🗺️ Business page</a>`
-        : '';
-      const coordLinkHtml = (typeof stop.lat === 'number' && typeof stop.lng === 'number')
-        ? `<a class="biz-link" href="https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}" target="_blank" rel="noopener" title="Open by GPS coordinate — works with offline Google Maps">📍 Open by coordinate</a>`
-        : '';
+        : `<a class="biz-link" href="${esc(stopMapsUrl(stop))}" target="_blank" rel="noopener">🗺️ Google Maps</a>`;
       const menuHtml = menuUrl
         ? `<a class="biz-link biz-menu" href="${esc(menuUrl)}" target="_blank" rel="noopener">📄 Menu</a>`
         : (website ? `<a class="biz-link biz-menu-fallback" href="${esc(website)}" target="_blank" rel="noopener">📄 Find menu on website</a>` : '');
@@ -328,7 +329,7 @@
           ${phoneHtml ? `<div>${phoneHtml}</div>` : ''}
           ${hoursHtml}
           ${closingHtml}
-          <div class="biz-links">${websiteHtml}${bizPageHtml}${coordLinkHtml}${menuHtml}</div>
+          <div class="biz-links">${websiteHtml}${bizPageHtml}${menuHtml}</div>
         </div>`;
       cardEl.appendChild(wrap);
     });

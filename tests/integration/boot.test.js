@@ -24,6 +24,46 @@ describe('PWA boot in JSDOM', () => {
     const tabs = dom.window.document.querySelectorAll('.tab');
     expect(tabs.length).toBe(5);
   });
+
+  it('uses stop names or place queries for Google Maps stop links', async () => {
+    const dom = await bootPwa();
+    const w = dom.window;
+    const coordOnly = /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/;
+    const mapSearches = [];
+
+    for (let i = 0; i < w.DATA.days.length; i++) {
+      w.state.dayIndex = i;
+      w.state.activeTab = 'stops';
+      w.renderTab();
+      w.document.querySelectorAll('a[href^="https://www.google.com/maps/search/"]').forEach(a => {
+        const query = new URL(a.href).searchParams.get('query') || '';
+        mapSearches.push({ text: a.textContent.trim(), href: a.href, query });
+        expect(query).not.toMatch(coordOnly);
+        expect(query).toMatch(/\bNamibia\b/i);
+      });
+    }
+
+    expect(mapSearches.length).toBeGreaterThan(0);
+    const sossusOasis = mapSearches.filter(x => x.query.includes('Sossus Oasis Engen service station Sesriem'));
+    expect(sossusOasis.length).toBeGreaterThan(0);
+    sossusOasis.forEach(x => {
+      expect(x.href).not.toContain('-24.4908,15.8032');
+    });
+  });
+
+  it('uses stop names or place queries for printable Google Maps links', async () => {
+    const dom = await bootPwa();
+    const w = dom.window;
+    const coordOnly = /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/;
+
+    w.renderPrintPages();
+    const links = [...w.document.querySelectorAll('#printPages a[href^="https://www.google.com/maps/search/"]')];
+    links.forEach(a => {
+      const query = new URL(a.href).searchParams.get('query') || '';
+      expect(query).not.toMatch(coordOnly);
+      expect(query).toMatch(/\bNamibia\b/i);
+    });
+  });
 });
 
 describe('Directions tab with v12 enrichment', () => {

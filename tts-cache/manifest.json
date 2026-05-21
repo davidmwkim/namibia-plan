@@ -34,6 +34,26 @@
     "text": "Rain is forecast on the road ahead. Slow down \u2014 gravel turns slippery and visibility drops.",
     "voice": "en-US-AvaNeural"
   },
+  "step-2026-05-24-0-0": {
+    "file": "9e2d89be56942b231a1b1da4.mp3",
+    "text": "In 1 kilometre, head west on Independence Ave",
+    "voice": "en-US-AvaNeural"
+  },
+  "step-2026-05-24-0-1": {
+    "file": "86af19b3a8ede028b302b309.mp3",
+    "text": "In 85 kilometres, turn left onto B1 toward Rehoboth",
+    "voice": "en-US-AvaNeural"
+  },
+  "step-2026-05-24-0-2": {
+    "file": "f027c745c43bb30ac49753e8.mp3",
+    "text": "In 100 kilometres, continue onto C24 toward Solitaire",
+    "voice": "en-US-AvaNeural"
+  },
+  "step-2026-05-24-0-3": {
+    "file": "d8914faff4d530c7f91b9a5c.mp3",
+    "text": "Arrive at Solitaire",
+    "voice": "en-US-AvaNeural"
+  },
   "stop:Afternoon Guided Game Drive": {
     "file": "e9e7bb9d907a16cac55c4415.mp3",
     "text": "Arriving at Afternoon Guided Game Drive.",
