@@ -239,7 +239,9 @@
     return `<div class="drive-heather">${chip}${bar}${scrub}</div>`;
   }
 
-  // Map a 0..1 route fraction to the nearest card and scroll the list to it.
+  // Map a 0..1 route fraction to the nearest card and scroll only the card
+  // list. Using element.scrollIntoView() here can move the whole page on
+  // mobile, which pulls the scrubber out from under the user's finger.
   let _scrubProg = null, _scrubKey = null;
   function cardRouteFractions(route) {
     const d = (typeof day === 'function') ? day() : null;
@@ -252,6 +254,12 @@
     _scrubKey = key;
     return _scrubProg;
   }
+  function scrollCardListTo(el) {
+    const host = el && el.closest && el.closest('.drive-cards');
+    if (!host) return;
+    const top = el.offsetTop - host.offsetTop - Math.max(12, (host.clientHeight - el.clientHeight) / 2);
+    host.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+  }
   function scrubTo(frac) {
     const d = (typeof day === 'function') ? day() : null;
     const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
@@ -262,7 +270,14 @@
     if (best < 0) return;
     const c = route.cards[best];
     const el = document.querySelector(`.drive-card[data-card-index="${best}"]`);
-    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('card-scrubbed'); setTimeout(() => el.classList.remove('card-scrubbed'), 1200); }
+    document.querySelectorAll('.drive-card.card-scrubbed').forEach(card => {
+      if (card !== el) card.classList.remove('card-scrubbed');
+    });
+    if (el) {
+      scrollCardListTo(el);
+      el.classList.add('card-scrubbed');
+      setTimeout(() => el.classList.remove('card-scrubbed'), 1200);
+    }
     const lbl = document.querySelector('.drive-scrub-lbl');
     if (lbl && c) lbl.textContent = `${kindEmoji(c.kind)} ${c.title ? String(c.title).slice(0, 38) : c.kind}`;
   }
