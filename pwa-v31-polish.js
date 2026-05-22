@@ -33,14 +33,9 @@
     });
   }
 
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV31() {
-      const r = base();
-      try { wireTabSwitchAnimation(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { wireTabSwitchAnimation(); } catch (_) {}
+  });
   wireTabSwitchAnimation();
 
   // Mark the initially-active tab.

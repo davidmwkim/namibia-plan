@@ -421,19 +421,14 @@
   }
 
   // ---- Hooks ----
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV23() {
-      const r = base();
-      // Make sure weather is attached to each step + stop before we render.
-      attachWeatherToSteps();
-      attachWeatherToStops();
-      renderWeatherIntoDirections();
-      renderWeatherIntoStops();
-      injectRefreshButton();
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    // Make sure weather is attached to each step + stop before we render.
+    attachWeatherToSteps();
+    attachWeatherToStops();
+    renderWeatherIntoDirections();
+    renderWeatherIntoStops();
+    injectRefreshButton();
+  });
   injectRefreshButton();
 
   // Kick off initial weather load (cached + missing entries) shortly after boot.

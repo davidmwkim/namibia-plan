@@ -436,21 +436,16 @@
     }
   }
 
-  if (typeof renderTab === 'function'){
-    const baseRT = renderTab;
-    renderTab = function patchedRenderTabV38(){
-      const r = baseRT.apply(this, arguments);
-      try {
-        const d = (typeof day === 'function') ? day() : null;
-        if (!d) return r;
-        if (state.activeTab === 'overview') injectOverviewExtras(d);
-        else if (state.activeTab === 'stops') renderItinerary(d);
-        else if (state.activeTab === 'settings') renderSettings();
-        toggleAuxPanels();
-      } catch (e) { if (typeof console !== 'undefined') console.warn('v38 renderTab', e); }
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try {
+      const d = (typeof day === 'function') ? day() : null;
+      if (!d) return;
+      if (state.activeTab === 'overview') injectOverviewExtras(d);
+      else if (state.activeTab === 'stops') renderItinerary(d);
+      else if (state.activeTab === 'settings') renderSettings();
+      toggleAuxPanels();
+    } catch (e) { if (typeof console !== 'undefined') console.warn('v38 renderTab', e); }
+  });
 
   window.NamibiaV38 = {
     nowCardHtml, heatherPlanHtml, tripFuelPressureHtml, synthDowntime,

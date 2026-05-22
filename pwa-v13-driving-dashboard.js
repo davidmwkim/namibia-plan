@@ -838,48 +838,44 @@
   }
 
   // ---- Hook renderTab — replace street-view grid with dashboard ----
-  if (typeof renderTab === 'function') {
-    const baseRenderTab = renderTab;
-    renderTab = function patchedRenderTabV13() {
-      baseRenderTab();
-      // Tab labels must be correct on every render, not only when the user is
-      // already viewing the Driver tab.
-      relabelStreetTab();
-      if (state.activeTab !== 'street') {
-        // Drop map refs when leaving the tab so they get rebuilt on return.
-        driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
-        return;
-      }
-      const d = day();
-      const route = state.renderedRoutes?.[d.date];
-      if (route) evaluateSunsetRisk(route);
-      const tc = document.getElementById('tabContent');
-      if (!tc) return;
-
-      // If the dashboard is already mounted for this day, fall back to a
-      // partial update so we don't reset scroll position or rebuild the map.
-      const existingHost = tc.querySelector('.drive-dashboard');
-      if (existingHost && existingHost.dataset.dateKey === d.date) {
-        if (route) renderDashboardLive(route, false);
-        return;
-      }
-
-      tc.innerHTML = dashboardHtml(d, route);
-      const newHost = tc.querySelector('.drive-dashboard');
-      if (newHost) newHost.dataset.dateKey = d.date;
-      // Reset embedded map refs since the host DIV is freshly minted.
+  window.NamibiaUI.afterRenderTab(function () {
+    // Tab labels must be correct on every render, not only when the user is
+    // already viewing the Driver tab.
+    relabelStreetTab();
+    if (state.activeTab !== 'street') {
+      // Drop map refs when leaving the tab so they get rebuilt on return.
       driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
-      updateDriveMap();
-      bindDashboardEvents();
-      initCardMaps();
-      // Initial mount: one-shot scroll to the active card, then never again
-      // unless the user clicks "📍 Center".
-      if (state.driving.activeCardIndex >= 0) {
-        const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
-        if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' });
-      }
-    };
-  }
+      return;
+    }
+    const d = day();
+    const route = state.renderedRoutes?.[d.date];
+    if (route) evaluateSunsetRisk(route);
+    const tc = document.getElementById('tabContent');
+    if (!tc) return;
+
+    // If the dashboard is already mounted for this day, fall back to a
+    // partial update so we don't reset scroll position or rebuild the map.
+    const existingHost = tc.querySelector('.drive-dashboard');
+    if (existingHost && existingHost.dataset.dateKey === d.date) {
+      if (route) renderDashboardLive(route, false);
+      return;
+    }
+
+    tc.innerHTML = dashboardHtml(d, route);
+    const newHost = tc.querySelector('.drive-dashboard');
+    if (newHost) newHost.dataset.dateKey = d.date;
+    // Reset embedded map refs since the host DIV is freshly minted.
+    driveMap = null; driveMapMarker = null; driveMapPolyline = null; driveMapHostEl = null;
+    updateDriveMap();
+    bindDashboardEvents();
+    initCardMaps();
+    // Initial mount: one-shot scroll to the active card, then never again
+    // unless the user clicks "📍 Center".
+    if (state.driving.activeCardIndex >= 0) {
+      const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
+      if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' });
+    }
+  });
 
   // ---- URL spoof param for manual browser testing ----
   function applyUrlSpoof() {

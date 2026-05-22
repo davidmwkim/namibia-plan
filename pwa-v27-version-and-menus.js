@@ -199,14 +199,9 @@ window.NAMIBIA_APP_VERSION = null;
       try { await runMenuDiscovery(); } catch (_) {}
     };
   }
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV27() {
-      const r = base();
-      try { wireRefreshHookV27(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { wireRefreshHookV27(); } catch (_) {}
+  });
   // Also wire on first paint and on a brief delay (Places enrichment is async).
   setTimeout(wireRefreshHookV27, 1500);
 

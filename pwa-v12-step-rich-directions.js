@@ -598,20 +598,16 @@
   }
 
   // ---- Render extensions ----
-  if (typeof renderTab === 'function') {
-    const baseRenderTab = renderTab;
-    renderTab = function patchedRenderTabV12() {
-      baseRenderTab();
-      const d = day();
-      const route = state.renderedRoutes[d.date];
-      if (!route) return;
-      // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 11) decorateRoute(d, route);
+  window.NamibiaUI.afterRenderTab(function () {
+    const d = day();
+    const route = state.renderedRoutes[d.date];
+    if (!route) return;
+    // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
+    if (route.legs && route.schemaVersion !== 11) decorateRoute(d, route);
 
-      if (state.activeTab === 'overview') extendOverviewTab(d, route);
-      else if (state.activeTab === 'directions') extendDirectionsTab(d, route);
-    };
-  }
+    if (state.activeTab === 'overview') extendOverviewTab(d, route);
+    else if (state.activeTab === 'directions') extendDirectionsTab(d, route);
+  });
 
   function extendOverviewTab(d, route) {
     if (!route.sunTimes || !ST) return;

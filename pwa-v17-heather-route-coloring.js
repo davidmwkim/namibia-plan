@@ -218,6 +218,7 @@
     injectPrintBanners();
   }
 
+  // render chain not yet migrated — keep the wrap so render-order stays exact.
   if (typeof render === 'function') {
     const baseRender = render;
     render = function patchedRenderV17() {
@@ -226,14 +227,7 @@
       return r;
     };
   }
-  if (typeof renderTab === 'function') {
-    const baseRenderTab = renderTab;
-    renderTab = function patchedRenderTabV17() {
-      const r = baseRenderTab();
-      applyAll();
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(applyAll);
   if (typeof renderPrintPages === 'function') {
     const basePrint = renderPrintPages;
     renderPrintPages = function patchedRenderPrintPagesV17() {

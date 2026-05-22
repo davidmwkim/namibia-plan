@@ -136,14 +136,7 @@
 
   // Run after each renderTab so the blocks are present whenever the
   // Directions tab is visible.
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV22() {
-      const r = base();
-      applyToDirectionsTab();
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(applyToDirectionsTab);
   applyToDirectionsTab();
 
   window.NamibiaV22 = { classifyRoad, heatherWhy, RAIN_IMPACT, ROAD_DETAIL, applyToDirectionsTab };

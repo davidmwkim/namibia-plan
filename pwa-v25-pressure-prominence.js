@@ -169,15 +169,10 @@
     chip.innerHTML = `<strong>${arrow}</strong> tyre pressure — ${nearby.stopName || nearby.title}`;
   }
 
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV25() {
-      const r = base();
-      try { injectOverviewBanner(); } catch (_) {}
-      try { injectDriveDashboardPressureChip(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { injectOverviewBanner(); } catch (_) {}
+    try { injectDriveDashboardPressureChip(); } catch (_) {}
+  });
   injectOverviewBanner();
 
   window.NamibiaV25 = { pressureDirection, pressureIcon, pressureBannerHtml, mandatoryPressureDir };

@@ -292,10 +292,7 @@
     saveChecked(set);
   });
 
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV41() { const r = base.apply(this, arguments); try { inject(); } catch (_) {} return r; };
-  }
+  window.NamibiaUI.afterRenderTab(function () { try { inject(); } catch (_) {} });
   if (typeof render === 'function') {
     const baseR = render;
     render = function patchedRenderV41() { const r = baseR.apply(this, arguments); try { inject(); } catch (_) {} return r; };

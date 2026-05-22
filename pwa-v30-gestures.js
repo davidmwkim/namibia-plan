@@ -258,14 +258,9 @@
 
   // Keep the sliding indicator in sync on every tab change (tab clicks call
   // renderTab directly, not render, so wrap renderTab too).
-  if (typeof renderTab === 'function') {
-    const baseRT = renderTab;
-    renderTab = function patchedRenderTabV30() {
-      const r = baseRT.apply(this, arguments);
-      try { ensureTabIndicator(); updateTabIndicator(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { ensureTabIndicator(); updateTabIndicator(); } catch (_) {}
+  });
   window.addEventListener('resize', () => { try { updateTabIndicator(); } catch (_) {} });
 
   if (typeof render === 'function') {

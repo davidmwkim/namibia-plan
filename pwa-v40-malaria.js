@@ -127,14 +127,9 @@
   }
 
   // ---- hooks ----
-  if (typeof renderTab === 'function') {
-    const baseRT = renderTab;
-    renderTab = function patchedRenderTabV40() {
-      const r = baseRT.apply(this, arguments);
-      try { decorateDaySelect(); injectDayIndicators(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { decorateDaySelect(); injectDayIndicators(); } catch (_) {}
+  });
   if (typeof render === 'function') {
     const baseR = render;
     render = function patchedRenderV40() {

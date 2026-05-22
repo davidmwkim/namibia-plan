@@ -352,15 +352,10 @@
   }
 
   // ---- Hook renderTab so the Stops tab keeps gaining metadata as it loads ----
-  if (typeof renderTab === 'function') {
-    const base = renderTab;
-    renderTab = function patchedRenderTabV26() {
-      const r = base();
-      try { enrichStopsTab(); } catch (_) {}
-      try { wireRefreshHook(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRenderTab(function () {
+    try { enrichStopsTab(); } catch (_) {}
+    try { wireRefreshHook(); } catch (_) {}
+  });
 
   // Kick off a background enrichment + asset cache shortly after boot.
   setTimeout(() => {
