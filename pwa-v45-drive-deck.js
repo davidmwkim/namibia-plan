@@ -158,6 +158,9 @@
   function setupDriver() {
     const deck = document.querySelector('.drive-cards');
     if (!deck) return;
+    // v47 (stack layout) takes over the deck. When it has, skip the scroll-
+    // carousel wiring entirely — gestures, scroll listeners, the dot mover.
+    if (deck.dataset.stack === '1') return;
     ensureNav(deck);
     if (!deck.dataset.deckWired) {
       deck.dataset.deckWired = '1';
@@ -242,7 +245,7 @@
       try { if (passMap) passMap.invalidateSize(false); } catch (_) {}
       // Detaching reset the deck's scrollLeft — restore the user's swipe spot.
       const rdeck = passShellEl.querySelector('.pass-deck');
-      if (rdeck) rdeck.scrollLeft = passScrollLeft;
+      if (rdeck && rdeck.dataset.stack !== '1') rdeck.scrollLeft = passScrollLeft;
       return;
     }
 
@@ -282,12 +285,16 @@
 
     // Deck nav (counter + arrows + progress) — reuse the driver deck nav markup.
     ensureNav(deck);
-    deck.addEventListener('scroll', () => onPassScroll(deck), { passive: true });
-    wireGesture(deck);
-    wireKeys(deck);
+    // v47 may take over the deck (stack layout). When it has, skip the
+    // scroll-carousel wiring; v47 handles its own gestures + pin updates.
+    if (deck.dataset.stack !== '1') {
+      deck.addEventListener('scroll', () => onPassScroll(deck), { passive: true });
+      wireGesture(deck);
+      wireKeys(deck);
+    }
 
     passShellEl = shell; passDayKey = dayKey;
-    passUpdate(deck, 0);
+    if (deck.dataset.stack !== '1') passUpdate(deck, 0);
   }
 
   let passLastRun = 0, passTrailing = null;
@@ -324,5 +331,9 @@
     else if (state.activeTab === 'directions') { try { setupPassenger(); } catch (e) { if (typeof console !== 'undefined') console.warn('passenger deck', e); } }
   });
 
-  window.NamibiaDriveDeck = { centeredIndex, scrollToCard };
+  window.NamibiaDriveDeck = {
+    centeredIndex, scrollToCard,
+    // v47 needs the live Passenger Leaflet instance to draw start/end pins.
+    getPassMap: function () { return passMap; }
+  };
 })();

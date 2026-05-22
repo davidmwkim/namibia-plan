@@ -1,0 +1,180 @@
+/* pwa-v47-stack-layout.css — Driver/Passenger refit: kill the page scroll on
+   the live tabs. Top half = full route map; bottom half = a SINGLE turn card
+   on top with the next one peeking from behind ("Tinder-stack" feel). The big
+   "Namibia Self-Drive Companion" hero is hidden on these tabs so the day's
+   route-summary line claims the chrome it used to eat. Loaded after v46. */
+
+/* ---- Hero collapse on live tabs ----------------------------------------- */
+body.drive-focus .hero { display: none; }
+
+/* ---- Lock the whole stack of containers to viewport height -------------- */
+/* pwa-v43 already pins html/body/#app/.app-shell to 100dvh on phones. We
+   extend that down through .grid → .panel → #tabContent → .drive-dashboard /
+   .pass-shell so the 50/50 split actually has a known height to divide. */
+body.drive-focus .grid { display: block; overflow: hidden; height: 100%; padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+body.drive-focus .grid > aside { display: none; }
+body.drive-focus .grid > .panel { height: 100%; display: flex; flex-direction: column; padding: 0; }
+body.drive-focus .grid > .panel > .content,
+body.drive-focus .grid > .panel > #tabContent { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ---- Route-summary strip injected at the top of #tabContent ------------- */
+.route-summary-strip {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text, #1c1414);
+  background: var(--bg, #fbf7f4);
+  border-bottom: 1px solid var(--line, #ece3df);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.route-summary-strip .rss-title {
+  font-weight: 700;
+  color: var(--brand, #5a1738);
+  font-size: 13px;
+  letter-spacing: .1px;
+}
+.route-summary-strip .rss-note {
+  font-size: 12px;
+  color: var(--text-muted, #6f6368);
+  /* Two-line clamp keeps the strip's height predictable. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Drive-dashboard / pass-shell: flex column filling tab content ----- */
+body.drive-focus .drive-dashboard,
+body.drive-focus .pass-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+}
+/* Reorder: sticky chips (Driver only) → map → deck → nav. */
+body.drive-focus .drive-sticky { order: 1; flex: 0 0 auto; padding: 4px 8px 0; }
+body.drive-focus .drive-sticky .drive-controls { gap: 4px; }
+body.drive-focus .drive-sticky .drive-controls .ghost { padding: 5px 9px; min-height: 30px; font-size: 11.5px; }
+body.drive-focus .drive-sticky .sun-chip { padding: 4px 8px; font-size: 11px; }
+/* The current-leg Heather chip + scrubber row eats vertical room — shrink. */
+body.drive-focus .drive-heather { font-size: 11px; padding: 0; margin: 0; }
+body.drive-focus .drive-scrub-row { padding: 2px 0 0; }
+
+body.drive-focus .drive-map,
+body.drive-focus .pass-map {
+  order: 2;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ---- Stack deck: cards live on top of each other, not in a row --------- */
+body.drive-focus .drive-cards[data-stack="1"],
+body.drive-focus .pass-deck[data-stack="1"] {
+  order: 3;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  /* Override v45's row-flex/overflow-x/snap rules. */
+  display: block;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  touch-action: pan-y;
+}
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card,
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 10px;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 16px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--line, #ece3df);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Hide by default — the only visible cards are the active and the two behind. */
+  display: none;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+  transition: transform .22s cubic-bezier(.2,.7,.2,1), opacity .22s ease;
+}
+/* Active card — front, full size, no offset. */
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="active"],
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="active"] {
+  display: block;
+  transform: translateY(0) scale(1);
+  z-index: 3;
+  opacity: 1;
+}
+/* Peek behind — a thin sliver shows below the active card. */
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="next"],
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="next"] {
+  display: block;
+  transform: translateY(10px) scale(0.96);
+  z-index: 2;
+  opacity: 1;
+  filter: brightness(0.96);
+}
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="next2"],
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="next2"] {
+  display: block;
+  transform: translateY(18px) scale(0.92);
+  z-index: 1;
+  opacity: 0.85;
+  filter: brightness(0.92);
+}
+/* Going-back card (one before active) sits behind to the left. */
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="prev"],
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="prev"] {
+  display: block;
+  transform: translateX(-100vw) scale(0.96);
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+/* While the active card is being dragged, kill the transition so it tracks
+   the finger 1:1. JS removes this class on pointerup so the snap animates. */
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card.drag,
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card.drag { transition: none; }
+
+/* When the deck is in stack mode, the v45 horizontal progress bar + counter
+   row would float in mid-air — hide them. The deck-nav arrows stay (we
+   re-attach them to v47's step handler) as a keyboard/a11y fallback. */
+body.drive-focus .drive-cards[data-stack="1"] ~ .deck-progress,
+body.drive-focus .pass-deck[data-stack="1"] ~ .deck-progress { display: none; }
+body.drive-focus .drive-cards[data-stack="1"] ~ .deck-nav,
+body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav {
+  order: 4;
+  flex: 0 0 auto;
+  padding: 2px 6px env(safe-area-inset-bottom, 0px);
+  background: var(--bg, #fbf7f4);
+}
+body.drive-focus .drive-cards[data-stack="1"] ~ .deck-nav .deck-counter,
+body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav .deck-counter {
+  font-size: 12px;
+  min-width: 56px;
+}
+
+/* Phones — collapse drive-sticky to one row so the map gets max height. */
+@media (max-width: 760px) {
+  body.drive-focus .drive-sticky { padding: 2px 6px 0; gap: 3px; }
+  body.drive-focus .drive-sticky .sun-chip { display: inline-block; }
+  body.drive-focus .route-summary-strip { padding: 6px 10px; }
+  body.drive-focus .route-summary-strip .rss-title { font-size: 12.5px; }
+  body.drive-focus .route-summary-strip .rss-note { font-size: 11.5px; -webkit-line-clamp: 2; }
+}

@@ -21,6 +21,7 @@
   let lastDrawnDayKey = null;
   let lastRouteBounds = null;
   let routeDotMarker = null;
+  let legPinLayers = [];
 
   function hasLeaflet() { return typeof window.L !== 'undefined'; }
 
@@ -157,8 +158,50 @@
     if (pan) { try { lMap.panTo(ll, { animate: true }); } catch (_) {} }
   }
 
+  // Leg pins for the v47 stack deck: a green dot at the active step's start and
+  // a red dot at its end, so the live map answers "where on the road is THIS
+  // card pointing me?". Fits the map to both points so the leg is fully in view.
+  function clearLegPins() {
+    legPinLayers.forEach(l => { try { lMap && lMap.removeLayer(l); } catch (_) {} });
+    legPinLayers = [];
+  }
+  function setLegPins(start, end) {
+    if (!lMap || !ready || !window.L) return;
+    clearLegPins();
+    if (!start && !end) return;
+    if (start && isFinite(+start.lat) && isFinite(+start.lng)) {
+      try {
+        legPinLayers.push(window.L.circleMarker([+start.lat, +start.lng], {
+          radius: 8, color: '#ffffff', weight: 2,
+          fillColor: '#178a3a', fillOpacity: 1,
+          className: 'leg-pin leg-pin-start', pane: 'markerPane'
+        }).addTo(lMap));
+      } catch (_) {}
+    }
+    if (end && isFinite(+end.lat) && isFinite(+end.lng)) {
+      try {
+        legPinLayers.push(window.L.circleMarker([+end.lat, +end.lng], {
+          radius: 8, color: '#ffffff', weight: 2,
+          fillColor: '#b3261e', fillOpacity: 1,
+          className: 'leg-pin leg-pin-end', pane: 'markerPane'
+        }).addTo(lMap));
+      } catch (_) {}
+    }
+    legPinLayers.forEach(l => { try { l.bringToFront(); } catch (_) {} });
+    if (start && end) {
+      try {
+        const b = window.L.latLngBounds([[+start.lat, +start.lng], [+end.lat, +end.lng]]).pad(0.4);
+        lMap.fitBounds(b, { animate: true, maxZoom: 15 });
+      } catch (_) {}
+    } else if (start) {
+      try { lMap.panTo([+start.lat, +start.lng], { animate: true }); } catch (_) {}
+    } else if (end) {
+      try { lMap.panTo([+end.lat, +end.lng], { animate: true }); } catch (_) {}
+    }
+  }
+
   window.NamibiaOsmMap = {
-    takeOver, update, teardown, setRouteDot,
+    takeOver, update, teardown, setRouteDot, setLegPins, clearLegPins,
     _internals: () => ({ ready, hasMap: !!lMap, lastDrawnDayKey })
   };
 })();
