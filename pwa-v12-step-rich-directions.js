@@ -390,6 +390,17 @@
         const slice = decoded.length >= 2
           ? decoded
           : pathSlice(overviewPath, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng });
+        // How twisty this step's road is (avg deg/km) — drives the Heather
+        // rating for gravel (straight & quiet → Heather; predominantly twisty →
+        // David). Guard against degenerate/sparse polylines (a handful of points
+        // over tens of km would fabricate huge fake angles) by requiring roughly
+        // one point per km before trusting the geometry; otherwise treat as 0.
+        try {
+          if (DC.pathCurviness) {
+            const km = (DC.parseDistM ? DC.parseDistM(step.distance) : 0) / 1000;
+            step.curvyDegPerKm = (slice.length >= Math.max(8, km)) ? DC.pathCurviness(slice) : 0;
+          }
+        } catch (_) {}
         const newStepMapUrl = stepStaticMapUrl(slice, { lat: step.lat, lng: step.lng }, { lat: step.endLat, lng: step.endLng }, d);
         const totalStepM = decoded.length >= 2 ? polylineDistanceM(decoded) : 0;
         const newStreetViewUrls = streetViewUrlCandidates(
@@ -487,7 +498,7 @@
       route.cards = merged;
     }
     route.sunTimes = computeSunTimes(d);
-    route.schemaVersion = 10; // bumped for Street View return-error + fallback candidate chains
+    route.schemaVersion = 11; // Street View fallback chains + per-step curviness (gravel rating)
     return route;
   }
 
@@ -509,7 +520,7 @@
   function decorateAllCached() {
     for (const d of (window.NAMIBIA_TRIP_DATA?.days || [])) {
       const r = state.renderedRoutes[d.date];
-      if (r && r.legs && r.schemaVersion !== 10) decorateRoute(d, r);
+      if (r && r.legs && r.schemaVersion !== 11) decorateRoute(d, r);
     }
   }
   decorateAllCached();
@@ -595,7 +606,7 @@
       const route = state.renderedRoutes[d.date];
       if (!route) return;
       // Decorate on-demand if needed (e.g. cache exists from v5 without enrichment).
-      if (route.legs && route.schemaVersion !== 10) decorateRoute(d, route);
+      if (route.legs && route.schemaVersion !== 11) decorateRoute(d, route);
 
       if (state.activeTab === 'overview') extendOverviewTab(d, route);
       else if (state.activeTab === 'directions') extendDirectionsTab(d, route);

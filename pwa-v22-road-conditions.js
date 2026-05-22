@@ -70,12 +70,17 @@
   function heatherWhy(status, road, segReason) {
     const code = (road && road.code && /^[A-Z]\d/.test(road.code)) ? road.code : '';
     const extra = CODE_WHY[code] ? ' ' + CODE_WHY[code] : '';
+    const t = road && road.type;
     if (status === 'no') {
-      if (road.type === 'sand') return `🔴 David — deep sand needs deflation + 4x4 technique Heather hasn’t built up.${extra}`;
-      if (road.type === 'gravel' || road.type === 'unpaved') return `🔴 David — Heather doesn’t drive loose gravel/dirt; expect corrugations, dust, ~60–80 km/h.${extra}`;
-      return `🔴 David — busy town driving: frequent turns, junctions and traffic.${extra}`;
+      if (t === 'gravel' || t === 'unpaved') return `🔴 David — twisty or busy gravel (a pass, hairpins or a junction cluster); corrugations, dust, ~60–80 km/h.${extra}`;
+      if (t === 'sand') return `🔴 David — deep sand needs deflation + 4x4 technique.${extra}`;
+      return `🔴 David — heavy traffic / busy town: merging, passing and junctions.${extra}`;
     }
-    if (status === 'yes') return `🟢 Heather — open, low-traffic tar; one of her easy stretches.${extra}`;
+    if (status === 'yes') {
+      if (t === 'gravel' || t === 'unpaved') return `🟢 Heather — open, straight, low-traffic gravel; she’s comfortable here (air down, easy pace).${extra}`;
+      if (t === 'sand' || t === 'dirt') return `🟢 Heather — firm dirt/sand, low traffic; a good stretch for her.${extra}`;
+      return `🟢 Heather — open, low-traffic tar; one of her easy stretches.${extra}`;
+    }
     // status === 'maybe' (yellow)
     return `🟡 Heather, with caution — it’s paved, but ${code ? code + ' has ' : 'expect '}merges, junctions, town-throughs or livestock; David should be ready to take over.${extra}`;
   }

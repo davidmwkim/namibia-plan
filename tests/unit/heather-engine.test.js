@@ -5,8 +5,15 @@ import DC from '../../lib/driving-core.js';
 const step = (instruction, lat, lng, duration, distance) => ({ instruction, lat, lng, duration, distance });
 
 describe('rateStep (research-cautious rules)', () => {
-  it('gravel → no (David takes gravel); firm dirt/sand → yes (Heather)', () => {
-    expect(DC.rateStep(step('Turn onto C24 toward Solitaire', -23.6, 16.3)).status).toBe('no');   // gravel C-road → David
+  it('open straight gravel → yes (Heather comfortable); twisty/busy gravel → no', () => {
+    // straight, quiet C-road (no/low curviness) → Heather is comfortable
+    expect(DC.rateStep(step('Continue on C24 toward Solitaire', -23.6, 16.3)).status).toBe('yes');
+    // twisty pass on the same gravel road → David
+    expect(DC.rateStep({ instruction: 'Continue on C14', lat: -23.5, lng: 15.85, curvyDegPerKm: 130 }).status).toBe('no');
+    // busy gravel inside the Windhoek red zone → David
+    expect(DC.rateStep(step('Continue on C28', -22.57, 17.05)).status).toBe('no');
+  });
+  it('firm dirt/sand → yes (Heather)', () => {
     expect(DC.rateStep(step('Continue on D1918', -21.9, 15.4)).status).toBe('yes');               // dirt D-road → Heather
     expect(DC.rateStep(step('Drive the deep sand to Deadvlei', -24.73, 15.34)).status).toBe('yes'); // sand → Heather
   });
@@ -22,13 +29,15 @@ describe('rateStep (research-cautious rules)', () => {
   });
   it('codeless step inherits the previous surface/code', () => {
     const prev = DC.rateStep(step('Continue on C14', -23.9, 15.9));
-    const next = DC.rateStep(step('Turn left', -23.8, 15.7), { surface: prev.surface, code: prev.code });
-    expect(next.status).toBe('no'); // still gravel
+    const next = DC.rateStep(step('Turn left', -23.8, 15.7), { surface: prev.roadSurface, code: prev.code });
+    expect(next.surface).toBe('gravel');  // inherited the gravel surface
+    expect(next.status).toBe('yes');      // straight gravel (no curviness) → Heather
   });
 });
 
 describe('heatherLegs', () => {
-  // paved (B1) ×2, gravel (C24) ×3, paved (B1) ×2 — should yield maybe / no / maybe.
+  // paved (B1) ×2, straight gravel (C24) ×3, paved (B1) ×2 — straight path, so the
+  // gravel is Heather's → maybe / yes / maybe.
   const mk = (instr, lat, dur) => step(instr, lat, 17.0, dur, '10 km');
   const route = {
     overviewPath: Array.from({ length: 21 }, (_, i) => ({ lat: -22.6 - i * 0.05, lng: 17.0 })),
@@ -44,7 +53,7 @@ describe('heatherLegs', () => {
   };
   it('groups contiguous same-status steps and sums Google time', () => {
     const legs = DC.heatherLegs(route);
-    expect(legs.map(l => l.status)).toEqual(['maybe', 'no', 'maybe']);
+    expect(legs.map(l => l.status)).toEqual(['maybe', 'yes', 'maybe']);
     expect(legs[0].durMin).toBe(40);
     expect(legs[1].durMin).toBe(90);
     expect(legs[2].durMin).toBe(40);
@@ -78,8 +87,8 @@ describe('heatherSummary', () => {
     };
     const s = DC.heatherSummary(route);
     expect(s.pctMaybeByTime + s.pctNoByTime + s.pctYesByTime).toBeGreaterThanOrEqual(99);
-    expect(s.pctMaybeByTime).toBe(50);
-    expect(s.pctNoByTime).toBe(50);
+    expect(s.pctMaybeByTime).toBe(50); // B1 paved → caution
+    expect(s.pctYesByTime).toBe(50);   // straight C24 gravel → Heather
     expect(Math.round(s.totalMin)).toBe(120);
   });
 });
@@ -110,6 +119,6 @@ describe('legAtProgress', () => {
     };
     const leg = DC.legAtProgress(route, { lat: -23.2, lng: 17.0 });
     expect(leg).toBeTruthy();
-    expect(leg.status).toBe('no'); // on the gravel leg
+    expect(leg.status).toBe('yes'); // on the (straight) gravel leg → Heather
   });
 });

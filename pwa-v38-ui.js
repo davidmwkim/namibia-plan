@@ -107,7 +107,9 @@
   };
   function legBlurb(l){
     for (const c of (l.codes || [])) if (CODE_BLURB[c]) return CODE_BLURB[c];
-    if (l.status === 'no' && l.surface === 'gravel') return 'Loose gravel — David’s (Heather leaves gravel to him); corrugations, dust, 60–80 km/h.';
+    if (l.surface === 'gravel') return l.status === 'no'
+      ? 'Twisty or busy gravel — David’s (pass, hairpins or junctions); corrugations, dust.'
+      : 'Open, straight gravel, low traffic — Heather’s comfortable (air down, easy pace).';
     if (l.status === 'no') return 'Heavy traffic / busy town — merging, passing and junctions; David.';
     if (l.status === 'yes' && (l.surface === 'dirt' || l.surface === 'sand')) return 'Firm dirt/sand, low traffic — a good Heather stretch (air down and keep momentum on sand).';
     if (l.status === 'yes') return 'Open paved, low traffic — a good Heather stretch.';
@@ -210,7 +212,7 @@
     const bandNote = inBand
       ? `<span class="band-ok">✓ ≈ within the 20–40% relief target</span>`
       : (relief < 20
-          ? `<span class="band-low">below target — gravel &amp; heavy traffic dominate; David drives most</span>`
+          ? `<span class="band-low">below target — twisty gravel &amp; heavy traffic dominate; David drives most</span>`
           : `<span class="band-high">above target — extra rest for David</span>`);
     const rows = sum.legs.map(l => {
       const st = STATUS_BAR[l.status];
@@ -227,7 +229,7 @@
       ${heatherBarHtml(route, {})}
       <div class="seg-share">🟢 ${g}% easy · 🟡 ${y}% caution · 🔴 ${r}% David — Heather could take ≈ <strong>${relief}%</strong> of drive time · ${bandNote}</div>
       <table class="seg-table"><tbody>${rows}</tbody></table>
-      <p class="seg-legend">Bar = share of Google drive time, in route order; ticks are stops. 🟢 dirt/sand &amp; quiet paved · 🟡 caution (merges, passing, towns, fast trucks) · 🔴 gravel or busy city.</p>
+      <p class="seg-legend">Bar = share of Google drive time, in route order; ticks are stops. 🟢 open straight gravel, dirt/sand &amp; quiet paved · 🟡 caution (merges, passing, towns, fast trucks) · 🔴 twisty/busy gravel or busy city.</p>
     </div>`;
   }
 
