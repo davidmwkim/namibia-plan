@@ -76,7 +76,57 @@
   function step(deck, dir) {
     const idx = centeredIndex(deck);
     if (idx < 0) return;
-    scrollToCard(deck, idx + dir, true);
+    const total = deck.querySelectorAll(CARD_SEL).length;
+    const next = Math.max(0, Math.min(total - 1, idx + dir));
+    scrollToCard(deck, next, true);
+  }
+
+  // ---- Gesture discretizer ----------------------------------------------------
+  // Native scroll-snap snaps to the NEAREST card, so a fast flick can skip 2-3
+  // cards under momentum. We want one swipe = exactly one card. On pointerdown
+  // remember the starting card + position; on pointerup decide ±1 (or 0) from
+  // there and commit via scrollToCard, overriding any momentum the browser
+  // would otherwise apply. Threshold: >25% of deck width OR flick > 0.3 px/ms.
+  function wireGesture(deck) {
+    if (deck.dataset.deckGesture) return;
+    deck.dataset.deckGesture = '1';
+    let startX = 0, startT = 0, startIdx = -1, tracking = false, pid = null;
+    deck.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      tracking = true; pid = e.pointerId;
+      startX = e.clientX; startT = e.timeStamp || Date.now();
+      startIdx = centeredIndex(deck);
+    }, { passive: true });
+    function commit(e) {
+      if (!tracking || (pid !== null && e.pointerId !== pid)) return;
+      tracking = false;
+      if (startIdx < 0) return;
+      const dx = e.clientX - startX;
+      const dt = Math.max(1, (e.timeStamp || Date.now()) - startT);
+      const v = dx / dt; // px/ms; positive = swiped right (→ previous card)
+      const total = deck.querySelectorAll(CARD_SEL).length;
+      const w = deck.clientWidth || 1;
+      let target = startIdx;
+      if (Math.abs(dx) > w * 0.25 || Math.abs(v) > 0.3) {
+        target = startIdx + (dx < 0 ? 1 : -1);
+      }
+      target = Math.max(0, Math.min(total - 1, target));
+      // Always re-commit — kills inertia that would land on the wrong card.
+      scrollToCard(deck, target, true);
+    }
+    deck.addEventListener('pointerup', commit, { passive: true });
+    deck.addEventListener('pointercancel', commit, { passive: true });
+  }
+
+  // Keyboard support: ← / → advance one card when the deck has focus.
+  function wireKeys(deck) {
+    if (deck.dataset.deckKeys) return;
+    deck.dataset.deckKeys = '1';
+    if (!deck.hasAttribute('tabindex')) deck.tabIndex = 0;
+    deck.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(deck, 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(deck, -1); }
+    });
   }
 
   // Throttle by wall-clock (not rAF — rAF is starved in background/automation
@@ -103,6 +153,8 @@
       deck.dataset.deckWired = '1';
       deck.addEventListener('scroll', () => onScroll(deck), { passive: true });
     }
+    wireGesture(deck);
+    wireKeys(deck);
     // Seed the dot + counter on the GPS-active card (or the first card).
     const active = (state.driving && state.driving.activeCardIndex >= 0) ? state.driving.activeCardIndex : 0;
     updateNav(deck, active);
@@ -221,6 +273,8 @@
     // Deck nav (counter + arrows + progress) — reuse the driver deck nav markup.
     ensureNav(deck);
     deck.addEventListener('scroll', () => onPassScroll(deck), { passive: true });
+    wireGesture(deck);
+    wireKeys(deck);
 
     passShellEl = shell; passDayKey = dayKey;
     passUpdate(deck, 0);

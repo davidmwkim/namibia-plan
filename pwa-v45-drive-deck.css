@@ -87,7 +87,8 @@ body.drive-focus .drive-sticky { order: 5; margin-top: 6px; }
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
 
-/* ---- Horizontal swipe deck ---- */
+/* ---- Horizontal swipe deck — one card fills the viewport, native snap is a
+   visual safety net; v45.js intercepts the gesture so one swipe = one card. ---- */
 .drive-cards {
   display: flex;
   flex-direction: row;
@@ -96,18 +97,28 @@ body.drive-focus .drive-sticky { order: 5; margin-top: 6px; }
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  gap: 12px;
-  padding: 10px 2px 6px;
-  scroll-padding-inline: 7%;
+  gap: 0;
+  padding: 10px 0 6px;
+  scroll-padding-inline: 0;
   scrollbar-width: none;
+  /* Let the browser handle vertical pans so internal card-scroll still works. */
+  touch-action: pan-y;
+  /* Keyboard focus ring lives on the card; the deck itself stays clean. */
+  outline: none;
+  /* Bound the deck so a tall card scrolls INSIDE itself, not the page. */
+  max-height: calc(100vh - 220px);
 }
 .drive-cards::-webkit-scrollbar { display: none; }
 .drive-cards > .drive-card {
-  flex: 0 0 86%;
-  max-width: 86%;
-  scroll-snap-align: center;
+  flex: 0 0 100%;
+  max-width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   margin: 0 !important;
   align-self: flex-start;
+  /* If a card's content exceeds the deck height, scroll INSIDE the card. */
+  max-height: 100%;
+  overflow-y: auto;
 }
 /* The GPS-active card gets a clear brand outline so "where you are" is obvious. */
 .drive-cards > .drive-card.card-active {
@@ -138,16 +149,20 @@ body.drive-focus .route-map-caption { display: none; }
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  gap: 12px;
-  padding: 10px 2px 6px;
-  scroll-padding-inline: 7%;
+  gap: 0;
+  padding: 10px 0 6px;
+  scroll-padding-inline: 0;
   scrollbar-width: none;
+  touch-action: pan-y;
+  outline: none;
+  max-height: calc(100vh - 220px);
 }
 .pass-deck::-webkit-scrollbar { display: none; }
 .pass-deck > .pass-card {
-  flex: 0 0 86%;
-  max-width: 86%;
-  scroll-snap-align: center;
+  flex: 0 0 100%;
+  max-width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   align-self: flex-start;
   background: var(--bg-card);
   border: 1px solid var(--line, #ece3df);
@@ -156,6 +171,9 @@ body.drive-focus .route-map-caption { display: none; }
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   font-size: 14px;
   line-height: 1.4;
+  /* Turn-by-turn cards can be tall — scroll inside the card, not the deck. */
+  max-height: 100%;
+  overflow-y: auto;
 }
 /* The central map already shows each step's location, so the per-step expand
    button + the step's own mini-map are redundant clutter inside a card. */
