@@ -219,7 +219,10 @@
     updateCondStripMarkers(host, startLL, endLL);
   }
 
-  // ---- Stack tagging (Tinder-stack: only active + 2 peeks visible) ----------
+  // ---- Active tagging + scroll-snap navigation ------------------------------
+  // Dual-paradigm: vertical pan does native scroll-snap between cards;
+  // horizontal swipe runs the JS Tinder fly-off and then scrollTo's the
+  // next card so both gestures land in the same scroll position.
   function applyStack(deck, isPass) {
     const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
     const total = cards.length;
@@ -229,18 +232,14 @@
     cards.forEach((c, k) => {
       c.style.transform = '';
       c.classList.remove('drag');
-      let pos = 'hidden';
-      if (k === i) pos = 'active';
-      else if (k === i + 1) pos = 'next';
-      else if (k === i + 2) pos = 'next2';
-      else if (k === i - 1) pos = 'prev';
-      c.dataset.stackPos = pos;
+      c.dataset.stackPos = (k === i) ? 'active' : (k < i) ? 'prev' : 'ahead';
+      try { c.scrollTop = 0; } catch (_) {}
     });
-    // Reset the active card's internal scroll position so each new card
-    // starts at the top of its content (otherwise scroll bleed between
-    // cards reads as broken).
+    // Sync the deck's scroll position to land on the active card.
     const activeC = cards[i];
-    if (activeC) { try { activeC.scrollTop = 0; } catch (_) {} }
+    if (activeC && deck.scrollTo) {
+      try { deck.scrollTo({ top: activeC.offsetTop, behavior: 'auto' }); } catch (_) {}
+    }
     // Corner counter pill (inside the deck, top-right). The v45 .deck-nav
     // row is hidden in stack mode — swipe drives navigation — so the count
     // moves into this tiny badge to reclaim the bottom strip of real estate.
@@ -267,6 +266,44 @@
     if (ni === idx[isPass ? 'pass' : 'drive']) return;
     idx[isPass ? 'pass' : 'drive'] = ni;
     applyStack(deck, isPass);
+  }
+
+  // The vertical native scroll-snap lands the deck on whichever card is now
+  // in view. Detect the new active card from scrollTop and update idx +
+  // marker pins + corner counter to match — keeps the two paradigms in sync.
+  function wireScrollSync(deck, isPass) {
+    if (deck.dataset.scrollSync === '1') return;
+    deck.dataset.scrollSync = '1';
+    let timer = null;
+    deck.addEventListener('scroll', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
+        if (!cards.length) return;
+        const mid = deck.scrollTop + deck.clientHeight / 2;
+        let best = 0, bestD = Infinity;
+        cards.forEach((c, k) => {
+          const center = c.offsetTop + c.offsetHeight / 2;
+          const d = Math.abs(center - mid);
+          if (d < bestD) { bestD = d; best = k; }
+        });
+        const cur = idx[isPass ? 'pass' : 'drive'];
+        if (best !== cur) {
+          idx[isPass ? 'pass' : 'drive'] = best;
+          // Retag stack pos + update map + counter, but DON'T re-scroll
+          // (we're already where the user scrolled to).
+          cards.forEach((c, k) => {
+            c.dataset.stackPos = (k === best) ? 'active' : (k < best) ? 'prev' : 'ahead';
+          });
+          const wrap = deck.parentElement;
+          const badge = deck.querySelector(':scope > .deck-corner-counter');
+          if (badge) badge.textContent = `${best + 1} / ${cards.length}`;
+          const oldCounter = wrap && wrap.querySelector('.deck-counter');
+          if (oldCounter) oldCounter.textContent = `${best + 1} / ${cards.length}`;
+          updateMapForActive(deck, isPass);
+        }
+      }, 90);
+    }, { passive: true });
   }
 
   // ---- Gesture wiring --------------------------------------------------------
@@ -342,17 +379,18 @@
         dir = (dx < 0) ? 1 : -1;
       }
       if (dir !== 0) {
+        // Tinder fly-off: card slides horizontally off-screen, then the
+        // deck scrollTo()s vertically to the next card (which is the
+        // user's snap target). The visual reads as "card dismissed →
+        // next slides into view".
         active.classList.remove('drag');
         const sign = dir > 0 ? -1 : 1;
         const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
         const card = active;
-        // Double-RAF: lets the .drag class removal commit a frame BEFORE
-        // the new transform is set, so the browser sees a transition from
-        // current drag position → off-screen instead of snapping.
         requestAnimationFrame(() => requestAnimationFrame(() => {
           card.style.transform = tx;
         }));
-        setTimeout(() => { step(deck, isPass, dir); }, 220);
+        setTimeout(() => { step(deck, isPass, dir); }, 200);
       } else if (dragging) {
         active.classList.remove('drag');
         active.style.transform = '';
@@ -496,10 +534,10 @@
     let deck = document.querySelector('.drive-cards');
     if (!deck) return;
     if (deck.dataset.stack !== '1') deck = takeOverDeck(deck);
-    // Sync activeIdx with v13's GPS-driven active card index when available.
     const aci = state.driving && state.driving.activeCardIndex;
     if (typeof aci === 'number' && aci >= 0) idx.drive = aci;
     wireGesture(deck, false);
+    wireScrollSync(deck, false);
     ensureCondStrip(document.querySelector('.drive-dashboard'));
     applyStack(deck, false);
     const mapHost = document.getElementById('driveMapHost');
@@ -512,6 +550,7 @@
     if (!deck) return;
     if (deck.dataset.stack !== '1') deck = takeOverDeck(deck);
     wireGesture(deck, true);
+    wireScrollSync(deck, true);
     ensureCondStrip(document.querySelector('.pass-shell'));
     applyStack(deck, true);
     const mapHost = document.getElementById('passMapHost');

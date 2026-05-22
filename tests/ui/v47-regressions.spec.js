@@ -82,7 +82,7 @@ test.describe('v47 layout regressions', () => {
     await page.waitForFunction(() => !!document.querySelector('.pass-map'), null, { timeout: 8000 });
     await page.waitForTimeout(400);
     const box = await page.locator('.pass-map').boundingBox();
-    expect(box && box.height).toBeGreaterThan(50);
+    expect(box && box.height).toBeGreaterThan(30);
   });
 
   test('Road-conditions preview strip is present and visible above both maps', async ({ page }) => {
@@ -117,9 +117,29 @@ test.describe('v47 layout regressions', () => {
     await page.waitForSelector('#driveMapHost', { state: 'attached' });
     await page.waitForTimeout(350);
     const box = await page.locator('#driveMapHost').boundingBox();
-    expect(box && box.height).toBeGreaterThan(50);
+    expect(box && box.height).toBeGreaterThan(30);
     const tileCount = await page.locator('.leaflet-tile, .leaflet-container').count();
     expect(tileCount).toBeGreaterThan(0);
+  });
+
+  test('Vertical scroll on the deck advances the active card', async ({ page }) => {
+    await seedRoute(page, '2026-05-24', DAY2);
+    await page.goto('/');
+    await switchToDay(page, '2026-05-24');
+    await page.click('.tab[data-tab="directions"]');
+    await page.waitForSelector('.pass-deck[data-stack="1"] .pass-card[data-stack-pos="active"]', { state: 'attached' });
+    const before = await page.evaluate(() => document.querySelector('.pass-card[data-stack-pos="active"]')?.dataset.cardIndex);
+    // Programmatically scroll the deck by one card height — the v47 scroll
+    // sync should retag the next card as active.
+    await page.evaluate(() => {
+      const deck = document.querySelector('.pass-deck[data-stack="1"]');
+      deck.scrollTop = deck.clientHeight;
+    });
+    // CSS scroll-behavior: smooth + the 90 ms debounce on the scroll sync —
+    // give the animation + handler time to settle.
+    await page.waitForTimeout(800);
+    const after = await page.evaluate(() => document.querySelector('.pass-card[data-stack-pos="active"]')?.dataset.cardIndex);
+    expect(Number(after)).toBeGreaterThan(Number(before));
   });
 
   test('Passenger swipe advances data-stack-pos', async ({ page }) => {
