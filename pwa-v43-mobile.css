@@ -86,6 +86,12 @@
   /* Comfortable default tap target for buttons/links inside content */
   .content button, .settings-row button, .now-actions button { min-height: 40px; }
 
+  /* Bigger tap targets for disclosure toggles + checklist rows (24px → ~40px). */
+  .step-conditions-summary,
+  .pack-trip > summary { min-height: 38px; display: flex; align-items: center; gap: 8px; }
+  .pack-grp label { padding: 4px 0; align-items: center; }
+  .pack-grp input { width: 18px; height: 18px; }
+
   /* Compact "Roadside" scenery cards so the Driver list isn't endless on big
      gravel days — keep the every-5 km roadside view, just denser. */
   .drive-card.card-scenery { padding: 8px 12px; }
