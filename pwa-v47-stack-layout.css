@@ -7,6 +7,62 @@
 /* ---- Hero collapse on live tabs ----------------------------------------- */
 body.drive-focus .hero { display: none; }
 
+/* The aside panel (Assumptions + a Google mini-map) doesn't belong on the
+   Settings tab — the map keeps showing a static "your key" preview that's
+   noise next to the API-key form. Hide it there. (drive-focus already hides
+   the entire aside on Driver/Passenger.) */
+body.tab-settings .grid > aside { display: none; }
+
+/* ---- Route-conditions strip above the live map (Driver + Passenger) ---- */
+/* A skinny horizontal road-conditions bar (re-uses v38's hbar segments) sits
+   flush above the map and shows two live pointers — the current turn-leg's
+   start (green) and end (red) — moved by applyStack on every card change. */
+.route-cond-strip {
+  position: relative;
+  flex: 0 0 auto;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+}
+.route-cond-strip .hbar {
+  position: absolute; inset: 4px 8px 4px 8px;
+  margin: 0; padding: 0;
+}
+.route-cond-strip .hbar-track {
+  height: 8px; border-radius: 999px; overflow: hidden;
+}
+.route-cond-strip .hbar-row,
+.route-cond-strip .hbar-row.hbar-speedrow,
+.route-cond-strip .hbar-row.hbar-stoprow,
+.route-cond-strip .hbar-surftrack,
+.route-cond-strip .hbar-stoptrack,
+.route-cond-strip .hbar-speedtrack,
+.route-cond-strip .hbar-stop,
+.route-cond-strip .hbar-press { display: none !important; }
+.route-cond-strip .hbar-here { font-size: 9px; line-height: 1; top: -8px; }
+.route-cond-strip .rcs-marker {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 10px; margin-left: -5px;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+.route-cond-strip .rcs-marker::before {
+  content: '';
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #178a3a;          /* start = green */
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25);
+}
+.route-cond-strip .rcs-marker.rcs-end::before { background: #b3261e; }
+body.drive-focus .drive-dashboard .drive-map,
+body.drive-focus .pass-shell .pass-map { margin-top: 0; }
+body.drive-focus .route-cond-strip { order: 2; }
+
 /* ---- Lock the whole stack of containers to viewport height -------------- */
 /* pwa-v43 already pins html/body/#app/.app-shell to 100dvh on phones. We
    extend that down through .grid → .panel → #tabContent → .drive-dashboard /
@@ -173,8 +229,9 @@ body.drive-focus .hbar-track { display: none; }
 
 body.drive-focus .drive-map,
 body.drive-focus .pass-map {
-  order: 2;
-  flex: 1 1 0 !important;
+  order: 3;
+  /* 40% of the flexible space (4 + 6 grow factors). Deck claims 60%. */
+  flex: 4 1 0 !important;
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
@@ -186,8 +243,8 @@ body.drive-focus .pass-map {
 /* ---- Stack deck: cards live on top of each other, not in a row --------- */
 body.drive-focus .drive-cards[data-stack="1"],
 body.drive-focus .pass-deck[data-stack="1"] {
-  order: 3;
-  flex: 1 1 0 !important;
+  order: 4;
+  flex: 6 1 0 !important;
   min-height: 0 !important;
   max-height: none !important;
   /* Override v45's row-flex/overflow-x/snap rules. */

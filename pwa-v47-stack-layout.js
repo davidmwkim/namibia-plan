@@ -57,6 +57,67 @@
       + (note ? `<span class="rss-note">${esc(note)}</span>` : '');
   }
 
+  // Route-conditions preview strip: a thin colored bar (re-uses v38's
+  // heatherBarHtml output) sitting flush above the live map on Driver and
+  // Passenger. Two absolute markers indicate where on the route the active
+  // turn-leg starts (green) and ends (red), so the user can glance at the
+  // strip and see "this leg covers THIS portion of the day".
+  function ensureCondStrip(host) {
+    if (!host) return null;
+    let strip = host.querySelector(':scope > .route-cond-strip');
+    if (strip) return strip;
+    strip = document.createElement('div');
+    strip.className = 'route-cond-strip';
+    // hbar HTML from v38; if missing, just render an empty track.
+    const route = curRoute();
+    const V38 = window.NamibiaV38;
+    let bar = '';
+    try {
+      bar = (V38 && V38.heatherBarHtml) ? V38.heatherBarHtml(route, { compact: true, showHere: false }) : '';
+    } catch (_) { bar = ''; }
+    if (!bar) bar = '<div class="hbar hbar-compact"><div class="hbar-row"><div class="hbar-track"></div></div></div>';
+    strip.innerHTML = bar
+      + '<span class="rcs-marker rcs-start" style="left:0%"></span>'
+      + '<span class="rcs-marker rcs-end" style="left:0%"></span>';
+    // Insert before the map host inside the dashboard/shell.
+    const map = host.querySelector(':scope > .drive-map, :scope > .pass-map');
+    if (map) host.insertBefore(strip, map);
+    else host.appendChild(strip);
+    return strip;
+  }
+  function updateCondStripMarkers(host, startLL, endLL) {
+    const strip = host && host.querySelector(':scope > .route-cond-strip');
+    if (!strip) return;
+    const route = curRoute();
+    const path = route && route.overviewPath;
+    if (!path || path.length < 2) return;
+    const DC = window.NamibiaDrivingCore;
+    if (!DC || !DC.routeProgressM) return;
+    let total = 0;
+    try { total = DC.routeProgressM(path, path[path.length - 1]) || 0; } catch (_) {}
+    if (total <= 0) return;
+    function frac(ll) {
+      if (!ll || typeof ll.lat !== 'number') return null;
+      try {
+        const m = DC.routeProgressM(path, ll);
+        if (!isFinite(m)) return null;
+        return Math.max(0, Math.min(1, m / total));
+      } catch (_) { return null; }
+    }
+    const fs = frac(startLL);
+    const fe = frac(endLL);
+    const s = strip.querySelector('.rcs-start');
+    const e = strip.querySelector('.rcs-end');
+    if (s) {
+      if (fs === null) s.style.display = 'none';
+      else { s.style.display = ''; s.style.left = (fs * 100).toFixed(2) + '%'; }
+    }
+    if (e) {
+      if (fe === null) e.style.display = 'none';
+      else { e.style.display = ''; e.style.left = (fe * 100).toFixed(2) + '%'; }
+    }
+  }
+
   // ---- Card → step lookup ----------------------------------------------------
   function stepFromCard(card, isPass) {
     const r = curRoute();
@@ -139,18 +200,23 @@
     const step = stepFromCard(card, isPass);
     const ll = cardLatLng(card);
     const turn = isTurnCard(card);
+    let startLL = null, endLL = null;
     if (turn && step && typeof step.endLat === 'number' && typeof step.endLng === 'number') {
-      const start = { lat: Number(step.lat), lng: Number(step.lng) };
-      const end = { lat: Number(step.endLat), lng: Number(step.endLng) };
-      if (isPass) setPassengerPins(start, end);
-      else if (window.NamibiaOsmMap && window.NamibiaOsmMap.setLegPins) window.NamibiaOsmMap.setLegPins(start, end);
+      startLL = { lat: Number(step.lat), lng: Number(step.lng) };
+      endLL = { lat: Number(step.endLat), lng: Number(step.endLng) };
+      if (isPass) setPassengerPins(startLL, endLL);
+      else if (window.NamibiaOsmMap && window.NamibiaOsmMap.setLegPins) window.NamibiaOsmMap.setLegPins(startLL, endLL);
     } else {
       if (isPass) setPassengerPins(null, null);
       else if (window.NamibiaOsmMap && window.NamibiaOsmMap.clearLegPins) window.NamibiaOsmMap.clearLegPins();
       if (ll && window.NamibiaOsmMap && window.NamibiaOsmMap.setRouteDot && !isPass) {
         window.NamibiaOsmMap.setRouteDot(ll.lat, ll.lng, true);
       }
+      startLL = ll;
     }
+    // Mirror those positions on the route-conditions strip above the map.
+    const host = isPass ? document.querySelector('.pass-shell') : document.querySelector('.drive-dashboard');
+    updateCondStripMarkers(host, startLL, endLL);
   }
 
   // ---- Stack tagging ---------------------------------------------------------
@@ -239,6 +305,14 @@
              : (Math.abs(dy) > Math.abs(dx) + 4) ? 'y'
              : 'x';
         if (axis === 'x') { dragging = true; active.classList.add('drag'); }
+        else if (axis === 'y') {
+          // User wants to scroll inside the card. Detach our document-level
+          // listeners NOW so the browser's native scroll picks up the
+          // remainder of the touchstream cleanly.
+          active = null; axis = null; dragging = false; pid = null; srcKind = null;
+          detach();
+          return;
+        }
       }
       if (axis !== 'x') return;
       if (e && e.cancelable) { try { e.preventDefault(); } catch (_) {} }
@@ -413,6 +487,7 @@
     const aci = state.driving && state.driving.activeCardIndex;
     if (typeof aci === 'number' && aci >= 0) idx.drive = aci;
     wireGesture(deck, false);
+    ensureCondStrip(document.querySelector('.drive-dashboard'));
     applyStack(deck, false);
     const mapHost = document.getElementById('driveMapHost');
     const getter = () => window.NamibiaOsmMap && window.NamibiaOsmMap.getMap && window.NamibiaOsmMap.getMap();
@@ -424,6 +499,7 @@
     if (!deck) return;
     if (deck.dataset.stack !== '1') deck = takeOverDeck(deck);
     wireGesture(deck, true);
+    ensureCondStrip(document.querySelector('.pass-shell'));
     applyStack(deck, true);
     const mapHost = document.getElementById('passMapHost');
     const getter = () => window.NamibiaDriveDeck && window.NamibiaDriveDeck.getPassMap && window.NamibiaDriveDeck.getPassMap();
@@ -432,6 +508,13 @@
   }
 
   function run() {
+    // Mirror the active tab on body for tab-specific CSS (e.g. hide the
+    // aside mini-map on Settings, where it's just noise next to the
+    // API-key form).
+    try {
+      const tab = state && state.activeTab;
+      document.body.classList.toggle('tab-settings', tab === 'settings');
+    } catch (_) {}
     ensureSummaryStrip();
     if (!inFocus()) return;
     if (state.activeTab === 'street') {
