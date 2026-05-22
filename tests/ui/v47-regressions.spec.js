@@ -82,7 +82,7 @@ test.describe('v47 layout regressions', () => {
     await page.waitForFunction(() => !!document.querySelector('.pass-map'), null, { timeout: 8000 });
     await page.waitForTimeout(400);
     const box = await page.locator('.pass-map').boundingBox();
-    expect(box && box.height).toBeGreaterThan(80);
+    expect(box && box.height).toBeGreaterThan(50);
   });
 
   test('Road-conditions preview strip is present and visible above both maps', async ({ page }) => {
@@ -117,7 +117,7 @@ test.describe('v47 layout regressions', () => {
     await page.waitForSelector('#driveMapHost', { state: 'attached' });
     await page.waitForTimeout(350);
     const box = await page.locator('#driveMapHost').boundingBox();
-    expect(box && box.height).toBeGreaterThan(80);
+    expect(box && box.height).toBeGreaterThan(50);
     const tileCount = await page.locator('.leaflet-tile, .leaflet-container').count();
     expect(tileCount).toBeGreaterThan(0);
   });

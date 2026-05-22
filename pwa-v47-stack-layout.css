@@ -243,8 +243,9 @@ body.drive-focus .hbar-track { display: none; }
 body.drive-focus .drive-map,
 body.drive-focus .pass-map {
   order: 3;
-  /* 40% of the flexible space (4 + 6 grow factors). Deck claims 60%. */
-  flex: 4 1 0 !important;
+  /* 20% of the flexible space (2 of 2+8). Deck claims 80% — cards are the
+     focal point on these tabs; the map is the at-a-glance reference. */
+  flex: 2 1 0 !important;
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
@@ -257,10 +258,13 @@ body.drive-focus .pass-map {
 body.drive-focus .drive-cards[data-stack="1"],
 body.drive-focus .pass-deck[data-stack="1"] {
   order: 4;
-  flex: 6 1 0 !important;
+  flex: 8 1 0 !important;
   min-height: 0 !important;
   max-height: none !important;
-  /* Override v45's row-flex/overflow-x/snap rules. */
+  /* Tinder-stack visual: one card on top, peek of the next behind it.
+     Horizontal swipe advances; vertical pan scrolls the active card's
+     overflow-y content with native momentum (touch-action: pan-y means
+     the browser handles vertical, JS handles horizontal). */
   display: block;
   position: relative;
   overflow: hidden;
@@ -282,15 +286,16 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card {
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--line, #ece3df);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  /* Tall step details (Heather rating, road conditions panels) scroll
+     INSIDE the card with native momentum. touch-action: pan-y on the
+     deck means vertical pan reaches the card's scroller cleanly. */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* Hide by default — the only visible cards are the active and the two behind. */
   display: none;
   transform-origin: bottom center;
   will-change: transform, opacity;
   transition: transform .22s cubic-bezier(.2,.7,.2,1), opacity .22s ease;
 }
-/* Active card — front, full size, no offset. */
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="active"],
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="active"] {
   display: block;
@@ -298,7 +303,6 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="active"
   z-index: 3;
   opacity: 1;
 }
-/* Peek behind — a thin sliver shows below the active card. */
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="next"],
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="next"] {
   display: block;
@@ -315,7 +319,6 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="next2"]
   opacity: 0.85;
   filter: brightness(0.92);
 }
-/* Going-back card (one before active) sits behind to the left. */
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="prev"],
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="prev"] {
   display: block;
@@ -324,8 +327,6 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="prev"] 
   opacity: 0;
   pointer-events: none;
 }
-/* While the active card is being dragged, kill the transition so it tracks
-   the finger 1:1. JS removes this class on pointerup so the snap animates. */
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card.drag,
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card.drag { transition: none; }
 

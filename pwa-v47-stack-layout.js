@@ -219,7 +219,7 @@
     updateCondStripMarkers(host, startLL, endLL);
   }
 
-  // ---- Stack tagging ---------------------------------------------------------
+  // ---- Stack tagging (Tinder-stack: only active + 2 peeks visible) ----------
   function applyStack(deck, isPass) {
     const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
     const total = cards.length;
@@ -236,6 +236,11 @@
       else if (k === i - 1) pos = 'prev';
       c.dataset.stackPos = pos;
     });
+    // Reset the active card's internal scroll position so each new card
+    // starts at the top of its content (otherwise scroll bleed between
+    // cards reads as broken).
+    const activeC = cards[i];
+    if (activeC) { try { activeC.scrollTop = 0; } catch (_) {} }
     // Corner counter pill (inside the deck, top-right). The v45 .deck-nav
     // row is hidden in stack mode — swipe drives navigation — so the count
     // moves into this tiny badge to reclaim the bottom strip of real estate.
@@ -297,18 +302,21 @@
       const dx = x - startX;
       const dy = y - startY;
       if (axis === null) {
-        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
-        // Strong horizontal bias: as long as |dx| > |dy| we treat it as a
-        // swipe. Only obvious vertical drag (|dy| > |dx| + 4) hands the
-        // gesture to the card's internal scroll.
-        axis = (Math.abs(dx) > Math.abs(dy)) ? 'x'
-             : (Math.abs(dy) > Math.abs(dx) + 4) ? 'y'
-             : 'x';
+        // Wait until the gesture has clearly committed to a direction so a
+        // hesitant start doesn't get mis-classified. 8 px tolerance feels
+        // natural without being laggy.
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        // Vertical bias: any time |dy| > |dx| (even slightly), defer to the
+        // browser's native scroll so a casual upward flick reads as scroll
+        // and not as a "stay-put-near-zero" failed swipe. Only when the
+        // horizontal component dominates do we own the gesture.
+        axis = (Math.abs(dx) > Math.abs(dy)) ? 'x' : 'y';
         if (axis === 'x') { dragging = true; active.classList.add('drag'); }
-        else if (axis === 'y') {
-          // User wants to scroll inside the card. Detach our document-level
-          // listeners NOW so the browser's native scroll picks up the
-          // remainder of the touchstream cleanly.
+        else {
+          // User is scrolling inside the card. Detach the document-level
+          // listeners NOW so the browser's native scroll + momentum picks
+          // up the remainder of the touchstream without our handler in the
+          // hot path. Next touch starts a fresh classification.
           active = null; axis = null; dragging = false; pid = null; srcKind = null;
           detach();
           return;
@@ -338,6 +346,9 @@
         const sign = dir > 0 ? -1 : 1;
         const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
         const card = active;
+        // Double-RAF: lets the .drag class removal commit a frame BEFORE
+        // the new transform is set, so the browser sees a transition from
+        // current drag position → off-screen instead of snapping.
         requestAnimationFrame(() => requestAnimationFrame(() => {
           card.style.transform = tx;
         }));
@@ -350,17 +361,6 @@
       detach();
     }
     function abort() {
-      // Browser claimed the gesture (e.g. for system back). If we'd already
-      // committed to horizontal AND the finger had travelled at all, treat
-      // it as an end with whatever position we last saw — better to commit
-      // a clear swipe than to snap a near-finished one back.
-      if (active && dragging) {
-        // We don't have a clientX here — synthesize from the last transform.
-        const m = String(active.style.transform || '').match(/translateX\(([-\d.]+)px\)/);
-        const dxLast = m ? Number(m[1]) : 0;
-        end(startX + dxLast, Date.now());
-        return;
-      }
       if (active) { active.classList.remove('drag'); active.style.transform = ''; }
       active = null; axis = null; dragging = false; pid = null; srcKind = null;
       detach();
@@ -477,10 +477,17 @@
       } catch (_) {}
     }));
   }
+  // Debounce so a single layout reflow doesn't fire 5+ invalidateSize calls,
+  // which was making Leaflet render "all weird" (tiles loading at stale
+  // sizes, polylines jumping during the same animation frame).
   function observeMap(host, getter) {
     if (!host || host.__v47Obs) return;
     if (typeof ResizeObserver === 'undefined') return;
-    const obs = new ResizeObserver(() => pokeMap(getter));
+    let pending = null;
+    const obs = new ResizeObserver(() => {
+      if (pending) return;
+      pending = setTimeout(() => { pending = null; pokeMap(getter); }, 120);
+    });
     obs.observe(host);
     host.__v47Obs = obs;
   }
