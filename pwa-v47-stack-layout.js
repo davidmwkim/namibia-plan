@@ -474,14 +474,17 @@
     // Deck-level entry points.
     deck.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      // Skip Pointer if a Touch sequence is already in progress (Android may
-      // fire both).
+      // On many mobile browsers a finger can emit BOTH pointer and touch
+      // streams for the same gesture. Use touch as the single source of truth
+      // for finger input so one swipe can't be split across two handlers.
+      if (e.pointerType === 'touch') return;
       if (srcKind === 'touch') return;
       if (begin(e.clientX, e.clientY, e.timeStamp, 'pointer', e.pointerId)) attach();
     }, { passive: true });
     deck.addEventListener('touchstart', (e) => {
       const t = e.touches && e.touches[0];
       if (!t) return;
+      if (srcKind) return;
       if (begin(t.clientX, t.clientY, e.timeStamp, 'touch', null)) attach();
     }, { passive: true });
 
