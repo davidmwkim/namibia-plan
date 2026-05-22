@@ -139,9 +139,22 @@
       if (idx < 0 || nextIdx < 0 || nextIdx >= TAB_ORDER.length) { reset(); return; }
       slideTransition(node, dir, () => changeTab(dir));
     };
-    el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; if (isNoSwipeTarget(e.target)) return; const t = e.touches[0]; const w = window.innerWidth; if (t.clientX < 20 || t.clientX > w - 20) return; onStart(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      if (isNoSwipeTarget(e.target)) return;
+      const t = e.touches[0];
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      // Leave the bottom system-gesture zone alone. On Android/iOS this is
+      // often where the OS back/home app-switcher bar lives; starting a tab
+      // swipe there can trap our drag state and make the UI feel "frozen".
+      if (t.clientY > h - 44) return;
+      if (t.clientX < 20 || t.clientX > w - 20) return;
+      onStart(t.clientX, t.clientY);
+    }, { passive: true });
     el.addEventListener('touchmove', e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive: true });
     el.addEventListener('touchend', e => { const t = e.changedTouches[0]; if (t) onEnd(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchcancel', () => { active = false; dragging = false; reset(); }, { passive: true });
     el.addEventListener('mousedown', e => { if (isNoSwipeTarget(e.target)) return; onStart(e.clientX, e.clientY); });
     window.addEventListener('mousemove', e => { if (active) onMove(e.clientX, e.clientY); });
     window.addEventListener('mouseup', e => { if (active) onEnd(e.clientX, e.clientY); });
@@ -190,6 +203,8 @@
       if (e.touches.length !== 1) return;
       const t = e.touches[0];
       const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (t.clientY > h - 44) return; // preserve OS bottom-nav gestures
       if (t.clientX < 20 || t.clientX > w - 20) return; // leave edge for iOS back-swipe
       startX = t.clientX;
       startY = t.clientY;
