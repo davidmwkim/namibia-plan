@@ -76,13 +76,28 @@
                              // "behind the chevron" (Google-nav driver's view)
   const NAV_PERSPECTIVE = 900; // px; smaller = stronger perspective
   let navHeading = 0;        // smoothed heading the map is rotated to (deg, 0 = N)
+  // CSS transitions interpolate transforms LITERALLY (rotate(355deg) →
+  // rotate(5deg) animates -350°, i.e. a full backwards spin, not the short
+  // 10° forward path). Track a separate UNBOUNDED accumulator that only
+  // ever changes by the short angular delta so the rendered rotation never
+  // wraps. navHeading stays 0–360 for compass math; navHeadingApplied is
+  // what we hand to CSS.
+  let navHeadingApplied = 0;
   let navLastGps = null;     // previous fix, for movement bearing
   let navFollow = true;      // true = follow + heading-up + tilt; false = free look
   let onResize = null;
 
+  // Update navHeadingApplied to track navHeading via the shortest angular
+  // delta — that's what stops the map (and chevron) from spinning when the
+  // smoothed heading crosses the 0/360 boundary.
+  function rebaseAppliedHeading() {
+    const diff = ((navHeading - navHeadingApplied + 540) % 360) - 180;
+    navHeadingApplied += diff;
+  }
+
   // The CSS transform for the live nav camera (3-D tilt + heading-up rotation).
   function followTransform() {
-    return `perspective(${NAV_PERSPECTIVE}px) rotateX(${NAV_TILT}deg) rotate(${(-navHeading).toFixed(1)}deg)`;
+    return `perspective(${NAV_PERSPECTIVE}px) rotateX(${NAV_TILT}deg) rotate(${(-navHeadingApplied).toFixed(1)}deg)`;
   }
   // Device compass (magnetometer) — the real "which way is the phone pointing".
   let compassHeading = null;
@@ -331,6 +346,9 @@
           if (moved > 6) navHeading = lerpAngle(navHeading, DC.bearing(navLastGps, state.gps), 0.22);
         }
         navLastGps = { lat: state.gps.lat, lng: state.gps.lng };
+        // Re-base the unbounded accumulator AFTER every navHeading change
+        // so the CSS transform never sees a 350° jump.
+        rebaseAppliedHeading();
       }
       // The chevron is a marker ON the map at the GPS, so it can never drift
       // from the dot/route. Its triangle is rotated to the heading; the tilted
@@ -347,7 +365,10 @@
       }
       const el = chevMarker.getElement && chevMarker.getElement();
       const rotEl = el && el.querySelector('.df-chev-rot');
-      if (rotEl) rotEl.style.transform = `rotate(${navHeading.toFixed(1)}deg)`;
+      // Chevron uses the accumulator too so it stays in lock-step with the
+      // map's rotation across the 0/360 wrap (otherwise the triangle would
+      // snap 350° while the map smoothly transitions).
+      if (rotEl) rotEl.style.transform = `rotate(${navHeadingApplied.toFixed(1)}deg)`;
 
       // Drive the follow camera only when following — in free-look the user owns
       // the view (flat north-up, wherever they panned, with "Re-center" up).
