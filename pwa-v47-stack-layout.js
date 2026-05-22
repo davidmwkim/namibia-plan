@@ -234,6 +234,12 @@
         if (axis === 'x') { dragging = true; active.classList.add('drag'); }
       }
       if (axis !== 'x') return;
+      // Once we own the horizontal gesture, preventDefault on every move
+      // tells the browser NOT to claim it for vertical pan / native scroll.
+      // Without this, the browser fires pointercancel mid-swipe whenever the
+      // finger drifts a few px vertically — the cause of the "card jumps
+      // back" symptom the user reported. This requires a non-passive listener.
+      if (e.cancelable) { try { e.preventDefault(); } catch (_) {} }
       // Track 1:1 with a small tilt.
       const rot = Math.max(-12, Math.min(12, dx / 18));
       active.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
@@ -248,7 +254,10 @@
       const w = deck.clientWidth || 1;
       const flick = Math.abs(dx) / dt; // px/ms
       let dir = 0;
-      if (Math.abs(dx) > w * 0.25 || flick > 0.3) dir = (dx < 0) ? 1 : -1;
+      // 15% of deck width OR a 0.25 px/ms flick is enough to commit. The old
+      // 25% threshold felt heavy on a 393-wide deck (98 px to commit a card);
+      // 15% is ~59 px which matches Material's natural "card swipe" feel.
+      if (Math.abs(dx) > w * 0.15 || flick > 0.25) dir = (dx < 0) ? 1 : -1;
       // Animate off-screen for the swipe direction, then restack.
       if (dir !== 0) {
         active.classList.remove('drag');
@@ -274,13 +283,37 @@
     }
     function cancel(e) {
       if (pid === null || e.pointerId !== pid) return;
+      // If we'd already locked to a horizontal swipe and the finger has
+      // travelled at least 10% of the deck width, treat the cancellation
+      // as a commit instead of a snap-back — the browser claiming the
+      // gesture mid-swipe is the most common cause of the "card jumps
+      // back" symptom, and the user clearly intended to advance.
+      if (axis === 'x' && active) {
+        const dx = e.clientX - startX;
+        const w = deck.clientWidth || 1;
+        if (Math.abs(dx) > w * 0.10) {
+          const dir = dx < 0 ? 1 : -1;
+          const sign = -dir;
+          const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
+          const card = active;
+          card.classList.remove('drag');
+          requestAnimationFrame(() => requestAnimationFrame(() => { card.style.transform = tx; }));
+          setTimeout(() => { step(deck, isPass, dir); }, 220);
+          pid = null; active = null; axis = null; dragging = false;
+          return;
+        }
+      }
       pid = null;
       if (active) { active.classList.remove('drag'); active.style.transform = ''; }
       active = null; axis = null; dragging = false;
     }
 
     deck.addEventListener('pointerdown', onDown, { passive: true });
-    deck.addEventListener('pointermove', onMove, { passive: true });
+    // pointermove is NON-passive so onMove can preventDefault() once the
+    // axis is locked to horizontal. Without this the browser claims the
+    // gesture for vertical pan on the slightest vertical drift, fires
+    // pointercancel, and the card snaps back instead of advancing.
+    deck.addEventListener('pointermove', onMove, { passive: false });
     deck.addEventListener('pointerup', commit, { passive: true });
     deck.addEventListener('pointercancel', cancel, { passive: true });
 

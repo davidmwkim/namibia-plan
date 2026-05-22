@@ -193,13 +193,16 @@ body.drive-focus .drive-cards[data-stack="1"] > .drive-card.drag,
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card.drag { transition: none; }
 
 /* In stack mode the deck IS the scrubber — swipe to advance, no nav row
-   needed. Hide both the v45 progress bar and the prev/counter/next row
-   so the map and the cards take the full 50/50. The card count moves
-   into a tiny pill in the top-right corner of the deck. */
-body.drive-focus .drive-cards[data-stack="1"] ~ .deck-progress,
-body.drive-focus .pass-deck[data-stack="1"] ~ .deck-progress,
-body.drive-focus .drive-cards[data-stack="1"] ~ .deck-nav,
-body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav { display: none !important; }
+   needed. Hide every v45 / v13 footer affordance (progress bar, prev/next
+   arrow row, and the step scrubber row) on the live tabs unconditionally
+   so it doesn't matter whether [data-stack="1"] has been stamped yet.
+   The card count lives in the top-right corner pill instead. */
+body.drive-focus .deck-progress,
+body.drive-focus .deck-nav,
+body.drive-focus .drive-dashboard .deck-progress,
+body.drive-focus .drive-dashboard .deck-nav,
+body.drive-focus .pass-shell .deck-progress,
+body.drive-focus .pass-shell .deck-nav { display: none !important; height: 0 !important; min-height: 0 !important; padding: 0 !important; margin: 0 !important; }
 
 .deck-corner-counter {
   position: absolute;
