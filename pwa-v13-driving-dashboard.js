@@ -254,11 +254,15 @@
     _scrubKey = key;
     return _scrubProg;
   }
-  function scrollCardListTo(el) {
+  // The deck is a HORIZONTAL swipe carousel (pwa-v45) — center the target card
+  // horizontally within the deck, scrolling ONLY the deck (never the page).
+  function scrollCardListTo(el, smooth) {
     const host = el && el.closest && el.closest('.drive-cards');
     if (!host) return;
-    const top = el.offsetTop - host.offsetTop - Math.max(12, (host.clientHeight - el.clientHeight) / 2);
-    host.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+    if (typeof host.scrollTo !== 'function') return;
+    const hr = host.getBoundingClientRect(), er = el.getBoundingClientRect();
+    const delta = (er.left - hr.left) - (host.clientWidth - el.clientWidth) / 2;
+    host.scrollTo({ left: Math.max(0, host.scrollLeft + delta), behavior: smooth ? 'smooth' : 'auto' });
   }
   function scrubTo(frac) {
     const d = (typeof day === 'function') ? day() : null;
@@ -652,9 +656,7 @@
     if ((state.driving.demoMode || state.driving.requestCenterScroll) && scrollChanged && state.driving.activeCardIndex >= 0) {
       state.driving.requestCenterScroll = false;
       const target = host.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
-      if (target && target.scrollIntoView) {
-        target.scrollIntoView({ behavior: state.driving.demoMode ? 'auto' : 'smooth', block: 'center' });
-      }
+      if (target) scrollCardListTo(target, !state.driving.demoMode);
     }
   }
 
@@ -833,7 +835,7 @@
     if (centerBtn) centerBtn.onclick = () => {
       if (state.driving.activeCardIndex < 0) return;
       const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
-      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (target) scrollCardListTo(target, true);
     };
   }
 
@@ -873,7 +875,7 @@
     // unless the user clicks "📍 Center".
     if (state.driving.activeCardIndex >= 0) {
       const target = document.querySelector(`[data-card-index="${state.driving.activeCardIndex}"]`);
-      if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' });
+      if (target) scrollCardListTo(target, false);
     }
   });
 

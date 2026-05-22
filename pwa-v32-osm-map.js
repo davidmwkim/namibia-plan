@@ -20,6 +20,7 @@
   let boundHost = null;
   let lastDrawnDayKey = null;
   let lastRouteBounds = null;
+  let routeDotMarker = null;
 
   function hasLeaflet() { return typeof window.L !== 'undefined'; }
 
@@ -131,10 +132,33 @@
     if (window.NamibiaOSM) window.NamibiaOSM.unregisterMap(lMap);
     try { lMap.remove(); } catch (_) {}
     lMap = null; routeLayers = []; ready = false; lastDrawnDayKey = null;
+    routeDotMarker = null;
+  }
+
+  // Position dot for the swipe deck (v45): marks the card you've swiped to /
+  // your GPS-active card on the route. Created lazily, moved on each call.
+  function setRouteDot(lat, lng, pan) {
+    if (!lMap || !ready || !window.L) return;
+    const la = Number(lat), ln = Number(lng);
+    if (!isFinite(la) || !isFinite(ln)) return;
+    const ll = [la, ln];
+    if (!routeDotMarker || !lMap.hasLayer(routeDotMarker)) {
+      try {
+        routeDotMarker = window.L.circleMarker(ll, {
+          radius: 9, color: '#ffffff', weight: 3,
+          fillColor: '#5a1738', fillOpacity: 1,
+          className: 'route-dot-pin', pane: 'markerPane'
+        }).addTo(lMap);
+      } catch (_) { return; }
+    } else {
+      try { routeDotMarker.setLatLng(ll); } catch (_) {}
+    }
+    try { routeDotMarker.bringToFront(); } catch (_) {}
+    if (pan) { try { lMap.panTo(ll, { animate: true }); } catch (_) {} }
   }
 
   window.NamibiaOsmMap = {
-    takeOver, update, teardown,
+    takeOver, update, teardown, setRouteDot,
     _internals: () => ({ ready, hasMap: !!lMap, lastDrawnDayKey })
   };
 })();

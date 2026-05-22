@@ -1,0 +1,138 @@
+/* pwa-v45-drive-deck.css — Driver/Passenger live view: a prominent map up top
+   with a moving position dot, and a horizontal SWIPEABLE card deck below
+   (one card at a time) instead of a long vertical scroll. Plus a button/chip
+   cleanup so the driving UI reads calmer. Loaded last. */
+
+/* ---- De-clutter: while focused on the live Driver/Passenger view, hide the
+   redundant overview mini-map in the aside so the live map + cards lead and
+   there's far less to scroll past. ---- */
+body.drive-focus .grid > aside { display: none; }
+body.drive-focus .grid { display: block; }
+/* Keep the toolbar/tabs reachable; remove dead vertical space under the deck. */
+body.drive-focus .panel { padding-top: 8px; }
+
+/* ---- Compact status strip (was a ~276px block) ---- */
+.drive-sticky {
+  padding: 8px 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.drive-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ---- Cleaner buttons + chips (the "less ugly" pass) ---- */
+.drive-controls .ghost,
+.deck-nav button {
+  border: 1px solid var(--line, #ece3df);
+  background: #fff;
+  color: var(--brand, #5a1738);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-weight: 600;
+  font-size: 12.5px;
+  min-height: 36px;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background .12s ease, transform .08s ease;
+}
+.drive-controls .ghost:active,
+.deck-nav button:active { background: rgba(90, 23, 56, 0.09); transform: scale(0.97); }
+.drive-controls .ghost[aria-pressed="false"] { color: #b4541f; border-color: #f0d8c8; }
+
+.chip.gps-chip {
+  background: rgba(90, 23, 56, 0.07);
+  color: var(--brand, #5a1738);
+  border: none;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.sun-chip {
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 12px;
+  background: rgba(90, 23, 56, 0.05);
+}
+.sun-chip.sun-risk { background: #fdecec; color: #b3261e; }
+.sun-chip.sun-tight { background: #fff4e5; color: #9a5b00; }
+.sun-chip.sun-predawn { background: #eef2ff; color: #3b3b8f; }
+
+/* ---- Prominent map with the position dot ---- */
+.drive-map {
+  height: 42vh;
+  min-height: 230px;
+  max-height: 420px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+.route-dot-pin {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* ---- Horizontal swipe deck ---- */
+.drive-cards {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 12px;
+  padding: 10px 2px 6px;
+  scroll-padding-inline: 7%;
+  scrollbar-width: none;
+}
+.drive-cards::-webkit-scrollbar { display: none; }
+.drive-cards > .drive-card {
+  flex: 0 0 86%;
+  max-width: 86%;
+  scroll-snap-align: center;
+  margin: 0 !important;
+  align-self: flex-start;
+}
+/* The GPS-active card gets a clear brand outline so "where you are" is obvious. */
+.drive-cards > .drive-card.card-active {
+  outline: 2.5px solid var(--brand, #5a1738);
+  outline-offset: -1px;
+}
+
+/* ---- Deck nav footer: ‹  3 / 31  ›  + thin progress fill ---- */
+.deck-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 6px 4px 2px;
+}
+.deck-nav button { width: 44px; padding: 0; font-size: 18px; }
+.deck-counter {
+  font-weight: 700;
+  color: var(--brand, #5a1738);
+  font-size: 13px;
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.deck-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line, #ece3df);
+  margin: 2px 6px 4px;
+  overflow: hidden;
+}
+.deck-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--brand, #5a1738);
+  border-radius: 999px;
+  transition: width .2s ease;
+}
