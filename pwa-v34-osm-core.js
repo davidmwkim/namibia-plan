@@ -312,14 +312,7 @@
 
   // Repaint the GPS layer on every render pass (covers tab switches + normal
   // GPS updates). Cheap + idempotent (just moves existing markers).
-  if (typeof render === 'function') {
-    const baseRender = render;
-    render = function patchedRenderV34() {
-      const r = baseRender.apply(this, arguments);
-      try { updateAllGps(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () { try { updateAllGps(); } catch (_) {} });
 
   window.NamibiaOSM = {
     hasLeaflet, createMap, drawColoredRoute, addStopPins,

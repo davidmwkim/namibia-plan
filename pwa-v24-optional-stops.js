@@ -171,15 +171,10 @@
   function tryApply() {
     try { applyForDay(); } catch (_) {}
   }
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV24() {
-      const r = base();
-      // Defer slightly so the map markers + state.map are ready.
-      setTimeout(tryApply, 0);
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () {
+    // Defer slightly so the map markers + state.map are ready.
+    setTimeout(tryApply, 0);
+  });
   // Also trigger when Google finishes loading later.
   document.addEventListener('visibilitychange', tryApply);
   setTimeout(tryApply, 1500);

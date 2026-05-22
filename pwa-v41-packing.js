@@ -293,10 +293,7 @@
   });
 
   window.NamibiaUI.afterRenderTab(function () { try { inject(); } catch (_) {} });
-  if (typeof render === 'function') {
-    const baseR = render;
-    render = function patchedRenderV41() { const r = baseR.apply(this, arguments); try { inject(); } catch (_) {} return r; };
-  }
+  window.NamibiaUI.afterRender(function () { try { inject(); } catch (_) {} });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { inject(); } catch (_) {} } });
   setTimeout(() => { try { inject(); } catch (_) {} }, 400);
 

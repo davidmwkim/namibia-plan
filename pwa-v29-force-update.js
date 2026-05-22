@@ -96,14 +96,7 @@
     else toolbar.appendChild(btn);
   }
 
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV29() {
-      const r = base();
-      try { injectButton(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () { try { injectButton(); } catch (_) {} });
   // Also inject on initial load + a brief delay (toolbar paints quickly).
   injectButton();
   setTimeout(injectButton, 1000);

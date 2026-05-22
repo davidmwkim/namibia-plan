@@ -43,13 +43,6 @@
   }
 
   // Run after each render so we keep things tidy even if app.js / v8 re-inject.
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV20() {
-      const r = base();
-      relocate();
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(relocate);
   relocate();
 })();

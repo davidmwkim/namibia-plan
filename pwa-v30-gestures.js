@@ -263,14 +263,7 @@
   });
   window.addEventListener('resize', () => { try { updateTabIndicator(); } catch (_) {} });
 
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV30() {
-      const r = base();
-      try { inject(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () { try { inject(); } catch (_) {} });
   inject();
   setTimeout(inject, 500);
   setTimeout(inject, 2000);

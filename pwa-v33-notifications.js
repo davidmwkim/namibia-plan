@@ -246,15 +246,10 @@
     updateToggle();
   }
 
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV33() {
-      const r = base();
-      try { injectToggle(); } catch (_) {}
-      try { hookGpsApproachAlerts(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () {
+    try { injectToggle(); } catch (_) {}
+    try { hookGpsApproachAlerts(); } catch (_) {}
+  });
   injectToggle();
   // Schedule morning briefs once on boot (the SW-triggered API handles
   // future days; in-page setTimeout handles today if it's still <07:00).

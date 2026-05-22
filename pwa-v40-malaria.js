@@ -130,14 +130,7 @@
   window.NamibiaUI.afterRenderTab(function () {
     try { decorateDaySelect(); injectDayIndicators(); } catch (_) {}
   });
-  if (typeof render === 'function') {
-    const baseR = render;
-    render = function patchedRenderV40() {
-      const r = baseR.apply(this, arguments);
-      try { injectBanner(); decorateDaySelect(); } catch (_) {}
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(function () { try { injectBanner(); decorateDaySelect(); } catch (_) {} });
   setTimeout(() => { try { injectBanner(); decorateDaySelect(); injectDayIndicators(); } catch (_) {} }, 400);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { try { injectBanner(); } catch (_) {} } });
 

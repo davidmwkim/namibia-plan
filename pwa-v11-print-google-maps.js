@@ -99,11 +99,7 @@
     if (stale) stale.remove();
   }
 
-  const baseRender = render;
-  render = function renderWithLargeMapHint() {
-    baseRender();
-    addMapHint();
-  };
+  window.NamibiaUI.afterRender(addMapHint);
 
   // Compact day itinerary for print: event end-times + synthesized downtime
   // (reusing v38), with the full tyre/fuel instruction kept inline so nothing

@@ -119,14 +119,7 @@ window.NAMIBIA_APP_VERSION = null;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectVersionChip);
   else injectVersionChip();
   // Hero may re-render via render() — re-inject if needed.
-  if (typeof render === 'function') {
-    const base = render;
-    render = function patchedRenderV27() {
-      const r = base();
-      injectVersionChip();
-      return r;
-    };
-  }
+  window.NamibiaUI.afterRender(injectVersionChip);
 
   // ---- Menu discovery ----
   const MENU_PATHS = [
