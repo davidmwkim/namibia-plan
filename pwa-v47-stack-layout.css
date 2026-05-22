@@ -243,9 +243,9 @@ body.drive-focus .hbar-track { display: none; }
 body.drive-focus .drive-map,
 body.drive-focus .pass-map {
   order: 3;
-  /* 30% of the flexible space (3 of 3+7). Wide enough to read at-a-glance
-     without competing with the cards. */
-  flex: 3 1 0 !important;
+  /* Map a hair smaller than the deck: 9 / 20 = 45% map, 11 / 20 = 55%
+     deck. Feels balanced — cards lead, map supports. */
+  flex: 9 1 0 !important;
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
@@ -258,7 +258,7 @@ body.drive-focus .pass-map {
 body.drive-focus .drive-cards[data-stack="1"],
 body.drive-focus .pass-deck[data-stack="1"] {
   order: 4;
-  flex: 7 1 0 !important;
+  flex: 11 1 0 !important;
   min-height: 0 !important;
   max-height: none !important;
   /* Continuous vertical scrolling deck (no snap) with full momentum.
