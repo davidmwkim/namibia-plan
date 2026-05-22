@@ -53,9 +53,11 @@ function googleMapsUrl(d=day()){
 function streetViewUrl(lat,lng,heading=0,size='600x320'){
   if(!state.apiKey) return '';
   // radius lets the Street View Static API snap to the nearest available
-  // panorama (defaults to 50m on the API; bump to 200m so remote-road turns
-  // still find a usable panorama instead of returning a "no imagery" tile).
-  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'default',radius:'800',return_error_code:'true',key:state.apiKey});
+  // panorama. Bump from 800m to 5000m: on rural Namibia (C24, C14, D707) the
+  // nearest pano can easily be several km off the road, and a far-away frame
+  // is much better than the "no imagery" placeholder. v12's candidate chain
+  // tries even wider radii (up to 12 km) for the per-step images.
+  const p=new URLSearchParams({size,location:`${lat},${lng}`,heading:String(Math.round(heading)),pitch:'0',fov:'80',source:'default',radius:'5000',return_error_code:'true',key:state.apiKey});
   return 'https://maps.googleapis.com/maps/api/streetview?'+p.toString();
 }
 function distMeters(a,b){

@@ -354,7 +354,7 @@
     } catch (_) {}
     const heading = state.driving?.heading ?? 0;
     if (window.NamibiaV12 && typeof window.NamibiaV12.streetViewUrlCandidates === 'function') {
-      return window.NamibiaV12.streetViewUrlCandidates([state.gps], heading, { radii: [120, 500, 1200, 2500] });
+      return window.NamibiaV12.streetViewUrlCandidates([state.gps], heading, { radii: [120, 500, 1500, 5000, 12000] });
     }
     return [];
   }

@@ -130,7 +130,12 @@
 
   function streetViewUrlCandidates(points, heading, opts = {}) {
     const pts = Array.isArray(points) ? points : [points];
-    const radii = opts.radii || [80, 250, 800, 2000];
+    // Rural Namibia has long stretches (C24, C14, D707) where the nearest
+    // Google panorama is 5-15 km away. The old 2 km cap silently returned
+    // "no imagery" for many cards. Widen the fallback chain so we keep
+    // trying further-out radii before giving up — a far-away pano is much
+    // better than nothing, and the SW caches the first 200 response.
+    const radii = opts.radii || [120, 500, 1500, 5000, 12000];
     const sources = opts.sources || ['outdoor', 'default'];
     const urls = [];
     for (const pt of pts) {
@@ -420,9 +425,11 @@
         step.intermediates = [];
         if (decoded.length >= 2) {
           let totalM = polylineDistanceM(decoded);
-          // 1 intermediate per ~30 km, max 5, only if the step itself > 25 km.
-          if (totalM > 25000) {
-            const n = Math.min(5, Math.floor(totalM / 30000));
+          // 1 intermediate per ~15 km, max 8, for any step >= 10 km. Denser
+          // sampling on the long B-road steps (50-85 km) means the active
+          // card's Street View has many more frames to snap to as GPS moves.
+          if (totalM > 10000) {
+            const n = Math.min(8, Math.floor(totalM / 15000));
             for (let k = 1; k <= n; k++) {
               const targetM = (totalM * k) / (n + 1);
               const pt = distAlong(decoded, 0, targetM);
@@ -430,7 +437,7 @@
               const aheadPt = distAlong(decoded, 0, Math.min(totalM, targetM + 80));
               const heading = (pt && aheadPt) ? DC.bearingForStreetView(pt, aheadPt) : step.heading;
               const urls = streetViewUrlCandidates(streetViewCandidatePoints(decoded, pt, totalM), heading, {
-                radii: [120, 500, 1200, 2500]
+                radii: [120, 500, 1500, 5000, 12000]
               });
               const url = urls[0] || stepStreetViewUrl(pt.lat, pt.lng, heading);
               if (!url) continue;     // skip entries with no URL (no API key at decoration time)
@@ -452,7 +459,11 @@
     // with the live key so it works offline once cached.
     route.svFrames = [];
     if (d.selfDrive && overviewPath.length >= 2) {
-      const STEP_M = 5000;
+      // Sample every 2.5 km (was 5 km). On a 250 km day that's ~100 frames,
+      // each cached as a single SW response — still well under quota. Denser
+      // sampling gives the deck many more scenery cards to draw from and the
+      // GPS-anchored Street View has a closer frame to snap to on average.
+      const STEP_M = 2500;
       let acc = 0, nextAt = 0;
       for (let i = 0; i < overviewPath.length; i++) {
         if (i > 0) acc += DC.distMeters(overviewPath[i - 1], overviewPath[i]);
@@ -464,7 +475,7 @@
           while (j + 1 < overviewPath.length && adv < 150) { adv += DC.distMeters(overviewPath[j], overviewPath[j + 1]); j++; }
           const ahead = overviewPath[j] || here;
           const heading = DC.bearingForStreetView(here, ahead);
-          const urls = streetViewUrlCandidates([here, ahead], heading, { radii: [120, 500, 1200, 2500] });
+          const urls = streetViewUrlCandidates([here, ahead], heading, { radii: [120, 500, 1500, 5000, 12000] });
           route.svFrames.push({ distM: Math.round(acc), lat: here.lat, lng: here.lng, heading, url: urls[0] || stepStreetViewUrl(here.lat, here.lng, heading), urls });
           nextAt = acc + STEP_M;
         }
