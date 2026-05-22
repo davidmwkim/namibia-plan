@@ -1,0 +1,145 @@
+/* pwa-v46-dark-mode.css — Dark theme. Activated by `data-theme="dark"` on the
+   <html> element (set by pwa-v46-dark-mode.js, persisted in localStorage, and
+   applied pre-paint by an inline script in index.html to avoid a flash).
+
+   Strategy: override the design tokens (both the modern pwa-v31 set AND the
+   legacy styles.css set). Most surfaces flow through these. Hardcoded white
+   backgrounds were converted to var(--bg-card) so they adapt automatically.
+   Map tiles are filtered to a dark style (route/markers are SVG overlays, not
+   tiles, so their colours are preserved). */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ---- modern tokens (pwa-v31) ---- */
+  --brand:        #c95f87;   /* medium rose: readable as accent AND as a
+                                white-text button background on dark */
+  --brand-tint:   #2b1a23;
+  --brand-deep:   #a8466b;
+  --green:        #34d399;
+  --amber:        #fbbf24;
+  --red:          #f87171;
+  --blue:         #60a5fa;
+  --bg-page:      #131216;
+  --bg-card:      #1f1e24;
+  --bg-muted:     #29272f;
+  --bg-subtle:    #1a191e;
+  --text-strong:  #f4f4f5;
+  --text-body:    #dad7df;
+  --text-muted:   #a9a4b0;
+  --text-soft:    #7d7886;
+  --line:         #36343d;
+  --line-soft:    #2a2830;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 10px 28px rgba(0, 0, 0, 0.6);
+  --shadow-focus: 0 0 0 3px rgba(201, 95, 135, 0.35);
+
+  /* ---- legacy tokens (styles.css) ---- */
+  --ink:    #f4f4f5;
+  --muted:  #a9a4b0;
+  --paper:  #131216;
+  --card:   rgba(31, 30, 36, 0.92);
+  --brand-2:#a8466b;
+  --sky:    #24343a;
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+
+  /* ---- misc names referenced with fallbacks in older CSS ---- */
+  --bg: #131216;
+  --bg-elev: #1f1e24;
+  --text: #f4f4f5;
+}
+
+html[data-theme="dark"] body { background: var(--bg-page); color: var(--text-body); }
+
+/* ---- Map: render the light OSM raster tiles as a dark basemap. Only the
+   TILE layer is filtered, so route polylines, pins and the position dot
+   (SVG overlay panes) keep their real colours. ---- */
+html[data-theme="dark"] .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.95) saturate(0.85);
+}
+html[data-theme="dark"] .leaflet-container { background: #15141a; }
+html[data-theme="dark"] .leaflet-control-zoom a,
+html[data-theme="dark"] .leaflet-bar a {
+  background: #26242c; color: #e6e3ea; border-color: #3a3842;
+}
+html[data-theme="dark"] .leaflet-control-attribution {
+  background: rgba(20, 19, 24, 0.75); color: #9a96a2;
+}
+html[data-theme="dark"] .leaflet-control-attribution a { color: #b9b4c2; }
+
+/* ---- Colored chips / alerts: swap the light pastels for dark tints ---- */
+html[data-theme="dark"] .sun-chip { background: rgba(255,255,255,0.05); }
+html[data-theme="dark"] .sun-chip.sun-risk   { background: #3a1d1d; color: #f7a8a8; }
+html[data-theme="dark"] .sun-chip.sun-tight  { background: #3a2f17; color: #f3cd86; }
+html[data-theme="dark"] .sun-chip.sun-predawn{ background: #1e2147; color: #aab4f3; }
+html[data-theme="dark"] .chip.gps-chip { background: rgba(201,95,135,0.16); }
+
+html[data-theme="dark"] .alert.red  { background: #3a1d1a; border-color: #6e342c; color: #f7b4ab; }
+html[data-theme="dark"] .alert.gold { background: #38301a; border-color: #6e5a2a; color: #f0d493; }
+html[data-theme="dark"] .alert.green{ background: #16291f; border-color: #2c5740; color: #9fe3bf; }
+html[data-theme="dark"] .badge.optional { background: #3a3320; color: #e7c98b; }
+
+/* Heather rating chips read on dark too (they use inline status colors for the
+   dot; just make sure their card background is dark). */
+html[data-theme="dark"] .step-conditions-body,
+html[data-theme="dark"] .demo-summary { background: var(--bg-muted); }
+
+/* ---- Form controls / the active-tab pill ---- */
+html[data-theme="dark"] select,
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea { background: var(--bg-muted); color: var(--text-body); border-color: var(--line); }
+html[data-theme="dark"] .tab.active { background: rgba(201, 95, 135, 0.16); }
+
+/* ---- Surfaces that used specific light hex/rgba (not plain #fff) and so
+   didn't auto-convert. Their text already inherits light, so darkening the
+   background is enough. ---- */
+html[data-theme="dark"] .malaria-card,
+html[data-theme="dark"] .trip-desc,
+html[data-theme="dark"] .sun-line,
+html[data-theme="dark"] .metric,
+html[data-theme="dark"] .heather-segment,
+html[data-theme="dark"] .seg-share,
+html[data-theme="dark"] .step-detail,
+html[data-theme="dark"] .now-card-inline,
+html[data-theme="dark"] .now-card,
+html[data-theme="dark"] .drive-sticky,
+html[data-theme="dark"] .pack-card,
+html[data-theme="dark"] .wildlife-card,
+html[data-theme="dark"] .biz-card,
+html[data-theme="dark"] .enrich-card { background: var(--bg-muted) !important; color: var(--text-body); }
+
+/* Progress/segment tracks (light grey fills). */
+html[data-theme="dark"] .hbar-track,
+html[data-theme="dark"] .hbar-surftrack,
+html[data-theme="dark"] .hbar-stoptrack,
+html[data-theme="dark"] .hbar-speedtrack { background: #2c2a32 !important; }
+
+/* Coloured info rows / chips → dark tints with readable text. */
+html[data-theme="dark"] .press-row { background: #16233a !important; color: #aac4f3 !important; }
+html[data-theme="dark"] .badge { background: var(--bg-muted); color: var(--text-body); }
+html[data-theme="dark"] .badge.pressure { background: #16233a; color: #aac4f3; }
+html[data-theme="dark"] .chip { background: rgba(255, 255, 255, 0.06); color: var(--text-body); }
+html[data-theme="dark"] .step-road-pill { background: var(--bg-muted); color: var(--text-body); }
+
+/* Heather status chips → dark tints keeping the status hue. */
+html[data-theme="dark"] .step-heather-chip { background: var(--bg-muted); color: var(--text-body); }
+html[data-theme="dark"] .step-heather-chip-yes   { background: #16291f; color: #9fe3bf; }
+html[data-theme="dark"] .step-heather-chip-maybe { background: #352c16; color: #f0d493; }
+html[data-theme="dark"] .step-heather-chip-no    { background: #3a1d1a; color: #f7b4ab; }
+html[data-theme="dark"] .heather-leg-chip { background: var(--bg-muted); }
+
+/* Per-card mini-map placeholder background before tiles paint. */
+html[data-theme="dark"] .card-map-osm,
+html[data-theme="dark"] .step-map-osm { background: #15141a; }
+
+/* ---- Deepen the hero so the header reads as dark, not bright pink ---- */
+html[data-theme="dark"] .hero {
+  background: linear-gradient(160deg, #3a1023 0%, #1f111a 100%) !important;
+  border-bottom: 1px solid #2c1922;
+}
+html[data-theme="dark"] .hero .version-chip,
+html[data-theme="dark"] .version-chip { background: rgba(255,255,255,0.1); color: #f0e6ec; }
+
+/* ---- Theme toggle button (Settings) ---- */
+.theme-toggle { display: inline-flex; align-items: center; gap: 6px; }

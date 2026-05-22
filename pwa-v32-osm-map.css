@@ -51,7 +51,7 @@
   line-height: 1;
   border: 1px solid rgba(0,0,0,0.2);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg-card);
   color: var(--brand, #5a1738);
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);

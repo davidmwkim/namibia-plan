@@ -92,7 +92,7 @@
   display: none;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--bg-card);
   color: #1a73e8;
   border: 0;
   border-radius: 999px;

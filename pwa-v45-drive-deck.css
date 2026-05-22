@@ -29,7 +29,7 @@ body.drive-focus .panel { padding-top: 8px; }
 .drive-controls .ghost,
 .deck-nav button {
   border: 1px solid var(--line, #ece3df);
-  background: #fff;
+  background: var(--bg-card);
   color: var(--brand, #5a1738);
   border-radius: 999px;
   padding: 7px 13px;
@@ -149,7 +149,7 @@ body.drive-focus .route-map-caption { display: none; }
   max-width: 86%;
   scroll-snap-align: center;
   align-self: flex-start;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--line, #ece3df);
   border-radius: 14px;
   padding: 12px 14px;

@@ -55,7 +55,8 @@ const ORDER = [
   'pwa-v40-malaria.js',
   'pwa-v41-packing.js',
   'pwa-v42-wildlife.js',
-  'pwa-v45-drive-deck.js'
+  'pwa-v45-drive-deck.js',
+  'pwa-v46-dark-mode.js'
 ];
 
 function inlineScripts(files) {

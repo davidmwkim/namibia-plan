@@ -8,7 +8,7 @@
   font-size: 12px;
   font-weight: 600;
   border: 1px solid #d1d5db;
-  background: #fff;
+  background: var(--bg-card);
   margin-left: 8px;
   vertical-align: middle;
   white-space: nowrap;

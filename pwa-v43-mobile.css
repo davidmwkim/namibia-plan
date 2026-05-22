@@ -17,7 +17,7 @@
     padding: 5px 4px calc(5px + env(safe-area-inset-bottom, 0px));
     /* Solid background (no backdrop-filter): more reliable paint across mobile
        browsers, and avoids the filter creating odd stacking. */
-    background: #ffffff;
+    background: var(--bg-card);
     border-top: 1px solid var(--line, #ece3df);
     border-radius: 0;
     box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.07);

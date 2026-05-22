@@ -118,7 +118,7 @@ h3 { font-size: var(--t-lg);  line-height: var(--lh-tight); }
               transform var(--motion-fast) var(--ease-out);
 }
 .hero .hero-actions button.primary {
-  background: #fff;
+  background: var(--bg-card);
   color: var(--brand);
   border-color: #fff;
 }
