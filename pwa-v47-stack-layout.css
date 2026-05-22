@@ -156,15 +156,11 @@ body.drive-focus .drive-sticky .chip.gps-chip {
    but the button next to it lets the user fix it. (Acceptable trade
    for the real estate gain.) */
 
-/* Sun chip: only render when there's actually a risk/predawn signal.
-   The plain "🌅 Sunset 17:42" version is informational but eats a full
-   row — hide it on focus tabs. v13 still renders it for the partial-
-   live-update path, so we just visually drop it. */
-body.drive-focus .drive-sticky .sun-chip:not(.sun-risk):not(.sun-tight):not(.sun-predawn) {
-  display: none;
-}
+/* Sun chip now ALWAYS shows the countdown to the next sun event
+   (sunrise pre-dawn, sunset during the day, "past sunset Xh ago" after).
+   Keep it compact so it fits next to the icon-only TTS row. */
 body.drive-focus .drive-sticky .sun-chip {
-  padding: 3px 8px; font-size: 11px;
+  padding: 3px 8px; font-size: 11px; line-height: 1.3;
 }
 /* The v13 scrubber row + the colored Heather segment bar are both made
    redundant by the v47 stack (which IS the scrubber) and the live map

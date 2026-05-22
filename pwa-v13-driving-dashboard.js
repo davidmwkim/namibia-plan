@@ -292,22 +292,8 @@
 
   function stickyInnerHtml(d, route) {
     const muted = TTS() ? TTS().isMuted() : true;
-    const margin = state.driving.sunsetMargin;
-    const sunriseLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunriseMs) : '--:--';
-    const sunsetLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunsetMs) : '--:--';
-    const now = nowMs();
-    const isPreDawn = route?.sunTimes && now < route.sunTimes.sunriseMs;
-    let sunChip;
-    if (isPreDawn) {
-      const minToSunrise = Math.round((route.sunTimes.sunriseMs - now) / 60000);
-      sunChip = `<span class="sun-chip sun-predawn">🌄 Sunrise <strong>${sunriseLocal}</strong> in ${ST.formatRelative(minToSunrise)}</span>`;
-    } else if (margin) {
-      const etaLocal = state.driving.eta ? ST.formatTimeOfDay(state.driving.eta) : '--:--';
-      const clockLocal = ST.formatTimeOfDay(nowMs());
-      sunChip = `<span class="sun-chip sun-${margin.severity}">🕒 <strong>${clockLocal}</strong> · 🌅 Sunset <strong>${sunsetLocal}</strong> · ETA <strong>${etaLocal}</strong> · margin <strong>${margin.marginMin >= 0 ? '+' : ''}${margin.marginMin} min</strong></span>`;
-    } else {
-      sunChip = `<span class="sun-chip">🌅 Sunset <strong>${sunsetLocal}</strong></span>`;
-    }
+    const sc = nextSunEventChip(route);
+    const sunChip = sc.html;
     const lastSpoken = (typeof state.driving.lastSpokenText === 'string') ? state.driving.lastSpokenText : '';
     return `
       <div class="drive-controls">
@@ -668,28 +654,43 @@
     // browser repaint flicker on every demo tick (10 Hz).
     if (el.textContent !== txt) el.textContent = txt;
   }
+  // Build a single chip that shows the countdown to whichever solar event
+  // comes next — sunrise before dawn, sunset during the day. After sunset
+  // we still surface sunset-margin info (risk/tight) since that's the
+  // load-bearing signal for the rest of the drive home.
+  function nextSunEventChip(route) {
+    const sun = route?.sunTimes;
+    if (!sun) {
+      return { html: '<span class="sun-chip">🌅 --:--</span>', cls: 'sun-chip', inner: '🌅 --:--' };
+    }
+    const now = nowMs();
+    const margin = state.driving.sunsetMargin;
+    let cls = 'sun-chip', inner;
+    if (now < sun.sunriseMs) {
+      const minToSunrise = Math.max(0, Math.round((sun.sunriseMs - now) / 60000));
+      cls += ' sun-predawn';
+      inner = `🌄 Sunrise in <strong>${ST.formatRelative(minToSunrise)}</strong>`;
+    } else if (now < sun.sunsetMs) {
+      const minToSunset = Math.max(0, Math.round((sun.sunsetMs - now) / 60000));
+      // Keep the risk/tight colouring if the live margin signal warrants it.
+      if (margin && margin.severity && margin.severity !== 'safe') {
+        cls += ' sun-' + margin.severity;
+      }
+      inner = `🌅 Sunset in <strong>${ST.formatRelative(minToSunset)}</strong>`;
+    } else {
+      // Past sunset — show how long ago so the user knows they're driving
+      // past daylight (rental contracts in Namibia typically forbid this).
+      const minSinceSunset = Math.max(0, Math.round((now - sun.sunsetMs) / 60000));
+      cls += ' sun-risk';
+      inner = `🌙 Past sunset <strong>${ST.formatRelative(minSinceSunset)}</strong> ago`;
+    }
+    return { html: `<span class="${cls}">${inner}</span>`, cls, inner };
+  }
+
   function updateSunChip(d, route) {
     const wrap = document.querySelector('.drive-sticky');
     if (!wrap || !route) return;
-    const margin = state.driving.sunsetMargin;
-    const sunriseLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunriseMs) : '--:--';
-    const sunsetLocal = route?.sunTimes ? ST.formatTimeOfDay(route.sunTimes.sunsetMs) : '--:--';
-    const now = nowMs();
-    const isPreDawn = route?.sunTimes && now < route.sunTimes.sunriseMs;
-    let inner;
-    let cls = 'sun-chip';
-    if (isPreDawn) {
-      const minToSunrise = Math.round((route.sunTimes.sunriseMs - now) / 60000);
-      cls += ' sun-predawn';
-      inner = `🌄 Sunrise <strong>${sunriseLocal}</strong> in ${ST.formatRelative(minToSunrise)}`;
-    } else if (margin) {
-      cls += ' sun-' + margin.severity;
-      const etaLocal = state.driving.eta ? ST.formatTimeOfDay(state.driving.eta) : '--:--';
-      const clockLocal = ST.formatTimeOfDay(nowMs());
-      inner = `🕒 <strong>${clockLocal}</strong> · 🌅 Sunset <strong>${sunsetLocal}</strong> · ETA <strong>${etaLocal}</strong> · margin <strong>${margin.marginMin >= 0 ? '+' : ''}${margin.marginMin} min</strong>`;
-    } else {
-      inner = `🌅 Sunset <strong>${sunsetLocal}</strong>`;
-    }
+    const { cls, inner } = nextSunEventChip(route);
     let chip = wrap.querySelector('.sun-chip');
     if (!chip) {
       state.driving._lastHeavyRebuild = 0;
