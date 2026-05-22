@@ -101,6 +101,7 @@ export async function bootPwa(opts = {}) {
   });
   // Block real geolocation by default — tests use __namibiaSpoofGps instead.
   const w = dom.window;
+  w.HTMLMediaElement.prototype.play = () => Promise.resolve();
   w.navigator.geolocation = { watchPosition: () => 1, clearWatch: () => {} };
   // Provide a Google Maps stub so initGoogleMap / DirectionsService don't blow up
   // when invoked. We don't pre-load it by default — patches that need it can
@@ -127,6 +128,7 @@ export function seedRoute(dateKey, routeBlob) {
 export async function bootPwaWithRoute(dateKey, routeBlob, opts = {}) {
   const dom = await bootPwa(opts);
   const w = dom.window;
+  w.HTMLMediaElement.prototype.play = () => Promise.resolve();
   w.localStorage.setItem('namibia_routes_cache_v5', JSON.stringify({ [dateKey]: routeBlob }));
   // Stitch the seeded blob into state.renderedRoutes that v12 already initialised.
   if (w.state && w.state.renderedRoutes) {
