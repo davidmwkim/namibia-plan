@@ -15,9 +15,9 @@
     margin: 0;
     gap: 0;
     padding: 5px 4px calc(5px + env(safe-area-inset-bottom, 0px));
-    background: rgba(255, 255, 255, 0.97);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    /* Solid background (no backdrop-filter): more reliable paint across mobile
+       browsers, and avoids the filter creating odd stacking. */
+    background: #ffffff;
     border-top: 1px solid var(--line, #ece3df);
     border-radius: 0;
     box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.07);
@@ -85,4 +85,15 @@
 
   /* Comfortable default tap target for buttons/links inside content */
   .content button, .settings-row button, .now-actions button { min-height: 40px; }
+
+  /* Compact "Roadside" scenery cards so the Driver list isn't endless on big
+     gravel days — keep the every-5 km roadside view, just denser. */
+  .drive-card.card-scenery { padding: 8px 12px; }
+  .drive-card.card-scenery > p { display: none; }            /* redundant "View ahead…" */
+  .drive-card.card-scenery .card-kind { font-size: 11px; }
+  .drive-card.card-scenery h3 { font-size: 13.5px; margin: 2px 0 6px; }
+  .drive-card.card-scenery .card-media img {
+    width: 100%; height: 130px; object-fit: cover;
+    border-radius: 10px; display: block;
+  }
 }
