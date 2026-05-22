@@ -103,3 +103,55 @@
     border-radius: 10px; display: block;
   }
 }
+
+/* ===================================================================
+   APP-SHELL (phones): lock the whole page to the screen height so the
+   PAGE never scrolls — only the content pane scrolls inside its own
+   region. Header + day-nav stay pinned at the top, the tab bar stays
+   pinned at the bottom, and the middle scrolls. Native-app feel; far
+   easier to focus while driving. (Pixel 6 Pro and similar.)
+   =================================================================== */
+@media (max-width: 760px) {
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;            /* kill whole-page scroll */
+    overscroll-behavior: none;   /* no rubber-band / pull-to-refresh */
+  }
+  body { padding-bottom: 0; }    /* was reserving space for the fixed tab bar */
+
+  #app { height: 100dvh; overflow: hidden; }
+  .app-shell {
+    height: 100dvh;              /* dynamic vh tracks Chrome's URL bar */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .hero { flex: 0 0 auto; }      /* pinned, natural height */
+  .main {
+    flex: 1 1 auto;
+    min-height: 0;               /* allow the flex child to actually shrink */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .toolbar { position: static; flex: 0 0 auto; }  /* day-nav pinned below hero */
+
+  /* The ONE scroll region: everything between the day-nav and the tab bar. */
+  .grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* clear the fixed bottom tab bar so the last content isn't hidden */
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Condense the chrome so the pane gets the most height: tighter map on the
+     live Driver/Passenger views, and a slimmer hero. */
+  .hero { padding: 8px 14px; }
+  body.drive-focus .drive-map,
+  body.drive-focus .pass-map { height: 38vh; min-height: 200px; }
+}
