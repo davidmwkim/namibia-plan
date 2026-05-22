@@ -114,8 +114,18 @@
       // Always re-commit — kills inertia that would land on the wrong card.
       scrollToCard(deck, target, true);
     }
+    function cancel(e) {
+      // pointercancel fires when the browser claims the gesture for vertical
+      // panning (touch-action: pan-y allows that). Treating it as a completed
+      // horizontal swipe — especially via the velocity fallback — would jump
+      // the deck to another card mid-scroll. Just drop the tracking state.
+      if (!tracking || (pid !== null && e.pointerId !== pid)) return;
+      tracking = false;
+      startIdx = -1;
+      pid = null;
+    }
     deck.addEventListener('pointerup', commit, { passive: true });
-    deck.addEventListener('pointercancel', commit, { passive: true });
+    deck.addEventListener('pointercancel', cancel, { passive: true });
   }
 
   // Keyboard support: ← / → advance one card when the deck has focus.
