@@ -202,6 +202,9 @@
 
   window.NamibiaOsmMap = {
     takeOver, update, teardown, setRouteDot, setLegPins, clearLegPins,
+    // v47 needs a Leaflet handle to call invalidateSize after its flex layout
+    // settles — without that, tiles never load on the freshly-mounted map.
+    getMap: function () { return lMap; },
     _internals: () => ({ ready, hasMap: !!lMap, lastDrawnDayKey })
   };
 })();

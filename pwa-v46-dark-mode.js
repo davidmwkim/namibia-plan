@@ -27,14 +27,25 @@
 
   function updateToggle(theme) {
     const btn = document.getElementById('themeToggleBtn');
-    if (btn) btn.textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+    if (!btn) return;
+    const icon = theme === 'dark' ? '☀️' : '🌙';
+    const label = theme === 'dark' ? 'Light mode' : 'Dark mode';
+    btn.setAttribute('aria-label', 'Switch to ' + label);
+    btn.innerHTML = `<span class="tt-icon">${icon}</span><span class="tt-label"> ${label}</span>`;
   }
   function injectToggle() {
-    const host = document.getElementById('settingsControls');
-    if (!host || document.getElementById('themeToggleBtn')) return;
+    if (document.getElementById('themeToggleBtn')) return;
+    // Prefer the toolbar (day-nav row) so the toggle is reachable from every
+    // tab including Driver and Passenger where v47 hides the hero. Fall back
+    // to #settingsControls for old layouts where the toolbar isn't present.
+    const toolbar = document.querySelector('.toolbar-left');
+    const settings = document.getElementById('settingsControls');
+    const host = toolbar || settings;
+    if (!host) return;
     const btn = document.createElement('button');
     btn.id = 'themeToggleBtn';
-    btn.className = 'ghost theme-toggle';
+    btn.type = 'button';
+    btn.className = 'ghost theme-toggle' + (host === toolbar ? ' toolbar-mounted' : '');
     btn.title = 'Switch between light and dark theme';
     btn.onclick = toggle;
     host.appendChild(btn);

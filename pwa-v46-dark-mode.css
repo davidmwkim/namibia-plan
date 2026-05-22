@@ -143,3 +143,39 @@ html[data-theme="dark"] .version-chip { background: rgba(255,255,255,0.1); color
 
 /* ---- Theme toggle button (Settings) ---- */
 .theme-toggle { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---- Contrast bumps for body copy on dark — keep luminance ratio ≥ 4.5
+   against the page background (#131216). The default --text-muted at
+   #a9a4b0 is only ~4.2:1 and reads faint on tight rows like the v47
+   route-summary strip and the per-step instructions. ---- */
+html[data-theme="dark"] .route-summary-strip .rss-note,
+html[data-theme="dark"] .step-instructions,
+html[data-theme="dark"] .step-detail-body,
+html[data-theme="dark"] .drive-card p,
+html[data-theme="dark"] .drive-card .card-kind,
+html[data-theme="dark"] .pass-card .step-instructions,
+html[data-theme="dark"] .pass-card p {
+  color: #c8c2cd;
+}
+html[data-theme="dark"] .route-summary-strip {
+  background: var(--bg-card, #1f1e24);
+  border-bottom-color: var(--line, #36343d);
+}
+html[data-theme="dark"] .route-summary-strip .rss-title { color: #f0a8c4; }
+
+/* ---- Toolbar-mounted theme toggle (always visible on every tab) ---- */
+.theme-toggle.toolbar-mounted {
+  width: 36px; min-width: 36px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border-radius: 999px;
+  /* Render as icon-only: hide the textual "Dark mode" / "Light mode" label. */
+  overflow: hidden;
+  text-indent: 0;
+}
+.theme-toggle.toolbar-mounted .tt-label { display: none; }

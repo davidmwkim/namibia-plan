@@ -1,0 +1,79 @@
+/* pwa-v48-version-pin.css — long-press the version chip to open a small
+   dropdown of cached prior versions. Selecting one persists the pin and
+   reloads; the service worker prefers serving from that cache. */
+
+.version-pin-dropdown {
+  position: absolute;
+  z-index: 2000;
+  min-width: 180px;
+  background: var(--bg-card, #ffffff);
+  color: var(--text, #1c1414);
+  border: 1px solid var(--line, #ece3df);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 4px;
+  font-size: 13px;
+  /* Open downward by default; .vpin-up shifts the dropdown above the chip. */
+  margin-top: 4px;
+}
+.version-pin-dropdown.vpin-up { margin-top: 0; margin-bottom: 4px; }
+.version-pin-dropdown .vpin-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted, #6f6368);
+  padding: 6px 10px 2px;
+  letter-spacing: .3px;
+}
+.version-pin-dropdown .vpin-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.version-pin-dropdown .vpin-item:hover,
+.version-pin-dropdown .vpin-item:focus-visible {
+  background: rgba(90, 23, 56, 0.08);
+  outline: none;
+}
+.version-pin-dropdown .vpin-item.vpin-current {
+  font-weight: 700;
+  color: var(--brand, #5a1738);
+}
+.version-pin-dropdown .vpin-item .vpin-tag {
+  font-size: 10.5px;
+  color: var(--text-muted, #6f6368);
+  font-weight: 600;
+}
+
+html[data-theme="dark"] .version-pin-dropdown {
+  background: #1f1e24;
+  border-color: #36343d;
+  color: #f4f4f5;
+}
+html[data-theme="dark"] .version-pin-dropdown .vpin-item:hover,
+html[data-theme="dark"] .version-pin-dropdown .vpin-item:focus-visible {
+  background: rgba(201, 95, 135, 0.18);
+}
+html[data-theme="dark"] .version-pin-dropdown .vpin-item.vpin-current {
+  color: #f0a8c4;
+}
+html[data-theme="dark"] .version-pin-dropdown .vpin-head,
+html[data-theme="dark"] .version-pin-dropdown .vpin-tag {
+  color: #a9a4b0;
+}
+
+/* When pinned to a specific version, badge the chip so the state is visible. */
+.version-chip.vpin-pinned::after {
+  content: "📌";
+  margin-left: 4px;
+  font-size: 11px;
+}

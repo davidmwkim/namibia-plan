@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.54.0';
+const APP_VERSION = '1.55.0';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -76,6 +76,8 @@ const ASSETS = [
   './pwa-v46-dark-mode.css',
   './pwa-v47-stack-layout.js',
   './pwa-v47-stack-layout.css',
+  './pwa-v48-version-pin.js',
+  './pwa-v48-version-pin.css',
   './pwa-v32-osm-map.js',
   './pwa-v32-osm-map.css',
   './pwa-v33-notifications.js',
@@ -137,6 +139,13 @@ self.addEventListener('install', event => {
   }));
 });
 
+// v48 version-pin: clients can POST { type:'NAMIBIA_VERSION_PIN', version }
+// to redirect their asset fetches to the cache for that version (or null /
+// 'latest' to clear the pin). Persisted in-memory only — the client also
+// stores it in localStorage and re-posts on every load, so a SW restart
+// rehydrates from there.
+let __namibiaPin = null;
+
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -146,13 +155,37 @@ self.addEventListener('message', event => {
     if (event.ports && event.ports[0]) event.ports[0].postMessage(APP_VERSION);
     return;
   }
+  if (event.data && event.data.type === 'NAMIBIA_VERSION_PIN') {
+    const v = event.data.version;
+    __namibiaPin = (v && v !== 'latest' && v !== APP_VERSION) ? v : null;
+    return;
+  }
 });
+
+// Keep the last 3 prior namibia-trip-* caches around so the v48 version-pin
+// dropdown has something to switch to. Anything beyond that is purged.
+const PRIOR_CACHES_TO_KEEP = 3;
+function verCmp(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x !== y) return x - y;
+  }
+  return 0;
+}
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE && key !== 'namibia-trip-tts-v1').map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
+    caches.keys().then(keys => {
+      const tripCaches = keys.filter(k => k.indexOf('namibia-trip-') === 0 && k !== 'namibia-trip-tts-v1' && k !== CACHE);
+      // Sort by semver desc and keep the top N.
+      const versions = tripCaches.map(k => k.slice('namibia-trip-'.length));
+      versions.sort((a, b) => verCmp(b, a));
+      const keep = new Set(versions.slice(0, PRIOR_CACHES_TO_KEEP).map(v => 'namibia-trip-' + v));
+      keep.add(CACHE); keep.add('namibia-trip-tts-v1');
+      return Promise.all(keys.filter(k => !keep.has(k)).map(k => caches.delete(k)));
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -189,14 +222,26 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        return response;
-      });
-    })
-  );
+  // Honour the v48 pin: when the client has selected a prior version, prefer
+  // that cache for same-origin app assets. Fall back to the current cache (or
+  // the network) if the pinned version doesn't have the file.
+  event.respondWith((async () => {
+    if (__namibiaPin) {
+      const pinName = 'namibia-trip-' + __namibiaPin;
+      try {
+        const hit = await caches.match(event.request, { cacheName: pinName });
+        if (hit) return hit;
+      } catch (_) {}
+    }
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    try {
+      const response = await fetch(event.request);
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(() => {});
+      return response;
+    } catch (e) {
+      return new Response('', { status: 504 });
+    }
+  })());
 });

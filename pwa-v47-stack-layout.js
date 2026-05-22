@@ -202,6 +202,10 @@
       startX = e.clientX; startY = e.clientY;
       startT = e.timeStamp || Date.now();
       pid = e.pointerId; axis = null; dragging = false;
+      // Capture so pointerup/move still route to us if the finger leaves the
+      // card while sliding over an overflow-y child. Critical for Passenger
+      // where tall step cards are themselves scrollable.
+      try { deck.setPointerCapture(e.pointerId); } catch (_) {}
     }
     function onMove(e) {
       if (pid === null || e.pointerId !== pid || !active) return;
@@ -209,9 +213,13 @@
       const dy = e.clientY - startY;
       // Lock the gesture axis on first significant movement so a vertical
       // pan to scroll inside a tall card doesn't get hijacked as a swipe.
+      // Looser horizontal bias (|dx| > |dy| + 2) so a swipe that drifts a
+      // few pixels vertically still registers as a deck swipe.
       if (axis === null) {
-        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-        axis = (Math.abs(dx) > Math.abs(dy)) ? 'x' : 'y';
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        axis = (Math.abs(dx) > Math.abs(dy) + 2) ? 'x'
+             : (Math.abs(dy) > Math.abs(dx)) ? 'y'
+             : 'x';
         if (axis === 'x') { dragging = true; active.classList.add('drag'); }
       }
       if (axis !== 'x') return;
@@ -234,12 +242,18 @@
       if (dir !== 0) {
         active.classList.remove('drag');
         const sign = dir > 0 ? -1 : 1;
-        active.style.transform = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
+        const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
+        // Double-RAF so the .drag class removal (which had `transition: none`)
+        // commits a style frame BEFORE the new transform is set — otherwise
+        // the browser batches both and the card snaps with no animation.
         const card = active;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          card.style.transform = tx;
+        }));
         setTimeout(() => {
           step(deck, isPass, dir);
           // applyStack will reset transforms when it retags everyone.
-        }, 180);
+        }, 220);
       } else {
         // Snap back.
         active.classList.remove('drag');
@@ -286,6 +300,25 @@
     return clone;
   }
 
+  // After v47's flex layout settles, Leaflet maps need a kick to recompute
+  // their _size and pull tiles. Without this both Driver and Passenger maps
+  // mount empty because createMap was called when the host was 0×0.
+  function pokeMap(getter) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try {
+        const m = getter();
+        if (m && typeof m.invalidateSize === 'function') m.invalidateSize(false);
+      } catch (_) {}
+    }));
+  }
+  function observeMap(host, getter) {
+    if (!host || host.__v47Obs) return;
+    if (typeof ResizeObserver === 'undefined') return;
+    const obs = new ResizeObserver(() => pokeMap(getter));
+    obs.observe(host);
+    host.__v47Obs = obs;
+  }
+
   function setupDriver() {
     let deck = document.querySelector('.drive-cards');
     if (!deck) return;
@@ -295,6 +328,10 @@
     if (typeof aci === 'number' && aci >= 0) idx.drive = aci;
     wireGesture(deck, false);
     applyStack(deck, false);
+    const mapHost = document.getElementById('driveMapHost');
+    const getter = () => window.NamibiaOsmMap && window.NamibiaOsmMap.getMap && window.NamibiaOsmMap.getMap();
+    pokeMap(getter);
+    observeMap(mapHost, getter);
   }
   function setupPassenger() {
     let deck = document.querySelector('.pass-deck');
@@ -302,6 +339,10 @@
     if (deck.dataset.stack !== '1') deck = takeOverDeck(deck);
     wireGesture(deck, true);
     applyStack(deck, true);
+    const mapHost = document.getElementById('passMapHost');
+    const getter = () => window.NamibiaDriveDeck && window.NamibiaDriveDeck.getPassMap && window.NamibiaDriveDeck.getPassMap();
+    pokeMap(getter);
+    observeMap(mapHost, getter);
   }
 
   function run() {
