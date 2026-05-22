@@ -219,26 +219,29 @@
     updateCondStripMarkers(host, startLL, endLL);
   }
 
-  // ---- Active tagging + scroll-snap navigation ------------------------------
-  // Dual-paradigm: vertical pan does native scroll-snap between cards;
-  // horizontal swipe runs the JS Tinder fly-off and then scrollTo's the
-  // next card so both gestures land in the same scroll position.
+  // ---- Active tagging + continuous-scroll navigation ------------------------
+  // Continuous vertical scroll: cards have natural heights, multiple visible
+  // at once, no snap. Horizontal swipe runs the JS Tinder fly-off and then
+  // scrollIntoView's the new active card so it lands in view. Plain re-renders
+  // (GPS tick, demo tick) don't re-scroll — that's the user's territory now.
   function applyStack(deck, isPass) {
     const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
     const total = cards.length;
     if (!total) return;
-    let i = Math.max(0, Math.min(total - 1, idx[isPass ? 'pass' : 'drive']));
+    const prevI = idx[isPass ? 'pass' : 'drive'];
+    let i = Math.max(0, Math.min(total - 1, prevI));
     idx[isPass ? 'pass' : 'drive'] = i;
     cards.forEach((c, k) => {
       c.style.transform = '';
       c.classList.remove('drag');
       c.dataset.stackPos = (k === i) ? 'active' : (k < i) ? 'prev' : 'ahead';
-      try { c.scrollTop = 0; } catch (_) {}
     });
-    // Sync the deck's scroll position to land on the active card.
+    // Only auto-scroll when something other than user-scroll changed the
+    // active idx (e.g. horizontal swipe or GPS advance). The scroll-sync
+    // marker tells us this call came from user scrolling — skip in that case.
     const activeC = cards[i];
-    if (activeC && deck.scrollTo) {
-      try { deck.scrollTo({ top: activeC.offsetTop, behavior: 'auto' }); } catch (_) {}
+    if (activeC && deck.scrollIntoView !== false && !deck.__v47SkipScroll) {
+      try { activeC.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (_) {}
     }
     // Corner counter pill (inside the deck, top-right). The v45 .deck-nav
     // row is hidden in stack mode — swipe drives navigation — so the count
@@ -290,19 +293,24 @@
         const cur = idx[isPass ? 'pass' : 'drive'];
         if (best !== cur) {
           idx[isPass ? 'pass' : 'drive'] = best;
-          // Retag stack pos + update map + counter, but DON'T re-scroll
-          // (we're already where the user scrolled to).
-          cards.forEach((c, k) => {
-            c.dataset.stackPos = (k === best) ? 'active' : (k < best) ? 'prev' : 'ahead';
-          });
-          const wrap = deck.parentElement;
-          const badge = deck.querySelector(':scope > .deck-corner-counter');
-          if (badge) badge.textContent = `${best + 1} / ${cards.length}`;
-          const oldCounter = wrap && wrap.querySelector('.deck-counter');
-          if (oldCounter) oldCounter.textContent = `${best + 1} / ${cards.length}`;
-          updateMapForActive(deck, isPass);
+          // Mark the deck so applyStack doesn't bounce the user back to a
+          // different scroll position; just retag + update counter/pins.
+          deck.__v47SkipScroll = true;
+          try {
+            cards.forEach((c, k) => {
+              c.dataset.stackPos = (k === best) ? 'active' : (k < best) ? 'prev' : 'ahead';
+            });
+            const wrap = deck.parentElement;
+            const badge = deck.querySelector(':scope > .deck-corner-counter');
+            if (badge) badge.textContent = `${best + 1} / ${cards.length}`;
+            const oldCounter = wrap && wrap.querySelector('.deck-counter');
+            if (oldCounter) oldCounter.textContent = `${best + 1} / ${cards.length}`;
+            updateMapForActive(deck, isPass);
+          } finally {
+            deck.__v47SkipScroll = false;
+          }
         }
-      }, 90);
+      }, 80);
     }, { passive: true });
   }
 

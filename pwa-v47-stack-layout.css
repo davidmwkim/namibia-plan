@@ -243,10 +243,9 @@ body.drive-focus .hbar-track { display: none; }
 body.drive-focus .drive-map,
 body.drive-focus .pass-map {
   order: 3;
-  /* 11% of the flexible space (1 of 1+8). Deck claims ~89% so cards can
-     be tall enough to show full step body + Heather details + Street View
-     thumbnail without internal scroll on most cards. */
-  flex: 1 1 0 !important;
+  /* 30% of the flexible space (3 of 3+7). Wide enough to read at-a-glance
+     without competing with the cards. */
+  flex: 3 1 0 !important;
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
@@ -259,27 +258,25 @@ body.drive-focus .pass-map {
 body.drive-focus .drive-cards[data-stack="1"],
 body.drive-focus .pass-deck[data-stack="1"] {
   order: 4;
-  flex: 8 1 0 !important;
+  flex: 7 1 0 !important;
   min-height: 0 !important;
   max-height: none !important;
-  /* Dual-gesture deck:
-     • Vertical pan / flick → native scroll-snap between cards (each card
-       fills the deck viewport, snap-stop=always so one swipe = one card).
-     • Horizontal swipe → JS Tinder fly-off + advance (the next card snaps
-       into view via scrollTo).
-     touch-action: pan-y blocks horizontal native pan so the JS handler
-     owns horizontal; vertical is fully browser-native with momentum. */
-  display: block;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
+  /* Continuous vertical scrolling deck (no snap) with full momentum.
+     Cards have natural content heights so multiple are visible at once;
+     vertical pan flick scrolls through them freely. Horizontal swipe on
+     the active card still runs the Tinder fly-off + advance. */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   scrollbar-width: none;
-  padding: 0;
+  padding: 8px 10px env(safe-area-inset-bottom, 0px);
+  gap: 8px;
   margin: 0;
+  /* No scroll-snap-type — user asked for continuous flick scroll. */
+  scroll-behavior: auto;
 }
 body.drive-focus .drive-cards[data-stack="1"]::-webkit-scrollbar,
 body.drive-focus .pass-deck[data-stack="1"]::-webkit-scrollbar { display: none; }
@@ -289,28 +286,31 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card {
   position: relative;
   display: block;
   box-sizing: border-box;
-  width: calc(100% - 20px);
-  height: 100%;
-  margin: 0 10px;
+  width: 100%;
+  height: auto;
+  flex: 0 0 auto;
+  min-height: 80px;
+  margin: 0;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--line, #ece3df);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  /* Card content overflow scrolls inside the card — distinct from the deck's
-     vertical scroll-snap. Browser nests scrollers naturally on touch. */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: visible;
   transform-origin: center;
   will-change: transform, opacity;
-  transition: transform .22s cubic-bezier(.2,.7,.2,1), opacity .22s ease;
+  transition: transform .2s cubic-bezier(.2,.7,.2,1), opacity .2s ease, border-color .15s ease, box-shadow .15s ease;
 }
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="active"],
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="active"] {
   border-color: var(--brand, #5a1738);
-  box-shadow: 0 6px 20px rgba(90, 23, 56, 0.18);
+  box-shadow: 0 4px 14px rgba(90, 23, 56, 0.18);
+  outline: 2px solid var(--brand, #5a1738);
+  outline-offset: -1px;
+}
+body.drive-focus .drive-cards[data-stack="1"] > .drive-card[data-stack-pos="prev"],
+body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="prev"] {
+  opacity: 0.6;
 }
 /* While the user is finger-dragging horizontally, kill the transition so
    the card tracks the finger 1:1. */

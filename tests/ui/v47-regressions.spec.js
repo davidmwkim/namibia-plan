@@ -133,7 +133,11 @@ test.describe('v47 layout regressions', () => {
     // sync should retag the next card as active.
     await page.evaluate(() => {
       const deck = document.querySelector('.pass-deck[data-stack="1"]');
-      deck.scrollTop = deck.clientHeight;
+      // Continuous scroll (no snap) — scroll to the second card's offsetTop
+      // so the "active card by viewport-center" detection lands on it.
+      const cards = deck.querySelectorAll('.pass-card');
+      if (cards.length < 2) return;
+      deck.scrollTop = cards[1].offsetTop + cards[1].offsetHeight / 2 - deck.clientHeight / 2;
     });
     // CSS scroll-behavior: smooth + the 90 ms debounce on the scroll sync —
     // give the animation + handler time to settle.
