@@ -24,7 +24,10 @@ function nowMinutes(){ const d=new Date(); return d.getHours()*60+d.getMinutes()
 function day(){ return DATA.days[state.dayIndex]; }
 function mandatoryStops(d=day()){ return d.stops.filter(s => ['mandatory','mandatoryAction'].includes(s.routeRole)); }
 function routeStops(d=day()){ return d.stops.filter(s => s.routeRole === 'mandatory'); }
-function wazeUrl(s){ return `https://waze.com/ul?ll=${encodeURIComponent(s.lat+','+s.lng)}&navigate=yes&zoom=17&utm_source=namibia_trip`; }
+// Waze deep link in the exact documented form: https://www.waze.com/ul?ll=LAT,LON&navigate=yes
+// The comma MUST stay literal — encoding it to %2C breaks the link when it opens
+// the Waze app (the app's deep-link parser doesn't URL-decode `ll`).
+function wazeUrl(s){ return `https://www.waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`; }
 function googleMapsStopQuery(s){
   const raw = s?.googleMapsQuery || s?.mapsQuery || s?.placeQuery || s?.name || '';
   let q = String(raw).replace(/\s+/g, ' ').trim();
