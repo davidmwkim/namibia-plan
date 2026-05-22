@@ -199,123 +199,165 @@
   }
 
   // ---- Gesture wiring --------------------------------------------------------
+  // Strategy: listen for pointerdown/touchstart on the deck, then attach
+  // pointermove/up to the DOCUMENT for the duration of the gesture. Putting
+  // move/up on document instead of deck (or relying on setPointerCapture)
+  // means we keep receiving events even if the finger drifts off the card,
+  // and works on devices where pointer capture is flaky. We also wire the
+  // legacy TouchEvent family as a fallback, since some Android Chromium
+  // configurations suppress PointerEvents under certain touch-action values.
   function wireGesture(deck, isPass) {
     if (deck.dataset.stackWired === '1') return;
     deck.dataset.stackWired = '1';
-    let startX = 0, startY = 0, startT = 0, pid = null;
+
+    function pickActive() {
+      const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
+      return cards[idx[isPass ? 'pass' : 'drive']] || null;
+    }
+
+    let startX = 0, startY = 0, startT = 0, pid = null, srcKind = null;
     let active = null, axis = null, dragging = false;
 
-    function onDown(e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      const cards = deck.querySelectorAll(isPass ? '.pass-card' : '.drive-card');
-      active = cards[idx[isPass ? 'pass' : 'drive']];
-      if (!active) return;
-      startX = e.clientX; startY = e.clientY;
-      startT = e.timeStamp || Date.now();
-      pid = e.pointerId; axis = null; dragging = false;
-      // Capture so pointerup/move still route to us if the finger leaves the
-      // card while sliding over an overflow-y child. Critical for Passenger
-      // where tall step cards are themselves scrollable.
-      try { deck.setPointerCapture(e.pointerId); } catch (_) {}
+    function begin(x, y, t, kind, id) {
+      active = pickActive();
+      if (!active) return false;
+      startX = x; startY = y; startT = t || Date.now();
+      srcKind = kind; pid = id == null ? null : id;
+      axis = null; dragging = false;
+      return true;
     }
-    function onMove(e) {
-      if (pid === null || e.pointerId !== pid || !active) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      // Lock the gesture axis on first significant movement so a vertical
-      // pan to scroll inside a tall card doesn't get hijacked as a swipe.
-      // Looser horizontal bias (|dx| > |dy| + 2) so a swipe that drifts a
-      // few pixels vertically still registers as a deck swipe.
+    function move(x, y, e) {
+      if (!active) return;
+      const dx = x - startX;
+      const dy = y - startY;
       if (axis === null) {
         if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
-        axis = (Math.abs(dx) > Math.abs(dy) + 2) ? 'x'
-             : (Math.abs(dy) > Math.abs(dx)) ? 'y'
+        // Strong horizontal bias: as long as |dx| > |dy| we treat it as a
+        // swipe. Only obvious vertical drag (|dy| > |dx| + 4) hands the
+        // gesture to the card's internal scroll.
+        axis = (Math.abs(dx) > Math.abs(dy)) ? 'x'
+             : (Math.abs(dy) > Math.abs(dx) + 4) ? 'y'
              : 'x';
         if (axis === 'x') { dragging = true; active.classList.add('drag'); }
       }
       if (axis !== 'x') return;
-      // Once we own the horizontal gesture, preventDefault on every move
-      // tells the browser NOT to claim it for vertical pan / native scroll.
-      // Without this, the browser fires pointercancel mid-swipe whenever the
-      // finger drifts a few px vertically — the cause of the "card jumps
-      // back" symptom the user reported. This requires a non-passive listener.
-      if (e.cancelable) { try { e.preventDefault(); } catch (_) {} }
-      // Track 1:1 with a small tilt.
+      if (e && e.cancelable) { try { e.preventDefault(); } catch (_) {} }
       const rot = Math.max(-12, Math.min(12, dx / 18));
       active.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
     }
-    function commit(e) {
-      if (pid === null || e.pointerId !== pid) return;
-      const wasDragging = dragging;
-      const dx = e.clientX - startX;
-      const dt = Math.max(1, (e.timeStamp || Date.now()) - startT);
-      pid = null;
-      if (!wasDragging || !active) { active = null; axis = null; dragging = false; return; }
+    function end(x, t) {
+      if (!active) return;
+      const dx = x - startX;
+      const dt = Math.max(1, (t || Date.now()) - startT);
       const w = deck.clientWidth || 1;
-      const flick = Math.abs(dx) / dt; // px/ms
+      const flick = Math.abs(dx) / dt;
+      // 10% width OR a 0.2 px/ms flick. With this combined trigger, even a
+      // short ~40 px drag advances, and so does a quick flick across any
+      // distance. The user keeps reporting "no advance" — looser thresholds
+      // and document-level listeners are the two combined fixes.
       let dir = 0;
-      // 15% of deck width OR a 0.25 px/ms flick is enough to commit. The old
-      // 25% threshold felt heavy on a 393-wide deck (98 px to commit a card);
-      // 15% is ~59 px which matches Material's natural "card swipe" feel.
-      if (Math.abs(dx) > w * 0.15 || flick > 0.25) dir = (dx < 0) ? 1 : -1;
-      // Animate off-screen for the swipe direction, then restack.
+      if (axis === 'x' && (Math.abs(dx) > w * 0.10 || flick > 0.2)) {
+        dir = (dx < 0) ? 1 : -1;
+      }
       if (dir !== 0) {
         active.classList.remove('drag');
         const sign = dir > 0 ? -1 : 1;
         const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
-        // Double-RAF so the .drag class removal (which had `transition: none`)
-        // commits a style frame BEFORE the new transform is set — otherwise
-        // the browser batches both and the card snaps with no animation.
         const card = active;
         requestAnimationFrame(() => requestAnimationFrame(() => {
           card.style.transform = tx;
         }));
-        setTimeout(() => {
-          step(deck, isPass, dir);
-          // applyStack will reset transforms when it retags everyone.
-        }, 220);
-      } else {
-        // Snap back.
+        setTimeout(() => { step(deck, isPass, dir); }, 220);
+      } else if (dragging) {
         active.classList.remove('drag');
         active.style.transform = '';
       }
-      active = null; axis = null; dragging = false;
+      active = null; axis = null; dragging = false; pid = null; srcKind = null;
+      detach();
     }
-    function cancel(e) {
-      if (pid === null || e.pointerId !== pid) return;
-      // If we'd already locked to a horizontal swipe and the finger has
-      // travelled at least 10% of the deck width, treat the cancellation
-      // as a commit instead of a snap-back — the browser claiming the
-      // gesture mid-swipe is the most common cause of the "card jumps
-      // back" symptom, and the user clearly intended to advance.
-      if (axis === 'x' && active) {
-        const dx = e.clientX - startX;
-        const w = deck.clientWidth || 1;
-        if (Math.abs(dx) > w * 0.10) {
-          const dir = dx < 0 ? 1 : -1;
-          const sign = -dir;
-          const tx = `translateX(${sign * w * 1.2}px) rotate(${sign * 18}deg)`;
-          const card = active;
-          card.classList.remove('drag');
-          requestAnimationFrame(() => requestAnimationFrame(() => { card.style.transform = tx; }));
-          setTimeout(() => { step(deck, isPass, dir); }, 220);
-          pid = null; active = null; axis = null; dragging = false;
-          return;
-        }
+    function abort() {
+      // Browser claimed the gesture (e.g. for system back). If we'd already
+      // committed to horizontal AND the finger had travelled at all, treat
+      // it as an end with whatever position we last saw — better to commit
+      // a clear swipe than to snap a near-finished one back.
+      if (active && dragging) {
+        // We don't have a clientX here — synthesize from the last transform.
+        const m = String(active.style.transform || '').match(/translateX\(([-\d.]+)px\)/);
+        const dxLast = m ? Number(m[1]) : 0;
+        end(startX + dxLast, Date.now());
+        return;
       }
-      pid = null;
       if (active) { active.classList.remove('drag'); active.style.transform = ''; }
-      active = null; axis = null; dragging = false;
+      active = null; axis = null; dragging = false; pid = null; srcKind = null;
+      detach();
     }
 
-    deck.addEventListener('pointerdown', onDown, { passive: true });
-    // pointermove is NON-passive so onMove can preventDefault() once the
-    // axis is locked to horizontal. Without this the browser claims the
-    // gesture for vertical pan on the slightest vertical drift, fires
-    // pointercancel, and the card snaps back instead of advancing.
-    deck.addEventListener('pointermove', onMove, { passive: false });
-    deck.addEventListener('pointerup', commit, { passive: true });
-    deck.addEventListener('pointercancel', cancel, { passive: true });
+    // Doc-level handlers (attached only while a gesture is in progress).
+    function onDocPointerMove(e) {
+      if (srcKind !== 'pointer') return;
+      if (pid !== null && e.pointerId !== pid) return;
+      move(e.clientX, e.clientY, e);
+    }
+    function onDocPointerUp(e) {
+      if (srcKind !== 'pointer') return;
+      if (pid !== null && e.pointerId !== pid) return;
+      end(e.clientX, e.timeStamp || Date.now());
+    }
+    function onDocPointerCancel(e) {
+      if (srcKind !== 'pointer') return;
+      if (pid !== null && e.pointerId !== pid) return;
+      abort();
+    }
+    function onDocTouchMove(e) {
+      if (srcKind !== 'touch') return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      move(t.clientX, t.clientY, e);
+    }
+    function onDocTouchEnd(e) {
+      if (srcKind !== 'touch') return;
+      const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+      const x = t ? t.clientX : startX;
+      end(x, e.timeStamp || Date.now());
+    }
+    function onDocTouchCancel() {
+      if (srcKind !== 'touch') return;
+      abort();
+    }
+
+    function attach() {
+      if (srcKind === 'pointer') {
+        document.addEventListener('pointermove', onDocPointerMove, { passive: false });
+        document.addEventListener('pointerup', onDocPointerUp, { passive: true });
+        document.addEventListener('pointercancel', onDocPointerCancel, { passive: true });
+      } else if (srcKind === 'touch') {
+        document.addEventListener('touchmove', onDocTouchMove, { passive: false });
+        document.addEventListener('touchend', onDocTouchEnd, { passive: true });
+        document.addEventListener('touchcancel', onDocTouchCancel, { passive: true });
+      }
+    }
+    function detach() {
+      document.removeEventListener('pointermove', onDocPointerMove);
+      document.removeEventListener('pointerup', onDocPointerUp);
+      document.removeEventListener('pointercancel', onDocPointerCancel);
+      document.removeEventListener('touchmove', onDocTouchMove);
+      document.removeEventListener('touchend', onDocTouchEnd);
+      document.removeEventListener('touchcancel', onDocTouchCancel);
+    }
+
+    // Deck-level entry points.
+    deck.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      // Skip Pointer if a Touch sequence is already in progress (Android may
+      // fire both).
+      if (srcKind === 'touch') return;
+      if (begin(e.clientX, e.clientY, e.timeStamp, 'pointer', e.pointerId)) attach();
+    }, { passive: true });
+    deck.addEventListener('touchstart', (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      if (begin(t.clientX, t.clientY, e.timeStamp, 'touch', null)) attach();
+    }, { passive: true });
 
     // Keyboard / nav-arrow fallback.
     if (!deck.hasAttribute('tabindex')) deck.tabIndex = 0;

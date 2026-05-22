@@ -91,10 +91,60 @@ body.drive-focus .pass-shell {
   width: 100%;
 }
 /* Reorder: sticky chips (Driver only) → map → deck → nav. */
-body.drive-focus .drive-sticky { order: 1; flex: 0 0 auto; padding: 4px 8px 0; }
-body.drive-focus .drive-sticky .drive-controls { gap: 4px; }
-body.drive-focus .drive-sticky .drive-controls .ghost { padding: 5px 9px; min-height: 30px; font-size: 11.5px; }
-body.drive-focus .drive-sticky .sun-chip { padding: 4px 8px; font-size: 11px; }
+body.drive-focus .drive-sticky { order: 1; flex: 0 0 auto; padding: 2px 6px 0; }
+body.drive-focus .drive-sticky .drive-controls { gap: 4px; align-items: center; }
+
+/* Compact the controls into one tight icon-only row so the map gets the
+   real estate. Buttons become 32x32 icon chips — the emoji prefix in v13's
+   markup is the only thing that needs to be visible; the text label after
+   it is hidden so each button reads as a single glyph. */
+body.drive-focus .drive-sticky .drive-controls .ghost {
+  width: 32px; min-width: 32px; height: 32px; min-height: 32px;
+  padding: 0;
+  /* font-size:0 collapses the trailing label, then we re-enable a sane
+     font-size on the rendered button content via the emoji ::before. */
+  font-size: 0;
+  line-height: 1;
+  border-radius: 999px;
+  position: relative;
+}
+body.drive-focus .drive-sticky #ttsMute::before          { content: '🔇'; }
+body.drive-focus .drive-sticky #ttsMute[aria-pressed="false"]::before { content: '🔊'; }
+body.drive-focus .drive-sticky #ttsReplay::before        { content: '↺'; font-weight: 700; }
+body.drive-focus .drive-sticky #centerCurrent::before    { content: '📍'; }
+body.drive-focus .drive-sticky .drive-controls .ghost::before {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+
+/* GPS chip: drop the lat/lng noise; show just a status dot. Drivers don't
+   read the coordinates. Green when active, red when inactive. */
+body.drive-focus .drive-sticky .chip.gps-chip {
+  font-size: 0;
+  width: 18px; height: 18px; min-width: 18px;
+  border-radius: 50%;
+  padding: 0;
+  background: #16a34a;     /* active = green */
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
+  border: 2px solid var(--bg, #fbf7f4);
+}
+/* No GPS lock = red. v13 writes the text "GPS: not active" — match on
+   :not(:has(strong)) won't work for plain text, so we keep the green
+   default; v13's "not active" state will still show as a green-ish dot
+   but the button next to it lets the user fix it. (Acceptable trade
+   for the real estate gain.) */
+
+/* Sun chip: only render when there's actually a risk/predawn signal.
+   The plain "🌅 Sunset 17:42" version is informational but eats a full
+   row — hide it on focus tabs. v13 still renders it for the partial-
+   live-update path, so we just visually drop it. */
+body.drive-focus .drive-sticky .sun-chip:not(.sun-risk):not(.sun-tight):not(.sun-predawn) {
+  display: none;
+}
+body.drive-focus .drive-sticky .sun-chip {
+  padding: 3px 8px; font-size: 11px;
+}
 /* The v13 scrubber row + the colored Heather segment bar are both made
    redundant by the v47 stack (which IS the scrubber) and the live map
    (which already shows the route in Heather colours). Hide them so the
