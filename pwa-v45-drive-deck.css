@@ -165,6 +165,30 @@ body.drive-focus .route-map-caption { display: none; }
 .pass-card img.step-streetview { width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
 .pass-card .step-dir { font-size: 18px; margin-right: 4px; }
 
+/* ---- Demo/dev controls tucked behind a small disclosure chip ---- */
+/* NB: do NOT set display on the <details> itself when closed — it breaks the
+   native collapse (children would show). Only flex it open. */
+.demo-details[open] { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+/* When closed, hard-hide everything but the summary chip (the demo inputs set
+   their own display, which would otherwise leak through the native collapse). */
+.demo-details:not([open]) > :not(summary) { display: none !important; }
+.demo-summary {
+  list-style: none;
+  cursor: pointer;
+  border: 1px dashed var(--line, #ece3df);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #6f6368);
+  background: transparent;
+  user-select: none;
+}
+.demo-summary::-webkit-details-marker { display: none; }
+.demo-details[open] .demo-summary { color: var(--brand, #5a1738); border-style: solid; }
+.demo-details .demo-input { font-size: 12px; color: var(--text-muted, #6f6368); display: inline-flex; align-items: center; gap: 4px; }
+.demo-details #demoNoise { width: 48px; }
+
 /* ---- Deck nav footer: ‹  3 / 31  ›  + thin progress fill ---- */
 .deck-nav {
   display: flex;

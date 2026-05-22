@@ -66,15 +66,17 @@
     background: var(--bg, #fbf7f4);
     border-bottom: 1px solid var(--line, #ece3df);
   }
-  .toolbar-left { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  /* Row 1: ‹  [day select]  ›   ·   Row 2: Today · Use GPS */
-  .toolbar-left .day-nav  { flex: 0 0 auto; }
+  /* Single row: ‹  [day select]  ›  Today  GPS — keeps the chrome short so the
+     content pane gets more height. */
+  .toolbar-left { display: flex; flex-wrap: nowrap; gap: 5px; align-items: center; }
+  .toolbar-left .day-nav  { flex: 0 0 auto; order: 1; padding: 0 9px; }
   .toolbar-left #dayPrev  { order: 1; }
-  .toolbar-left .day-select { order: 2; flex: 1 1 200px; min-width: 0; }
+  .toolbar-left .day-select { order: 2; flex: 1 1 auto; min-width: 0; }
   .toolbar-left #dayNext  { order: 3; }
-  .toolbar-left #todayBtn { order: 4; flex: 1 1 45%; }
-  .toolbar-left #gpsBtn   { order: 5; flex: 1 1 45%; }
-  .toolbar button { min-height: 40px; }
+  .toolbar-left #todayBtn { order: 4; flex: 0 0 auto; padding: 0 10px; }
+  .toolbar-left #gpsBtn   { order: 5; flex: 0 0 auto; padding: 0 10px; }
+  .toolbar button { min-height: 38px; font-size: 12.5px; white-space: nowrap; }
+  .toolbar { padding: 5px 8px; }
 
   /* ---- Tighter hero so content starts sooner ------------------------ */
   .hero { padding: 10px 14px; }

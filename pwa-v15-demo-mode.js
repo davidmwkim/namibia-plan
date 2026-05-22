@@ -321,10 +321,19 @@
     noiseLabel.appendChild(noiseInput);
     noiseLabel.appendChild(document.createTextNode(' h'));
 
-    wrap.appendChild(start);
-    wrap.appendChild(stop);
-    wrap.appendChild(durLabel);
-    wrap.appendChild(noiseLabel);
+    // Tuck the dev/demo controls behind a collapsed disclosure so they don't
+    // clutter the live driving view — open it only when you want to replay.
+    const details = document.createElement('details');
+    details.className = 'demo-details';
+    const summary = document.createElement('summary');
+    summary.className = 'demo-summary';
+    summary.textContent = '🧪 Demo';
+    details.appendChild(summary);
+    details.appendChild(start);
+    details.appendChild(stop);
+    details.appendChild(durLabel);
+    details.appendChild(noiseLabel);
+    wrap.appendChild(details);
     sticky.appendChild(wrap);
 
     // If the demo is currently running, re-paint the button progress so we
