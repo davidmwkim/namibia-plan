@@ -189,22 +189,35 @@ body.drive-focus .pass-deck[data-stack="1"] > .pass-card[data-stack-pos="prev"] 
 body.drive-focus .drive-cards[data-stack="1"] > .drive-card.drag,
 body.drive-focus .pass-deck[data-stack="1"] > .pass-card.drag { transition: none; }
 
-/* When the deck is in stack mode, the v45 horizontal progress bar + counter
-   row would float in mid-air — hide them. The deck-nav arrows stay (we
-   re-attach them to v47's step handler) as a keyboard/a11y fallback. */
+/* In stack mode the deck IS the scrubber — swipe to advance, no nav row
+   needed. Hide both the v45 progress bar and the prev/counter/next row
+   so the map and the cards take the full 50/50. The card count moves
+   into a tiny pill in the top-right corner of the deck. */
 body.drive-focus .drive-cards[data-stack="1"] ~ .deck-progress,
-body.drive-focus .pass-deck[data-stack="1"] ~ .deck-progress { display: none; }
+body.drive-focus .pass-deck[data-stack="1"] ~ .deck-progress,
 body.drive-focus .drive-cards[data-stack="1"] ~ .deck-nav,
-body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav {
-  order: 4;
-  flex: 0 0 auto;
-  padding: 2px 6px env(safe-area-inset-bottom, 0px);
-  background: var(--bg, #fbf7f4);
+body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav { display: none !important; }
+
+.deck-corner-counter {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
-body.drive-focus .drive-cards[data-stack="1"] ~ .deck-nav .deck-counter,
-body.drive-focus .pass-deck[data-stack="1"] ~ .deck-nav .deck-counter {
-  font-size: 12px;
-  min-width: 56px;
+html[data-theme="dark"] .deck-corner-counter {
+  background: rgba(255, 255, 255, 0.16);
+  color: #f4f4f5;
 }
 
 /* Phones — collapse drive-sticky to one row so the map gets max height. */

@@ -170,10 +170,21 @@
       else if (k === i - 1) pos = 'prev';
       c.dataset.stackPos = pos;
     });
-    // Counter on the nav row (re-uses v45's markup if present).
+    // Corner counter pill (inside the deck, top-right). The v45 .deck-nav
+    // row is hidden in stack mode — swipe drives navigation — so the count
+    // moves into this tiny badge to reclaim the bottom strip of real estate.
+    let badge = deck.querySelector(':scope > .deck-corner-counter');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'deck-corner-counter';
+      deck.appendChild(badge);
+    }
+    badge.textContent = `${i + 1} / ${total}`;
+    // Also update the (now-hidden) v45 counter so a fallback rendering
+    // (e.g. drive-focus class removed) doesn't show a stale value.
     const wrap = deck.parentElement;
-    const counter = wrap && wrap.querySelector('.deck-counter');
-    if (counter) counter.textContent = `${i + 1} / ${total}`;
+    const oldCounter = wrap && wrap.querySelector('.deck-counter');
+    if (oldCounter) oldCounter.textContent = `${i + 1} / ${total}`;
     updateMapForActive(deck, isPass);
   }
 

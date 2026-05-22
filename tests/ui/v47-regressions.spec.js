@@ -151,6 +151,18 @@ test.describe('v47 layout regressions', () => {
       return el.offsetHeight > 0 && getComputedStyle(el).display !== 'none';
     });
     expect(visible).toBe(false);
+    // The bottom .deck-nav row is also gone in stack mode — swipe drives the
+    // deck and the count lives in a corner badge.
+    const navVisible = await page.evaluate(() => {
+      const el = document.querySelector('.deck-nav');
+      return !!el && el.offsetHeight > 0 && getComputedStyle(el).display !== 'none';
+    });
+    expect(navVisible).toBe(false);
+    const badge = await page.evaluate(() => {
+      const el = document.querySelector('.drive-cards .deck-corner-counter');
+      return el && el.textContent.trim();
+    });
+    expect(badge).toMatch(/^\d+ \/ \d+$/);
   });
 
   test('Dark-mode .rss-note meets WCAG AA contrast', async ({ page }) => {
