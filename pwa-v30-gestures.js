@@ -100,6 +100,15 @@
 
   // The tab content follows the finger during a drag, then commits to a
   // simultaneous slide on release (or springs back under threshold).
+  // Don't hijack a horizontal drag that belongs to an inner control: the
+  // Heather summary bar + its scrubber slider, range inputs, and Leaflet maps
+  // all use horizontal drags of their own. Starting a tab-swipe on them dragged
+  // the whole page sideways.
+  function isNoSwipeTarget(target) {
+    return !!(target && target.closest && target.closest(
+      'input[type="range"], .drive-scrub-row, .hbar, .drive-heather, .leaflet-container'));
+  }
+
   function attachAnimatedSwipe(el) {
     let startX = 0, startY = 0, t0 = 0, active = false, dragging = false;
     const reset = () => { el.style.transition = 'transform .18s ease, opacity .18s ease'; el.style.transform = ''; el.style.opacity = ''; };
@@ -130,10 +139,10 @@
       if (idx < 0 || nextIdx < 0 || nextIdx >= TAB_ORDER.length) { reset(); return; }
       slideTransition(node, dir, () => changeTab(dir));
     };
-    el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; const t = e.touches[0]; const w = window.innerWidth; if (t.clientX < 20 || t.clientX > w - 20) return; onStart(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; if (isNoSwipeTarget(e.target)) return; const t = e.touches[0]; const w = window.innerWidth; if (t.clientX < 20 || t.clientX > w - 20) return; onStart(t.clientX, t.clientY); }, { passive: true });
     el.addEventListener('touchmove', e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive: true });
     el.addEventListener('touchend', e => { const t = e.changedTouches[0]; if (t) onEnd(t.clientX, t.clientY); }, { passive: true });
-    el.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+    el.addEventListener('mousedown', e => { if (isNoSwipeTarget(e.target)) return; onStart(e.clientX, e.clientY); });
     window.addEventListener('mousemove', e => { if (active) onMove(e.clientX, e.clientY); });
     window.addEventListener('mouseup', e => { if (active) onEnd(e.clientX, e.clientY); });
   }
