@@ -115,7 +115,12 @@
   // renderTab (base + v12), so we re-transform it each time; the Leaflet map is
   // recreated on the fresh host (mirrors how v32 handles the driver map).
   // ---------------------------------------------------------------------------
-  let passMap = null, passDot = null, passLayers = [], passDrawnKey = null;
+  let passMap = null, passDot = null, passLayers = [];
+  // The built shell is cached + re-attached on same-day re-renders so a
+  // GPS-driven render reuses the live map AND keeps the swipe position instead
+  // of recreating everything every second. (Detach resets scrollLeft, so we
+  // track + restore it.)
+  let passShellEl = null, passDayKey = null, passScrollLeft = 0;
 
   function passStepCoord(card) {
     const leg = Number(card.dataset.leg), step = Number(card.dataset.step);
@@ -164,13 +169,25 @@
     const d = (typeof day === 'function') ? day() : null;
     const route = d && state.renderedRoutes && state.renderedRoutes[d.date];
     if (!route || !route.legs) return;
+    const dayKey = d.date + ':' + ((route.overviewPath && route.overviewPath.length) || 0);
 
-    // Collect the turn-by-turn step <li>s in document order, tagging each with
-    // its leg/step indices from the expand button so we can map it to coords.
+    // Base renderTab rebuilds the directions list on EVERY render (incl. every
+    // GPS tick). To avoid recreating the Leaflet map + losing the swipe position
+    // each second, cache the built shell and just RE-ATTACH it when the day is
+    // unchanged — discarding the freshly-rebuilt (but identical) directions list.
+    if (passShellEl && passDayKey === dayKey) {
+      dir.replaceWith(passShellEl);
+      try { if (passMap) passMap.invalidateSize(false); } catch (_) {}
+      // Detaching reset the deck's scrollLeft — restore the user's swipe spot.
+      const rdeck = passShellEl.querySelector('.pass-deck');
+      if (rdeck) rdeck.scrollLeft = passScrollLeft;
+      return;
+    }
+
+    // Fresh build (first visit or the day changed).
     const steps = [...dir.querySelectorAll('li.step')];
     if (!steps.length) return;
 
-    // Build the deck shell: [map host] [deck] (nav added by ensureNav-style).
     const shell = document.createElement('div');
     shell.className = 'pass-shell';
     const mapHost = document.createElement('div');
@@ -203,10 +220,9 @@
 
     // Deck nav (counter + arrows + progress) — reuse the driver deck nav markup.
     ensureNav(deck);
-    if (!deck.dataset.deckWired) {
-      deck.dataset.deckWired = '1';
-      deck.addEventListener('scroll', () => onPassScroll(deck), { passive: true });
-    }
+    deck.addEventListener('scroll', () => onPassScroll(deck), { passive: true });
+
+    passShellEl = shell; passDayKey = dayKey;
     passUpdate(deck, 0);
   }
 
@@ -217,6 +233,7 @@
     passUpdate(deck, idx);
   }
   function onPassScroll(deck) {
+    passScrollLeft = deck.scrollLeft;
     const now = Date.now();
     if (now - passLastRun > 90) { passLastRun = now; passApply(deck); }
     clearTimeout(passTrailing);
