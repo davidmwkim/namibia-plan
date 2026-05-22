@@ -79,16 +79,17 @@
     closeMenu();
     const current = window.NAMIBIA_APP_VERSION || '';
     const versions = await listCachedVersions();
-    // Always offer Latest + current first, then any additional cached.
-    const items = [{ version: 'latest', label: 'Latest (auto-update)' }];
-    if (current && !items.find(i => i.version === current)) {
-      items.push({ version: current, label: 'v' + current, tag: 'current' });
-    }
+    // Build the list, then sort version entries strictly descending (newest
+    // at top) — "Latest" always pinned to the top regardless of order.
+    const verItems = [];
+    if (current) verItems.push({ version: current, label: 'v' + current, tag: 'current' });
     versions.forEach(v => {
-      if (!items.find(i => i.version === v)) {
-        items.push({ version: v, label: 'v' + v, tag: 'cached' });
+      if (!verItems.find(i => i.version === v)) {
+        verItems.push({ version: v, label: 'v' + v, tag: 'cached' });
       }
     });
+    verItems.sort((a, b) => verCmp(b.version, a.version));
+    const items = [{ version: 'latest', label: 'Latest (auto-update)' }].concat(verItems);
 
     const menu = document.createElement('div');
     menu.className = 'version-pin-dropdown';

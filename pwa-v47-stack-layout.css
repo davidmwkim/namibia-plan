@@ -20,27 +20,40 @@ body.tab-settings .grid > aside { display: none; }
 .route-cond-strip {
   position: relative;
   flex: 0 0 auto;
-  height: 18px;
+  height: 22px;
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: var(--bg, #fbf7f4);
+  border-bottom: 1px solid var(--line, #ece3df);
   overflow: visible;
 }
+html[data-theme="dark"] .route-cond-strip {
+  background: var(--bg-card, #1f1e24);
+  border-bottom-color: var(--line, #36343d);
+}
 .route-cond-strip .hbar {
-  position: absolute; inset: 4px 8px 4px 8px;
+  position: absolute; inset: 6px 10px 6px 10px;
   margin: 0; padding: 0;
 }
 .route-cond-strip .hbar-track {
   height: 8px; border-radius: 999px; overflow: hidden;
 }
-.route-cond-strip .hbar-row,
+/* Keep only the main "drive" segment row; drop the speed marks, stops,
+   pressure arrows, and the surface dash-overlay so the strip stays a
+   single 8 px coloured bar. */
 .route-cond-strip .hbar-row.hbar-speedrow,
 .route-cond-strip .hbar-row.hbar-stoprow,
 .route-cond-strip .hbar-surftrack,
 .route-cond-strip .hbar-stoptrack,
 .route-cond-strip .hbar-speedtrack,
 .route-cond-strip .hbar-stop,
-.route-cond-strip .hbar-press { display: none !important; }
+.route-cond-strip .hbar-press,
+.route-cond-strip .hbar-rowlab { display: none !important; }
+.route-cond-strip .hbar-row { display: block; }
+.route-cond-strip .hbar-row .hbar-track {
+  height: 8px; border-radius: 999px; overflow: hidden;
+  background: var(--line, #ece3df);
+}
 .route-cond-strip .hbar-here { font-size: 9px; line-height: 1; top: -8px; }
 .route-cond-strip .rcs-marker {
   position: absolute;

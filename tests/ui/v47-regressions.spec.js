@@ -85,6 +85,30 @@ test.describe('v47 layout regressions', () => {
     expect(box && box.height).toBeGreaterThan(80);
   });
 
+  test('Road-conditions preview strip is present and visible above both maps', async ({ page }) => {
+    await seedRoute(page, '2026-05-24', DAY2);
+    await page.goto('/');
+    await switchToDay(page, '2026-05-24');
+    // Driver tab
+    await page.click('.tab[data-tab="street"]');
+    await page.waitForSelector('.drive-dashboard .route-cond-strip', { state: 'attached' });
+    const driverStripBox = await page.locator('.drive-dashboard .route-cond-strip').boundingBox();
+    const driverMapBox = await page.locator('.drive-dashboard .drive-map').boundingBox();
+    expect(driverStripBox && driverStripBox.height).toBeGreaterThan(8);
+    // Strip sits ABOVE the map and is essentially flush (visual gap < 20 px,
+    // accounting for the .drive-sticky chips that may also live above it).
+    expect(driverMapBox.y).toBeGreaterThan(driverStripBox.y);
+    expect(driverMapBox.y - (driverStripBox.y + driverStripBox.height)).toBeLessThanOrEqual(20);
+    // Passenger tab
+    await page.click('.tab[data-tab="directions"]');
+    await page.waitForSelector('.pass-shell .route-cond-strip', { state: 'attached' });
+    const passStripBox = await page.locator('.pass-shell .route-cond-strip').boundingBox();
+    const passMapBox = await page.locator('.pass-shell .pass-map').boundingBox();
+    expect(passStripBox && passStripBox.height).toBeGreaterThan(8);
+    expect(passMapBox.y).toBeGreaterThan(passStripBox.y);
+    expect(passMapBox.y - (passStripBox.y + passStripBox.height)).toBeLessThanOrEqual(20);
+  });
+
   test('Driver map has measurable height + draws tiles', async ({ page }) => {
     await seedRoute(page, '2026-05-24', DAY2);
     await page.goto('/');

@@ -400,12 +400,18 @@
     }
 
     function attach() {
+      // touchmove / pointermove are PASSIVE so the browser can run vertical
+      // pan + momentum scroll natively (cards have overflow-y:auto for tall
+      // step details). Horizontal swipe is still routed to JS because the
+      // deck's touch-action: pan-y blocks horizontal native pan; our handler
+      // just translates the active card. Vertical scrolling inside a card
+      // now behaves like any normal scroll list — momentum and all.
       if (srcKind === 'pointer') {
-        document.addEventListener('pointermove', onDocPointerMove, { passive: false });
+        document.addEventListener('pointermove', onDocPointerMove, { passive: true });
         document.addEventListener('pointerup', onDocPointerUp, { passive: true });
         document.addEventListener('pointercancel', onDocPointerCancel, { passive: true });
       } else if (srcKind === 'touch') {
-        document.addEventListener('touchmove', onDocTouchMove, { passive: false });
+        document.addEventListener('touchmove', onDocTouchMove, { passive: true });
         document.addEventListener('touchend', onDocTouchEnd, { passive: true });
         document.addEventListener('touchcancel', onDocTouchCancel, { passive: true });
       }
