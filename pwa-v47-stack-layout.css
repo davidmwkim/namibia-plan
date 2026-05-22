@@ -118,6 +118,27 @@ body.drive-focus .drive-sticky .drive-controls .ghost::before {
   font-size: 14px;
 }
 
+/* Driving-mode launch button (v37) hosted in the toolbar row. Same 32x32
+   icon-chip shape as the other day-nav controls so it slots in without
+   eating vertical room above the map. */
+.df-enter-btn.toolbar-mounted {
+  width: 32px; min-width: 32px; height: 32px; min-height: 32px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line, #ece3df);
+  background: var(--bg-card, #ffffff);
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.df-enter-btn.toolbar-mounted:active { transform: scale(0.94); }
+html[data-theme="dark"] .df-enter-btn.toolbar-mounted {
+  background: var(--bg-card, #1f1e24);
+  border-color: var(--line, #36343d);
+}
+
 /* GPS chip: drop the lat/lng noise; show just a status dot. Drivers don't
    read the coordinates. Green when active, red when inactive. */
 body.drive-focus .drive-sticky .chip.gps-chip {

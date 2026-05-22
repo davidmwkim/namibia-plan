@@ -419,18 +419,36 @@
     }
   }
 
-  // ---- Inject the entry button into the dashboard controls (idempotent). ----
+  // ---- Inject the entry button (idempotent) ----------------------------------
+  // Prefer the .toolbar-left day-nav row so the button lives at the TOP of the
+  // viewport on every tab — saves the vertical real estate the old position
+  // (inside .drive-controls in .drive-sticky) was eating above the map. Falls
+  // back to .drive-controls if the toolbar isn't present (older layouts /
+  // dashboard rendering paths). Distraction-free mode works from any tab since
+  // it builds its overlay from state.renderedRoutes for the current day.
   function injectButton() {
-    if (state?.activeTab !== 'street') return;
+    if (document.getElementById('enterDrivingMode')) return;
+    const toolbar = document.querySelector('.toolbar-left');
     const controls = document.querySelector('.drive-controls');
-    if (!controls || controls.querySelector('#enterDrivingMode')) return;
+    const host = toolbar || controls;
+    if (!host) return;
     const btn = document.createElement('button');
     btn.id = 'enterDrivingMode';
-    btn.className = 'primary df-enter-btn';
-    btn.textContent = '🚗 Driving mode';
-    btn.title = 'Full-screen, distraction-free driving view';
+    btn.type = 'button';
     btn.onclick = enterFocus;
-    controls.appendChild(btn);
+    if (host === toolbar) {
+      // Icon-only chip in the day-nav row.
+      btn.className = 'ghost df-enter-btn toolbar-mounted';
+      btn.setAttribute('aria-label', 'Driving mode');
+      btn.title = 'Full-screen, distraction-free driving view';
+      btn.innerHTML = '<span aria-hidden="true">🚗</span>';
+    } else {
+      // Legacy in-sticky placement: stays as the labeled primary button.
+      btn.className = 'primary df-enter-btn';
+      btn.textContent = '🚗 Driving mode';
+      btn.title = 'Full-screen, distraction-free driving view';
+    }
+    host.appendChild(btn);
   }
 
   function startObserver() {
