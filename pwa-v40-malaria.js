@@ -89,14 +89,18 @@
   function malariaCardHtml(d) {
     if (!MAL || !d) return '';
     const info = malariaForDate(d.date);
+    // No-risk days: a single compact line (the full course + note only clutter
+    // the ~6 days it doesn't apply to). The day selector still marks 💊/🦟 days.
+    if (!info.med && !info.zone) {
+      return `<div class="malaria-card mal-none mal-compact">`
+        + `<span class="mal-mini">🦟 No malaria risk today — tablets run ${fmtDate(MAL.medStartDate)}–${fmtDate(MAL.medEndDate)} (from Day 7).</span></div>`;
+    }
     const status = info.zone
       ? '🦟 <strong>In the malaria zone today</strong> — northern Etosha.'
-      : info.med
-        ? `💊 <strong>Malaria tablet day</strong> — ${E(phaseText(d.date, info))}.`
-        : '✅ No malaria risk on this day.';
+      : `💊 <strong>Malaria tablet day</strong> — ${E(phaseText(d.date, info))}.`;
     const course = `Tablet course: <strong>${fmtDate(MAL.medStartDate)} → ${fmtDate(MAL.medEndDate)}</strong>`
       + ` · zone ${fmtDate(MAL.entryDate)}–${fmtDate(MAL.exitDate)} (Days 9–12, Etosha north).`;
-    return `<div class="malaria-card ${info.zone ? 'mal-zone' : info.med ? 'mal-med' : 'mal-none'}">`
+    return `<div class="malaria-card ${info.zone ? 'mal-zone' : 'mal-med'}">`
       + `<h3>🦟 Malaria</h3><p class="mal-status">${status}</p><p class="mal-course">${course}</p>`
       + `<p class="mal-note">${E(MAL.note)}</p></div>`;
   }

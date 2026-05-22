@@ -8,7 +8,7 @@
 //   patch: bug fix / CSS tweak / data change
 // Bump this any time files in ASSETS change — the activate handler purges
 // stale caches keyed by name so the next reload fetches fresh files.
-const APP_VERSION = '1.51.0';
+const APP_VERSION = '1.51.1';
 const CACHE = 'namibia-trip-' + APP_VERSION;
 self.NAMIBIA_APP_VERSION = APP_VERSION;
 const ASSETS = [
@@ -107,7 +107,15 @@ const CROSS_ORIGIN_CACHE_PREFIXES = [
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(async cache => {
-    await cache.addAll(ASSETS);
+    // Fetch each asset with cache:'reload' so a version bump ALWAYS precaches
+    // fresh files. cache.addAll() goes through the HTTP disk cache, which can
+    // re-store stale JS/CSS and leave users on the old build after an update.
+    // Per-asset catch so one missing file can't fail the whole install.
+    await Promise.all(ASSETS.map(u =>
+      fetch(new Request(u, { cache: 'reload' }))
+        .then(r => (r && r.ok) ? cache.put(u, r) : null)
+        .catch(() => null)
+    ));
     // Precache ALL pre-generated Edge-TTS audio so spoken cues are bundled
     // offline from first install and are NEVER fetched over the network later.
     try {

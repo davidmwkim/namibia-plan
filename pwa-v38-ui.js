@@ -23,6 +23,14 @@
   // can show current values whenever it's opened, and wrap the global setStatus
   // so live updates still land on the chips when Settings is the active tab.
   const STATUS = { googleStatus: 'Google: not loaded', offlineStatus: 'Offline cache: checking', gpsStatus: 'GPS: off' };
+  // Compute the offline status live from the actual SW state — the one-shot
+  // setStatus on registration can race with this module's load and leave the
+  // chip stuck on "checking".
+  function offlineStatusLive() {
+    if (!('serviceWorker' in navigator)) return 'Service worker unsupported';
+    if (navigator.serviceWorker.controller) return navigator.onLine ? 'Online · shell cached' : 'Offline · shell cached';
+    return STATUS.offlineStatus;
+  }
   if (typeof setStatus === 'function') {
     const _setStatus = setStatus;
     setStatus = function patchedSetStatusV38(id, text) { STATUS[id] = text; return _setStatus(id, text); };
@@ -339,7 +347,7 @@
         <h3>Status</h3>
         <div class="settings-status">
           <span class="chip" id="googleStatus">${E(STATUS.googleStatus)}</span>
-          <span class="chip" id="offlineStatus">${E(STATUS.offlineStatus)}</span>
+          <span class="chip" id="offlineStatus">${E(offlineStatusLive())}</span>
           <span class="chip" id="gpsStatus">${E(STATUS.gpsStatus)}</span>
           ${fuel ? `<span class="chip">Fuel model: ${E(fuel.tankLitres)}L tank · ${E(fuel.planningConsumptionLPer100Km)}L/100km</span>` : ''}
           <span class="chip" id="setVersionChip">⚙ ${swVersion ? 'v' + E(swVersion) : '…'}</span>

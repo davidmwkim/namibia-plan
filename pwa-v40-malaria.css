@@ -38,3 +38,7 @@
 /* Itinerary per-day strip */
 .malaria-day-strip { margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; background: #f0fbfd; border: 1px solid #c7e3ea; color: #0e5e74; font-size: 13px; font-weight: 600; }
 .malaria-day-strip.mal-in { background: #faf2fd; border-color: #e3c2ee; color: #7c2d92; }
+
+/* Compact one-line malaria note on no-risk days (declutter). */
+.malaria-card.mal-compact { padding: 8px 14px; margin: 0 0 12px; background: #f6f7f5; border: 1px solid var(--line, #ece3df); border-radius: 12px; }
+.malaria-card.mal-compact .mal-mini { font-size: 12.5px; color: var(--muted, #6f6368); }
