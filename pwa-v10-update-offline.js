@@ -4,6 +4,33 @@
   let refreshing = false;
   let waitingWorker = null;
 
+  // Track whether the user has actually touched the app this visit. If a new
+  // version is waiting on a *fresh launch* (before any interaction) we apply it
+  // silently and reload — the "update on next launch" pattern — so shipped
+  // fixes reliably reach the device without anyone having to tap a toast. If an
+  // update lands *while* the app is in use, we fall back to the toast so we
+  // never yank the page out from under an active reader.
+  let userInteracted = false;
+  const markInteracted = () => { userInteracted = true; };
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+    window.addEventListener(ev, markInteracted, { once: true, passive: true }));
+
+  function applyWaiting(worker) {
+    waitingWorker = worker || waitingWorker;
+    if (waitingWorker) waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    // controllerchange (wired in setupUpdatePrompt) reloads once the new SW
+    // takes over; this is the belt-and-braces fallback.
+    setTimeout(() => { if (!refreshing) window.location.reload(); }, 4000);
+  }
+
+  // Fresh-launch + untouched → auto-apply; otherwise show the dismissible toast.
+  function handleWaiting(worker) {
+    const freshLaunch = (typeof performance !== 'undefined')
+      && performance.now() < 12000 && !userInteracted;
+    if (freshLaunch) applyWaiting(worker);
+    else updatePrompt(worker);
+  }
+
   function toast(id, cls, title, body) {
     let el = document.getElementById(id);
     if (el) return el;
@@ -84,12 +111,15 @@
     });
     const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) return;
-    if (registration.waiting && navigator.serviceWorker.controller) updatePrompt(registration.waiting);
+    // Kick an immediate update check on launch so a freshly-pushed sw.js is
+    // detected within seconds (not only on the next visibility/30-min tick).
+    registration.update().catch(() => {});
+    if (registration.waiting && navigator.serviceWorker.controller) handleWaiting(registration.waiting);
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       if (!worker) return;
       worker.addEventListener('statechange', () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) updatePrompt(worker);
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) handleWaiting(worker);
       });
     });
     document.addEventListener('visibilitychange', () => {
