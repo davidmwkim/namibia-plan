@@ -64,6 +64,16 @@ body.drive-focus .panel { padding-top: 8px; }
 .sun-chip.sun-tight { background: #fff4e5; color: #9a5b00; }
 .sun-chip.sun-predawn { background: #eef2ff; color: #3b3b8f; }
 
+/* ---- Order: MAP first, then the swipe deck, then controls/heather. The DOM
+   order is unchanged (JS still finds everything); only the visual order moves,
+   so the live view leads with the map + cards the user actually watches. ---- */
+body.drive-focus .drive-dashboard { display: flex; flex-direction: column; }
+body.drive-focus .drive-map { order: 1; }
+body.drive-focus .drive-cards { order: 2; }
+body.drive-focus .deck-progress { order: 3; }
+body.drive-focus .deck-nav { order: 4; }
+body.drive-focus .drive-sticky { order: 5; margin-top: 6px; }
+
 /* ---- Prominent map with the position dot ---- */
 .drive-map {
   height: 42vh;
