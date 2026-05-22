@@ -17,7 +17,10 @@ body.drive-focus .grid {
   overflow: hidden;
   height: 100%;
   min-height: 0;
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  /* Let the deck + map use the FULL pane. .tabs is position:fixed with its
+     own opaque background and overlays content; cards have enough internal
+     padding that their bottom edge reading-area sits above the tabbar. */
+  padding-bottom: 0;
 }
 body.drive-focus .grid > aside { display: none; }
 body.drive-focus .grid > .panel {
