@@ -228,7 +228,11 @@
 
   function injectToggle() {
     if (document.getElementById('notifToggleBtn')) return;
-    const bar = document.querySelector('.statusbar');
+    // v38 moved config controls into the Settings tab; the old `.statusbar`
+    // host no longer exists, so the toggle silently vanished and notifications
+    // (incl. the malaria reminders) could never be enabled. Prefer the Settings
+    // controls row (alongside Force-update), fall back to the legacy statusbar.
+    const bar = document.getElementById('settingsControls') || document.querySelector('.statusbar');
     if (!bar) return;
     const btn = document.createElement('button');
     btn.id = 'notifToggleBtn';
