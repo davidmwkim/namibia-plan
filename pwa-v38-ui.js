@@ -415,6 +415,27 @@
   }
 
   // ============================================================ wrap renderTab (outermost)
+  // The "Assumptions" (tyre/fuel notes) and "Log" panels live in .main and
+  // showed on every tab — dev/reference noise. Show them only on the Settings
+  // tab (where they read as "under the settings page"), Assumptions above Log.
+  function toggleAuxPanels(){
+    const onSettings = (typeof state !== 'undefined' && state.activeTab === 'settings');
+    const main = document.querySelector('.main');
+    if (!main) return;
+    let assumptions = null, log = null;
+    Array.from(main.children).forEach(c => {
+      if (!(c.matches && c.matches('.panel.pad'))) return;
+      const h = c.querySelector(':scope > h2'); const t = h ? h.textContent.trim() : '';
+      if (/^Assumptions$/i.test(t)) assumptions = c;
+      else if (/^Log$/i.test(t)) log = c;
+    });
+    [assumptions, log].forEach(p => { if (p) p.style.display = onSettings ? '' : 'none'; });
+    if (onSettings && assumptions && log &&
+        (assumptions.compareDocumentPosition(log) & Node.DOCUMENT_POSITION_PRECEDING)) {
+      main.insertBefore(assumptions, log); // Assumptions first, then Log
+    }
+  }
+
   if (typeof renderTab === 'function'){
     const baseRT = renderTab;
     renderTab = function patchedRenderTabV38(){
@@ -425,6 +446,7 @@
         if (state.activeTab === 'overview') injectOverviewExtras(d);
         else if (state.activeTab === 'stops') renderItinerary(d);
         else if (state.activeTab === 'settings') renderSettings();
+        toggleAuxPanels();
       } catch (e) { if (typeof console !== 'undefined') console.warn('v38 renderTab', e); }
       return r;
     };
