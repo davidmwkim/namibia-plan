@@ -115,6 +115,56 @@ body.drive-focus .drive-sticky { order: 5; margin-top: 6px; }
   outline-offset: -1px;
 }
 
+/* ---- Passenger (directions) deck: same map-on-top + swipe pattern ---- */
+/* The SVG route sketch + its caption are redundant now there's a real map. */
+body.drive-focus .route-sketch,
+body.drive-focus .route-map-caption { display: none; }
+
+.pass-shell { display: flex; flex-direction: column; }
+.pass-map {
+  height: 42vh;
+  min-height: 230px;
+  max-height: 420px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 6px;
+}
+.pass-deck {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 12px;
+  padding: 10px 2px 6px;
+  scroll-padding-inline: 7%;
+  scrollbar-width: none;
+}
+.pass-deck::-webkit-scrollbar { display: none; }
+.pass-deck > .pass-card {
+  flex: 0 0 86%;
+  max-width: 86%;
+  scroll-snap-align: center;
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid var(--line, #ece3df);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  line-height: 1.4;
+}
+/* The central map already shows each step's location, so the per-step expand
+   button + the step's own mini-map are redundant clutter inside a card. */
+.pass-card .step-expand { display: none; }
+.pass-card .card-map-osm,
+.pass-card .step-map-osm { display: none; }
+.pass-card img.step-streetview { width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
+.pass-card .step-dir { font-size: 18px; margin-right: 4px; }
+
 /* ---- Deck nav footer: ‹  3 / 31  ›  + thin progress fill ---- */
 .deck-nav {
   display: flex;

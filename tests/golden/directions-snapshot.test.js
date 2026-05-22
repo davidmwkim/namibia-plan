@@ -25,7 +25,8 @@ describe('Directions tab golden', () => {
     const w = dom.window;
     w.state.activeTab = 'directions';
     w.renderTab();
-    const html = w.document.querySelector('.directions').outerHTML;
+    // v45 transforms .directions into a .pass-shell (central map + swipe deck).
+    const html = w.document.querySelector('.pass-shell').outerHTML;
     expect(normalize(html)).toMatchSnapshot();
   });
 });

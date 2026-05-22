@@ -106,7 +106,7 @@
   // the whole page sideways.
   function isNoSwipeTarget(target) {
     return !!(target && target.closest && target.closest(
-      'input[type="range"], .drive-scrub-row, .hbar, .drive-heather, .leaflet-container, .drive-cards'));
+      'input[type="range"], .drive-scrub-row, .hbar, .drive-heather, .leaflet-container, .drive-cards, .pass-deck'));
   }
 
   function attachAnimatedSwipe(el) {

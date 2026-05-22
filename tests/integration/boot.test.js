@@ -100,11 +100,14 @@ describe('Directions tab with v12 enrichment', () => {
     // The cached route already has streetViewUrl (data URL in the fixture); the
     // per-step map is now a live OSM (Leaflet) frame placeholder div (v36).
     w.renderTab();
-    const lis = w.document.querySelectorAll('.directions ol li');
-    expect(lis.length).toBeGreaterThan(0);
-    const firstLi = lis[0];
-    const mapFrame = firstLi.querySelector('.step-map-osm');
-    const sv = firstLi.querySelector('img.step-streetview');
+    // v45 transforms the directions list into a swipe DECK of step cards
+    // (.pass-card) under a central map; the v12/v36 per-step enrichment still
+    // runs first, so each card carries the OSM map frame + street-view img.
+    const cards = w.document.querySelectorAll('.pass-card');
+    expect(cards.length).toBeGreaterThan(0);
+    const firstCard = cards[0];
+    const mapFrame = firstCard.querySelector('.step-map-osm');
+    const sv = firstCard.querySelector('img.step-streetview');
     expect(mapFrame).toBeTruthy();
     // The frame carries the data v36 needs to lazily build the Leaflet map.
     expect(mapFrame.getAttribute('data-leg')).toBe('0');
@@ -112,8 +115,8 @@ describe('Directions tab with v12 enrichment', () => {
     expect(mapFrame.getAttribute('data-status')).toBeTruthy();
     expect(sv).toBeTruthy();
     expect(sv.getAttribute('src')).toBeTruthy();
-    // Expand button present
-    expect(firstLi.querySelector('.step-expand')).toBeTruthy();
+    // Expand button present (kept in the DOM; hidden in deck mode)
+    expect(firstCard.querySelector('.step-expand')).toBeTruthy();
   });
 });
 
